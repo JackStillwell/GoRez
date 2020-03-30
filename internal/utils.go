@@ -1,4 +1,4 @@
-package gorez_internal
+package internal_gorez
 
 import (
 	"io/ioutil"
