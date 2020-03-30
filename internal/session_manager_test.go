@@ -1,4 +1,4 @@
-package gorez
+package gorez_internal
 
 import (
 	"testing"

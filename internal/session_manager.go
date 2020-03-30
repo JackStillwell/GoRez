@@ -1,10 +1,10 @@
-package gorez
+package gorez_internal
 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
+
+	pkg "github.com/JackStillwell/Gorez/pkg"
 )
 
 // Session has no comment
@@ -12,27 +12,6 @@ type Session struct {
 	retMsg    string
 	sessionID string
 	timestamp string
-}
-
-// DefaultGetter is the default HTTPGetter implementation
-type DefaultGetter struct{}
-
-// Get retrieves a byte array from a URL
-func (t DefaultGetter) Get(url string) ([]byte, error) {
-	resp, getErr := http.Get(url)
-
-	if getErr != nil {
-		return nil, getErr
-	}
-
-	defer resp.Body.Close()
-	body, readErr := ioutil.ReadAll(resp.Body)
-
-	if readErr != nil {
-		return nil, readErr
-	}
-
-	return body, nil
 }
 
 // ParseJSONToSession parses a json []byte to a Session struct
@@ -44,6 +23,10 @@ func ParseJSONToSession(jsonString []byte) (Session, error) {
 	}
 
 	retMsg, _ := rawMap["ret_msg"].(string)
+
+	// NOTE: need to check retmsg to see if I should attempt
+	//         to parse the other fields
+
 	sessionID, _ := rawMap["session_id"].(string)
 	timestamp, _ := rawMap["timestamp"].(string)
 
@@ -57,14 +40,16 @@ func ParseJSONToSession(jsonString []byte) (Session, error) {
 }
 
 // GetSession gets a new session
-func GetSession(id, key string, getter HTTPGetter) (string, error) {
+func GetSession(apiBase pkg.APIBase) (string, error) {
 
-	if getter == nil {
-		getter = DefaultGetter{}
-	}
-
-	request := fmt.Sprintf("http://api.smitegame.com/smiteapi.svc/json/%s/%s", id, key)
-	body, getterErr := getter.Get(request)
+	request := fmt.Sprintf(
+		"%s/%s/%s/%s",
+		apiBase.baseURL,
+		apiBase.returnDataType,
+		apiBase.devID,
+		apiBase.devKey,
+	)
+	body, getterErr := apiBase.httpGet.get(request)
 
 	if getterErr != nil {
 		return "HttpGetter error", getterErr
