@@ -1,10 +1,26 @@
 package gorez
 
-import "testing"
+import (
+	"testing"
 
-func TestNothing(t *testing.T) {
-	want := "nothing"
-	if got := Nothing(); got != want {
-		t.Errorf("Nothing() = %q, want %q", got, want)
+	mocker "github.com/JackStillwell/GoRez/test"
+	"github.com/golang/mock/gomock"
+)
+
+func TestGetSession(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockObj := mocker.NewMockHTTPGetter(mockCtrl)
+	mockObj.EXPECT().Get("mockBaseURL/mockReturnDataType/mockDevID/mockDevKey").Return([]byte(`{
+    "ret_msg": "Approved",
+    "session_id": "dummy_id",
+    "timestamp": "3/29/2020 3:12:06 PM"
+}`), nil)
+
+	want := "dummy_id"
+
+	if got, err := GetSession(mockAPIBase(mockObj)); got != want || err != nil {
+		t.Errorf("GetSession() = %q, want %q err %q", got, want, err.Error())
 	}
 }

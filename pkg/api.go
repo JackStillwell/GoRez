@@ -32,7 +32,13 @@ func mockAPIBase(mockHTTPGetter internal.HTTPGetter) APIBase {
 	}
 }
 
-// Nothing returns the string "nothing"
-func Nothing() string {
-	return "nothing"
+// GetSession returns a session id
+func GetSession(api APIBase) (string, error) {
+	return internal.GetSession(
+		api.baseURL,
+		api.returnDataType,
+		api.devID,
+		api.devKey,
+		api.httpGet,
+	)
 }
