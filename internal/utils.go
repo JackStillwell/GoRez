@@ -1,15 +1,15 @@
-package internal_gorez
+package gorezinternal
 
 import (
 	"io/ioutil"
 	"net/http"
 )
 
-// defaultGetter is the default httpGetter implementation
-type defaultGetter struct{}
+// DefaultGetter is the default HTTPGetter implementation
+type DefaultGetter struct{}
 
 // Get retrieves a byte array from a URL
-func (t defaultGetter) get(url string) ([]byte, error) {
+func (t DefaultGetter) Get(url string) ([]byte, error) {
 	resp, getErr := http.Get(url)
 
 	if getErr != nil {

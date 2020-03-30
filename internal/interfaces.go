@@ -1,6 +1,6 @@
-package internal_gorez
+package gorezinternal
 
-// httpGetter is an interface for mocking
-type httpGetter interface {
-	get(url string) ([]byte, error)
+// HTTPGetter is an interface for mocking
+type HTTPGetter interface {
+	Get(url string) ([]byte, error)
 }

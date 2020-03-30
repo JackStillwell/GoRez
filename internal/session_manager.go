@@ -1,10 +1,8 @@
-package internal_gorez
+package gorezinternal
 
 import (
 	"encoding/json"
 	"fmt"
-
-	pkg "github.com/JackStillwell/Gorez/pkg"
 )
 
 // Session has no comment
@@ -40,16 +38,21 @@ func ParseJSONToSession(jsonString []byte) (Session, error) {
 }
 
 // GetSession gets a new session
-func GetSession(apiBase pkg.APIBase) (string, error) {
+func GetSession(
+	baseURL,
+	returnDataType,
+	devID,
+	devKey string,
+	httpGet HTTPGetter) (string, error) {
 
 	request := fmt.Sprintf(
 		"%s/%s/%s/%s",
-		apiBase.baseURL,
-		apiBase.returnDataType,
-		apiBase.devID,
-		apiBase.devKey,
+		baseURL,
+		returnDataType,
+		devID,
+		devKey,
 	)
-	body, getterErr := apiBase.httpGet.get(request)
+	body, getterErr := httpGet.Get(request)
 
 	if getterErr != nil {
 		return "HttpGetter error", getterErr

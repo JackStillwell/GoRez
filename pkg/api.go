@@ -1,6 +1,6 @@
 package gorez
 
-import internal "github.com/JackStillwell/Gorez/internal"
+import internal "github.com/JackStillwell/GoRez/internal"
 
 // APIBase contains the information to create all requests to an API
 type APIBase struct {
@@ -8,7 +8,7 @@ type APIBase struct {
 	devID          string
 	devKey         string
 	returnDataType string
-	httpGet        httpGetter
+	httpGet        internal.HTTPGetter
 }
 
 // NewAPIBase creates an APIBase given baseURL, devID, and devKey
@@ -18,11 +18,11 @@ func NewAPIBase(baseURL, returnDataType, devID, devKey string) APIBase {
 		devID:          devID,
 		devKey:         devKey,
 		returnDataType: returnDataType,
-		httpGet:        internal.defaultGetter{},
+		httpGet:        internal.DefaultGetter{},
 	}
 }
 
-func mockAPIBase(mockHTTPGetter internal.httpGetter) APIBase {
+func mockAPIBase(mockHTTPGetter internal.HTTPGetter) APIBase {
 	return APIBase{
 		baseURL:        "mockBaseURL",
 		devID:          "mockDevID",

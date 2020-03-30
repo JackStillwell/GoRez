@@ -1,4 +1,4 @@
-package internal_gorez
+package gorezinternal
 
 import (
 	"testing"
@@ -28,8 +28,8 @@ func TestGetSession(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockObj := mocker.NewMockHttpGetter(mockCtrl)
-	mockObj.EXPECT().Get("http://api.smitegame.com/smiteapi.svc/json/dummy_id/dummy_key").Return([]byte(`{
+	mockObj := mocker.NewMockHTTPGetter(mockCtrl)
+	mockObj.EXPECT().Get("mock/mock/mock/mock").Return([]byte(`{
     "ret_msg": "Approved",
     "session_id": "dummy_id",
     "timestamp": "3/29/2020 3:12:06 PM"
@@ -37,7 +37,7 @@ func TestGetSession(t *testing.T) {
 
 	want := "dummy_id"
 
-	if got, err := GetSession("dummy_id", "dummy_key", mockObj); got != want || err != nil {
+	if got, err := GetSession("mock", "mock", "mock", "mock", mockObj); got != want || err != nil {
 		t.Errorf("GetSession() = %q, want %q err %q", got, want, err.Error())
 	}
 }
