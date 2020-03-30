@@ -14,8 +14,11 @@ type Session struct {
 	timestamp string
 }
 
+// DefaultGetter is the default HTTPGetter implementation
+type DefaultGetter struct{}
+
 // Get retrieves a byte array from a URL
-func Get(url string) ([]byte, error) {
+func (t DefaultGetter) Get(url string) ([]byte, error) {
 	resp, getErr := http.Get(url)
 
 	if getErr != nil {
@@ -55,6 +58,11 @@ func ParseJSONToSession(jsonString []byte) (Session, error) {
 
 // GetSession gets a new session
 func GetSession(id, key string, getter HTTPGetter) (string, error) {
+
+	if getter == nil {
+		getter = DefaultGetter{}
+	}
+
 	request := fmt.Sprintf("http://api.smitegame.com/smiteapi.svc/json/%s/%s", id, key)
 	body, getterErr := getter.Get(request)
 
