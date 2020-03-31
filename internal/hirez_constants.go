@@ -5,14 +5,16 @@ type APIConstants struct {
 	SmiteURLBase  string
 	GetDataUsed   string
 	CreateSession string
+	TestSession   string
 }
 
-// NewAPIConstants returns a SmiteURL populated with currently known values
-func NewAPIConstants() APIConstants {
+// New returns an APIConstants obj populated with currently known values
+func (t APIConstants) New() APIConstants {
 	return APIConstants{
 		SmiteURLBase:  "http://api.smitegame.com/smiteapi.svc",
 		GetDataUsed:   "getdataused",
 		CreateSession: "createsession",
+		TestSession:   "testsession",
 	}
 }
 
@@ -28,8 +30,8 @@ type SmiteConstants struct {
 	RankedDuel           string
 }
 
-// NewSmiteConstants returns a SmiteURL populated with currently known values
-func NewSmiteConstants() SmiteConstants {
+// New returns a SmiteConstants populated with currently known values
+func (t SmiteConstants) New() SmiteConstants {
 	return SmiteConstants{
 		GetMatchDetails:      "getmatchdetails",
 		GetMatchDetailsBatch: "getmatchdetailsbatch",
@@ -48,8 +50,8 @@ type ReturnDataType struct {
 	XML  string
 }
 
-// NewReturnDataType returns a ReturnDataType populated with currently known values
-func NewReturnDataType() ReturnDataType {
+// New returns a ReturnDataType populated with currently known values
+func (t ReturnDataType) New() ReturnDataType {
 	return ReturnDataType{
 		JSON: "json",
 		XML:  "xml",

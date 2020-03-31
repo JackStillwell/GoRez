@@ -70,13 +70,15 @@ func (t *RequestManager) CreateSessionRequest() ([]byte, error) {
 	// format the url properly
 	timestamp := getTimestamp(time.Now().UTC())
 
+	apiConsts := APIConstants{}.New()
+
 	request := fmt.Sprintf(
 		"%s/%s%s/%s/%s/%s",
 		t.urlBase,
-		"createsession",
+		apiConsts.CreateSession,
 		t.returnDataType,
 		t.auth.devID,
-		t.getSignature("createsession", timestamp),
+		t.getSignature(apiConsts.CreateSession, timestamp),
 		timestamp,
 	)
 

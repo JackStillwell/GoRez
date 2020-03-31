@@ -11,8 +11,50 @@ type SessionManager struct {
 	requestManager  *RequestManager
 	idleSessions    []string
 	activeSessions  []string
-	sessionsCreated uint8
+	sessionsCreated uint16
 	mux             sync.Mutex
+}
+
+// Initialize returns a SessionManager constructed with accurate startup
+//   values attempts to reuse old sessions are made and current limit info is
+//   pulled down from the HiRez API
+func (t *SessionManager) Initialize(initFile string, rm *RequestManager) {
+	limitConsts := LimitConstants{}.New()
+
+	// read existing sessions from file
+	iS := make([]string, limitConsts.ConcurrentSessions)
+
+	apiConsts := APIConstants{}.New()
+
+	t.requestManager = rm
+	t.idleSessions = iS
+	t.activeSessions = make([]string, limitConsts.ConcurrentSessions)
+	t.sessionsCreated = 0
+
+	sessionid, err := t.GetSession()
+
+	// check the err
+	if err != nil {
+		panic("Could not acquire session to determine current usage")
+	}
+
+	// read current sessionsCreated from the API
+	rm.EndpointRequest(
+		apiConsts.TestSession,
+		sessionid,
+		"",
+	)
+
+	// parse from json obj
+
+	// populate the sm
+	t.sessionsCreated = 0
+}
+
+// Save stores the sessions currently created in a file specified
+//   NOTE: THIS SHOULD BE DEFFERED ON CREATION TO ENSURE SESSIONS ARE NOT LOST
+func (t *SessionManager) Save(saveFile string) {
+	// saves stuff
 }
 
 // Session contains the information returned from a createsession request
@@ -51,25 +93,55 @@ func ParseJSONToSession(jsonString []byte) (Session, error) {
 func (t *SessionManager) GetSession() (string, error) {
 	t.mux.Lock()
 
+	var sessionid string
 	if len(t.idleSessions) > 0 {
-		toreturn := t.idleSessions[0]
+		sessionid = t.idleSessions[0]
 		t.idleSessions = t.idleSessions[1:]
-		t.activeSessions = append(t.activeSessions, toreturn)
-		return toreturn, nil
-	}
-	body, requestErr := t.requestManager.CreateSessionRequest()
+		t.activeSessions = append(t.activeSessions, sessionid)
 
-	if requestErr != nil {
-		return "", requestErr
-	}
+		apiConsts := APIConstants{}.New()
 
-	session, jsonErr := ParseJSONToSession(body)
-	if jsonErr != nil {
-		return "", jsonErr
+		// test the session to make sure its still valid
+		resp, err := t.requestManager.EndpointRequest(
+			apiConsts.TestSession,
+			sessionid,
+			"",
+		)
+
+		if err != nil {
+			return "", err
+		}
+
+		// parse resp
+		if string(resp) != "write a parser for the testsession reply" {
+			return "", errors.New("not implemented")
+		}
+
+	} else {
+		limitConsts := LimitConstants{}.New()
+
+		if t.sessionsCreated == limitConsts.SessionsPerDay {
+			return "", errors.New("Sessions Created per Day Limit Reached")
+		}
+
+		body, requestErr := t.requestManager.CreateSessionRequest()
+
+		if requestErr != nil {
+			return "", requestErr
+		}
+
+		session, jsonErr := ParseJSONToSession(body)
+		if jsonErr != nil {
+			return "", jsonErr
+		}
+
+		sessionid = session.sessionID
+		t.activeSessions = append(t.activeSessions, sessionid)
+		t.sessionsCreated++
 	}
 
 	t.mux.Unlock()
-	return session.sessionID, nil
+	return sessionid, nil
 }
 
 // ReturnSession places a sessionid in the pool for use

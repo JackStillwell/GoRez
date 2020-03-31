@@ -9,8 +9,8 @@ type APIBase struct {
 	requester      HTTPGetter
 }
 
-// NewAPIBase creates an APIBase given baseURL, devID, and devKey
-func NewAPIBase(baseURL, returnDataType, devID, devKey string) APIBase {
+// New creates an APIBase given baseURL, devID, and devKey
+func (t APIBase) New(baseURL, returnDataType, devID, devKey string) APIBase {
 	return APIBase{
 		baseURL:        baseURL,
 		devID:          devID,
@@ -20,7 +20,8 @@ func NewAPIBase(baseURL, returnDataType, devID, devKey string) APIBase {
 	}
 }
 
-func mockAPIBase(mockHTTPGetter HTTPGetter) APIBase {
+// mock creates a mock APIBase given a mock getter
+func (t APIBase) mock(mockHTTPGetter HTTPGetter) APIBase {
 	return APIBase{
 		baseURL:        "mockBaseURL",
 		devID:          "mockDevID",
@@ -38,8 +39,8 @@ type LimitConstants struct {
 	RequestsPerDay     uint16
 }
 
-// NewLimitConstants returns a LimitConstants populated with currently known values
-func NewLimitConstants() LimitConstants {
+// New returns a LimitConstants populated with currently known values
+func (t LimitConstants) New() LimitConstants {
 	return LimitConstants{
 		ConcurrentSessions: 45,
 		SessionsPerDay:     500,
