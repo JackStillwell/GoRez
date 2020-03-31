@@ -2,8 +2,8 @@ package gorezinternal
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"fmt"
-	"io"
 	"time"
 )
 
@@ -16,6 +16,20 @@ type RequestManager struct {
 	requester      HTTPGetter
 }
 
+// mock creates a mock RequestManager for testing purposes
+func (t RequestManager) mock(mockRequester HTTPGetter) RequestManager {
+	return RequestManager{
+		urlBase:        "mockURLBase",
+		numRequests:    0,
+		returnDataType: "json",
+		auth: Auth{
+			devID:  "mockDevID",
+			devKey: "mockDevKey",
+		},
+		requester: mockRequester,
+	}
+}
+
 // Auth contains the information necessary to authenticate against HiRez API
 type Auth struct {
 	devID  string
@@ -24,15 +38,10 @@ type Auth struct {
 
 // getSignature creates the md5 signature for a request
 func (t *RequestManager) getSignature(endpoint string, timestamp string) string {
-	hash := md5.New()
+	tohash := []byte(t.auth.devID + endpoint + t.auth.devKey + timestamp)
+	hash := md5.Sum(tohash)
 
-	io.WriteString(hash, t.auth.devID)
-	io.WriteString(hash, endpoint)
-	io.WriteString(hash, t.auth.devKey)
-	io.WriteString(hash, timestamp)
-
-	signature := string(hash.Sum(nil))
-	return signature
+	return hex.EncodeToString(hash[:16])
 }
 
 // getTimestamp creates the timestamp for a request

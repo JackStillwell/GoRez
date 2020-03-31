@@ -5,10 +5,10 @@
 package mock_gorezinternal
 
 import (
-	gorezinternal "github.com/JackStillwell/GoRez/internal"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockHTTPGetter is a mock of HTTPGetter interface
@@ -154,7 +154,7 @@ func (m *MockSessionManagement) EXPECT() *MockSessionManagementMockRecorder {
 }
 
 // Initialize mocks base method
-func (m *MockSessionManagement) Initialize(initFile string, rm gorezinternal.RequestManagement) {
+func (m *MockSessionManagement) Initialize(initFile string, rm MockRequestManagement) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Initialize", initFile, rm)
 }
