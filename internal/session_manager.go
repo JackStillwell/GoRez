@@ -5,7 +5,14 @@ import (
 	"fmt"
 )
 
-// Session has no comment
+// SessionManager contains the information necessary for managing HiRez API Session
+type SessionManager struct {
+	idleSessions    []string
+	activeSessions  []string
+	sessionsCreated uint8
+}
+
+// Session contains the information returned from a createsession request
 type Session struct {
 	retMsg    string
 	sessionID string
@@ -50,12 +57,12 @@ func GetSession(api APIBase) (string, error) {
 	body, getterErr := api.httpGet.Get(request)
 
 	if getterErr != nil {
-		return "HttpGetter error", getterErr
+		return "", getterErr
 	}
 
 	session, jsonErr := ParseJSONToSession(body)
 	if jsonErr != nil {
-		return "json Unmarshal error", jsonErr
+		return "", jsonErr
 	}
 
 	return session.sessionID, nil
