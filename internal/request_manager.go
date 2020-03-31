@@ -14,10 +14,24 @@ type Auth struct {
 	devKey string
 }
 
-// MakeRequest makes a request to the HiRez API
-func (t *RequestManager) MakeRequest(method string) ([]byte, error) {
+// makeRequest makes a request to the HiRez API
+func (t *RequestManager) makeRequest(endpoint string) ([]byte, error) {
 	// do all the security stuff
 	// construct the URL
 	// use Get
 	return nil, nil
+}
+
+// EndpointRequest sends a request to the specified endpoint
+func (t *RequestManager) EndpointRequest(endpoint string) ([]byte, error) {
+	// format the url properly
+
+	return t.makeRequest(endpoint)
+}
+
+// CreateSessionRequest sends a request to the createsession endpoint
+func (t *RequestManager) CreateSessionRequest() ([]byte, error) {
+	// format the url properly
+
+	return t.makeRequest("createsession")
 }
