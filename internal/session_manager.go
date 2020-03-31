@@ -8,7 +8,7 @@ import (
 
 // SessionManager contains the information necessary for managing HiRez API Session
 type SessionManager struct {
-	requestManager  *RequestManager
+	requestManager  RequestManagement
 	idleSessions    []string
 	activeSessions  []string
 	sessionsCreated uint16
@@ -18,7 +18,7 @@ type SessionManager struct {
 // Initialize returns a SessionManager constructed with accurate startup
 //   values attempts to reuse old sessions are made and current limit info is
 //   pulled down from the HiRez API
-func (t *SessionManager) Initialize(initFile string, rm *RequestManager) {
+func (t *SessionManager) Initialize(initFile string, rm RequestManagement) {
 	limitConsts := LimitConstants{}.New()
 
 	// read existing sessions from file
