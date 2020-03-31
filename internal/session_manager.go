@@ -8,7 +8,7 @@ import (
 
 // SessionManager contains the information necessary for managing HiRez API Session
 type SessionManager struct {
-	requestManager  RequestManager
+	requestManager  *RequestManager
 	idleSessions    []string
 	activeSessions  []string
 	sessionsCreated uint8

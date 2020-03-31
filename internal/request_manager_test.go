@@ -1,0 +1,3 @@
+package gorezinternal
+
+import "testing"

@@ -6,7 +6,7 @@ type APIBase struct {
 	devID          string
 	devKey         string
 	returnDataType string
-	httpGet        HTTPGetter
+	requester      HTTPGetter
 }
 
 // NewAPIBase creates an APIBase given baseURL, devID, and devKey
@@ -16,7 +16,7 @@ func NewAPIBase(baseURL, returnDataType, devID, devKey string) APIBase {
 		devID:          devID,
 		devKey:         devKey,
 		returnDataType: returnDataType,
-		httpGet:        DefaultGetter{},
+		requester:      DefaultGetter{},
 	}
 }
 
@@ -26,7 +26,7 @@ func mockAPIBase(mockHTTPGetter HTTPGetter) APIBase {
 		devID:          "mockDevID",
 		devKey:         "mockDevKey",
 		returnDataType: "mockReturnDataType",
-		httpGet:        mockHTTPGetter,
+		requester:      mockHTTPGetter,
 	}
 }
 
