@@ -29,7 +29,7 @@ func TestGetSession(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockObj := mocker.NewMockHTTPGetter(mockCtrl)
-	mockObj.EXPECT().Get("mock/mock/mock/mock").Return([]byte(`{
+	mockObj.EXPECT().Get("mockBaseURL/mockReturnDataType/mockDevID/mockDevKey").Return([]byte(`{
     "ret_msg": "Approved",
     "session_id": "dummy_id",
     "timestamp": "3/29/2020 3:12:06 PM"
@@ -37,7 +37,7 @@ func TestGetSession(t *testing.T) {
 
 	want := "dummy_id"
 
-	if got, err := GetSession("mock", "mock", "mock", "mock", mockObj); got != want || err != nil {
+	if got, err := GetSession(mockAPIBase(mockObj)); got != want || err != nil {
 		t.Errorf("GetSession() = %q, want %q err %q", got, want, err.Error())
 	}
 }

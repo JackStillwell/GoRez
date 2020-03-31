@@ -1,4 +1,4 @@
-package gorez
+package gorezinternal
 
 // APIConstants contains the known method fields
 type APIConstants struct {
@@ -53,23 +53,5 @@ func NewReturnDataType() ReturnDataType {
 	return ReturnDataType{
 		JSON: "json",
 		XML:  "xml",
-	}
-}
-
-// LimitConstants contains the known limit constants
-type LimitConstants struct {
-	ConcurrentSessions uint8
-	SessionsPerDay     uint16
-	SessionTimeLimit   uint16
-	RequestsPerDay     uint16
-}
-
-// NewLimitConstants returns a LimitConstants populated with currently known values
-func NewLimitConstants() LimitConstants {
-	return LimitConstants{
-		ConcurrentSessions: 45,
-		SessionsPerDay:     500,
-		SessionTimeLimit:   900, // NOTE: SessionTimeLimit is in seconds
-		RequestsPerDay:     7500,
 	}
 }

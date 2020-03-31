@@ -38,21 +38,16 @@ func ParseJSONToSession(jsonString []byte) (Session, error) {
 }
 
 // GetSession gets a new session
-func GetSession(
-	baseURL,
-	returnDataType,
-	devID,
-	devKey string,
-	httpGet HTTPGetter) (string, error) {
+func GetSession(api APIBase) (string, error) {
 
 	request := fmt.Sprintf(
 		"%s/%s/%s/%s",
-		baseURL,
-		returnDataType,
-		devID,
-		devKey,
+		api.baseURL,
+		api.returnDataType,
+		api.devID,
+		api.devKey,
 	)
-	body, getterErr := httpGet.Get(request)
+	body, getterErr := api.httpGet.Get(request)
 
 	if getterErr != nil {
 		return "HttpGetter error", getterErr
