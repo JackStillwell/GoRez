@@ -61,7 +61,7 @@ func (t *RequestManager) EndpointRequest(
 
 	// format the url properly
 	request := fmt.Sprintf(
-		"%s/%s%s/%s/%s/%s/%s/%s",
+		"%s/%s%s/%s/%s/%s/%s",
 		t.urlBase,
 		endpoint,
 		t.returnDataType,
@@ -69,8 +69,11 @@ func (t *RequestManager) EndpointRequest(
 		t.GetSignature(endpoint, timestamp),
 		sessionID,
 		timestamp,
-		args,
 	)
+
+	if args != "" {
+		request += "/" + args
+	}
 
 	return t.requester.Get(request)
 }

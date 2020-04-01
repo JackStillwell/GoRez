@@ -35,15 +35,20 @@ func TestEndpointRequest(t *testing.T) {
 	defer mockCtrl.Finish()
 	mockRequester := mocker.NewMockHTTPGetter(mockCtrl)
 
-	url := "mockURLBase/mockEndpointjson/mockDevID/f45bc3f241c136c2e808b8eb0f3891e9/00000000000000/00010101000000/"
+	urlStart := "mockURLBase/mockEndpointjson/mockDevID/"
+	dummySignature := "f45bc3f241c136c2e808b8eb0f3891e9"
+	dummySession := "/00000000000000/00010101000000"
+	url := urlStart + dummySignature + dummySession
+
 	mockRequester.EXPECT().Get(url).Return([]byte("success!"), nil)
 
 	requestManager := RequestManager{}.mock(mockRequester)
 	dummyTime, _ := time.Parse("01 02 15 04 05 2006", "01 01 00 00 00 0001")
 
 	want := "success!"
+	got, err := requestManager.EndpointRequest("mockEndpoint", "00000000000000", "", dummyTime)
 
-	if got, err := requestManager.EndpointRequest("mockEndpoint", "00000000000000", "", dummyTime); string(got) != want || err != nil {
+	if string(got) != want || err != nil {
 		t.Errorf("getSignature() = %q, want %q, err %q", got, want, err)
 	}
 }
