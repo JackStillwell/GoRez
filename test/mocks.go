@@ -72,32 +72,32 @@ func (m *MockRequestManagement) EXPECT() *MockRequestManagementMockRecorder {
 	return m.recorder
 }
 
-// GetSignature mocks base method
-func (m *MockRequestManagement) GetSignature(endpoint, timestamp string) string {
+// getSignature mocks base method
+func (m *MockRequestManagement) getSignature(endpoint, timestamp string) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSignature", endpoint, timestamp)
+	ret := m.ctrl.Call(m, "getSignature", endpoint, timestamp)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GetSignature indicates an expected call of GetSignature
-func (mr *MockRequestManagementMockRecorder) GetSignature(endpoint, timestamp interface{}) *gomock.Call {
+// getSignature indicates an expected call of getSignature
+func (mr *MockRequestManagementMockRecorder) getSignature(endpoint, timestamp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSignature", reflect.TypeOf((*MockRequestManagement)(nil).GetSignature), endpoint, timestamp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getSignature", reflect.TypeOf((*MockRequestManagement)(nil).getSignature), endpoint, timestamp)
 }
 
-// GetTimestamp mocks base method
-func (m *MockRequestManagement) GetTimestamp(currTime time.Time) string {
+// getTimestamp mocks base method
+func (m *MockRequestManagement) getTimestamp(currTime time.Time) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTimestamp", currTime)
+	ret := m.ctrl.Call(m, "getTimestamp", currTime)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GetTimestamp indicates an expected call of GetTimestamp
-func (mr *MockRequestManagementMockRecorder) GetTimestamp(currTime interface{}) *gomock.Call {
+// getTimestamp indicates an expected call of getTimestamp
+func (mr *MockRequestManagementMockRecorder) getTimestamp(currTime interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTimestamp", reflect.TypeOf((*MockRequestManagement)(nil).GetTimestamp), currTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getTimestamp", reflect.TypeOf((*MockRequestManagement)(nil).getTimestamp), currTime)
 }
 
 // EndpointRequest mocks base method
