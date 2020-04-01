@@ -36,16 +36,16 @@ type Auth struct {
 	devKey string
 }
 
-// getSignature creates the md5 signature for a request
-func (t *RequestManager) getSignature(endpoint string, timestamp string) string {
+// GetSignature creates the md5 signature for a request
+func (t *RequestManager) GetSignature(endpoint string, timestamp string) string {
 	tohash := []byte(t.auth.devID + endpoint + t.auth.devKey + timestamp)
 	hash := md5.Sum(tohash)
 
 	return hex.EncodeToString(hash[:16])
 }
 
-// getTimestamp creates the timestamp for a request
-func getTimestamp(currTime time.Time) string {
+// GetTimestamp creates the timestamp for a request
+func GetTimestamp(currTime time.Time) string {
 	timestamp := currTime.Format("20060102150405")
 	return timestamp
 }
@@ -55,17 +55,18 @@ func (t *RequestManager) EndpointRequest(
 	endpoint string,
 	sessionID string,
 	args string,
+	timestampTime time.Time,
 ) ([]byte, error) {
-	// format the url properly
-	timestamp := getTimestamp(time.Now().UTC())
+	timestamp := GetTimestamp(timestampTime)
 
+	// format the url properly
 	request := fmt.Sprintf(
 		"%s/%s%s/%s/%s/%s/%s/%s",
 		t.urlBase,
 		endpoint,
 		t.returnDataType,
 		t.auth.devID,
-		t.getSignature(endpoint, timestamp),
+		t.GetSignature(endpoint, timestamp),
 		sessionID,
 		timestamp,
 		args,
@@ -77,7 +78,7 @@ func (t *RequestManager) EndpointRequest(
 // CreateSessionRequest sends a request to the createsession endpoint
 func (t *RequestManager) CreateSessionRequest() ([]byte, error) {
 	// format the url properly
-	timestamp := getTimestamp(time.Now().UTC())
+	timestamp := GetTimestamp(time.Now().UTC())
 
 	apiConsts := APIConstants{}.New()
 
@@ -87,7 +88,7 @@ func (t *RequestManager) CreateSessionRequest() ([]byte, error) {
 		apiConsts.CreateSession,
 		t.returnDataType,
 		t.auth.devID,
-		t.getSignature(apiConsts.CreateSession, timestamp),
+		t.GetSignature(apiConsts.CreateSession, timestamp),
 		timestamp,
 	)
 

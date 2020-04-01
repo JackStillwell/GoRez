@@ -9,8 +9,8 @@ type HTTPGetter interface {
 
 // RequestManagement is an interface for RequestManager
 type RequestManagement interface {
-	getSignature(endpoint string, timestamp string) string
-	getTimestamp(currTime time.Time) string
+	GetSignature(endpoint string, timestamp string) string
+	GetTimestamp(currTime time.Time) string
 	EndpointRequest(
 		endpoint string,
 		sessionID string,
