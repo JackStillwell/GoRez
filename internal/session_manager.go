@@ -15,6 +15,14 @@ type SessionManager struct {
 	mux             sync.Mutex
 }
 
+func (t SessionManager) mock(rm RequestManagement) {
+	limitConsts := LimitConstants{}.New()
+	t.requestManager = rm
+	t.idleSessions = make([]string, limitConsts.ConcurrentSessions)
+	t.activeSessions = make([]string, limitConsts.ConcurrentSessions)
+	t.sessionsCreated = 0
+}
+
 // Initialize returns a SessionManager constructed with accurate startup
 //   values attempts to reuse old sessions are made and current limit info is
 //   pulled down from the HiRez API

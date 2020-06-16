@@ -21,6 +21,7 @@ type RequestManagement interface {
 
 // SessionManagement is an interface for SessionManager
 type SessionManagement interface {
+	mock(rm RequestManagement)
 	Initialize(initFile string, rm RequestManagement)
 	Save(saveFile string)
 	GetSession() (string, error)
