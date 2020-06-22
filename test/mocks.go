@@ -5,10 +5,8 @@
 package mock_gorezinternal
 
 import (
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockHTTPGetter is a mock of HTTPGetter interface
@@ -70,34 +68,6 @@ func NewMockRequestManagement(ctrl *gomock.Controller) *MockRequestManagement {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockRequestManagement) EXPECT() *MockRequestManagementMockRecorder {
 	return m.recorder
-}
-
-// getSignature mocks base method
-func (m *MockRequestManagement) getSignature(endpoint, timestamp string) string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "getSignature", endpoint, timestamp)
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// getSignature indicates an expected call of getSignature
-func (mr *MockRequestManagementMockRecorder) getSignature(endpoint, timestamp interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getSignature", reflect.TypeOf((*MockRequestManagement)(nil).getSignature), endpoint, timestamp)
-}
-
-// getTimestamp mocks base method
-func (m *MockRequestManagement) getTimestamp(currTime time.Time) string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "getTimestamp", currTime)
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// getTimestamp indicates an expected call of getTimestamp
-func (mr *MockRequestManagementMockRecorder) getTimestamp(currTime interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getTimestamp", reflect.TypeOf((*MockRequestManagement)(nil).getTimestamp), currTime)
 }
 
 // EndpointRequest mocks base method

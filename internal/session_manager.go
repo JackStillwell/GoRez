@@ -15,7 +15,7 @@ type SessionManager struct {
 	mux             sync.Mutex
 }
 
-func (t SessionManager) mock(rm RequestManagement) {
+func (t *SessionManager) mock(rm RequestManagement) {
 	limitConsts := LimitConstants{}.New()
 	t.requestManager = rm
 	t.idleSessions = make([]string, limitConsts.ConcurrentSessions)

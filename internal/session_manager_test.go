@@ -37,10 +37,11 @@ func TestGetSession(t *testing.T) {
 
 	mockRM := mocker.NewMockRequestManagement(mockCtrl)
 
-	sessMan := SessionManager{}.mock(mockRM)
+	sessMan := SessionManager{}
+	sessMan.mock(mockRM)
 	want := "dummy_id"
 
-	if got, err := GetSession(); got != want || err != nil {
+	if got, err := sessMan.GetSession(); got != want || err != nil {
 		t.Errorf("GetSession() = %q, want %q err %q", got, want, err.Error())
 	}
 }
