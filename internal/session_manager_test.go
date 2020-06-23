@@ -28,14 +28,12 @@ func TestGetSession(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockHTTP := mocker.NewMockHTTPGetter(mockCtrl)
-	mockHTTP.EXPECT().Get("mockBaseURL/mockReturnDataType/mockDevID/mockDevKey").Return([]byte(`{
-    "ret_msg": "Approved",
-    "session_id": "dummy_id",
-    "timestamp": "3/29/2020 3:12:06 PM"
-}`), nil)
-
 	mockRM := mocker.NewMockRequestManagement(mockCtrl)
+	mockRM.EXPECT().CreateSessionRequest().Return([]byte(`{
+		"ret_msg": "Approved",
+		"session_id": "dummy_id",
+		"timestamp": "3/29/2020 3:12:06 PM"
+	}`), nil)
 
 	sessMan := SessionManager{}
 	sessMan.mock(mockRM)

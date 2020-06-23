@@ -16,10 +16,9 @@ type SessionManager struct {
 }
 
 func (t *SessionManager) mock(rm RequestManagement) {
-	limitConsts := LimitConstants{}.New()
 	t.requestManager = rm
-	t.idleSessions = make([]string, limitConsts.ConcurrentSessions)
-	t.activeSessions = make([]string, limitConsts.ConcurrentSessions)
+	t.idleSessions = make([]string, 0)
+	t.activeSessions = make([]string, 0)
 	t.sessionsCreated = 0
 }
 
