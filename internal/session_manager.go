@@ -15,11 +15,13 @@ type SessionManager struct {
 	mux             sync.Mutex
 }
 
-func (t *SessionManager) mock(rm RequestManagement) {
-	t.requestManager = rm
-	t.idleSessions = make([]string, 0)
-	t.activeSessions = make([]string, 0)
-	t.sessionsCreated = 0
+func (t SessionManager) mock(rm RequestManagement) SessionManager {
+	return SessionManager{
+		requestManager:  rm,
+		idleSessions:    make([]string, 0),
+		activeSessions:  make([]string, 0),
+		sessionsCreated: 0,
+	}
 }
 
 // Initialize returns a SessionManager constructed with accurate startup

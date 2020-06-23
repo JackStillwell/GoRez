@@ -35,8 +35,7 @@ func TestGetSession(t *testing.T) {
 		"timestamp": "3/29/2020 3:12:06 PM"
 	}`), nil)
 
-	sessMan := SessionManager{}
-	sessMan.mock(mockRM)
+	sessMan := SessionManager{}.mock(mockRM)
 	want := "dummy_id"
 
 	if got, err := sessMan.GetSession(); got != want || err != nil {
