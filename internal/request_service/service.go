@@ -4,39 +4,39 @@ import (
 	"io"
 	"net/http"
 	"runtime"
-	"sync"
 
 	i "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/request_service/models"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
 type requestService struct {
-	httpGet      i.HTTPGet
+	http         i.HTTPGet
 	requestChan  chan *m.Request
-	responses    []*m.RequestResponse
-	responseLock sync.Mutex
+	responseChan chan *m.RequestResponse
+	workerKill   []chan bool
 }
 
 type httpGetter struct{}
 
-func (_ *httpGetter) Get(url string) (*http.Response, error) {
+func (*httpGetter) Get(url string) (*http.Response, error) {
 	return http.Get(url)
 }
 
 func NewMockRequestService(capacity int, hG i.HTTPGet) i.RequestService {
 	requests := make(chan *m.Request, capacity)
-	responses := make([]*m.RequestResponse, capacity)
+	responses := make(chan *m.RequestResponse, capacity)
 
 	rS := &requestService{
-		httpGet:     hG,
-		requestChan: requests,
-		responses:   responses,
+		http:         hG,
+		requestChan:  requests,
+		responseChan: responses,
 	}
 
+	wKs := make([]chan bool, runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
-		go requestServiceRoutine(rS)
+		wKs[i] = make(chan bool)
+		go requestServiceRoutine(rS, wKs[i])
 	}
 
 	return rS
@@ -44,16 +44,18 @@ func NewMockRequestService(capacity int, hG i.HTTPGet) i.RequestService {
 
 func NewRequestService(capacity int) i.RequestService {
 	requests := make(chan *m.Request, capacity)
-	responses := make([]*m.RequestResponse, capacity)
+	responses := make(chan *m.RequestResponse, capacity)
 
 	rS := &requestService{
-		httpGet:     &httpGetter{},
-		requestChan: requests,
-		responses:   responses,
+		http:         &httpGetter{},
+		requestChan:  requests,
+		responseChan: responses,
 	}
 
+	wKs := make([]chan bool, runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
-		go requestServiceRoutine(rS)
+		wKs[i] = make(chan bool)
+		go requestServiceRoutine(rS, wKs[i])
 	}
 
 	return rS
@@ -69,7 +71,7 @@ func (s *requestService) Request(r *m.Request) *m.RequestResponse {
 		}
 	}
 
-	resp, err := http.Get(requestURL)
+	resp, err := s.http.Get(requestURL)
 	if err != nil {
 		return &m.RequestResponse{
 			Id:   r.Id,
@@ -100,42 +102,24 @@ func (s *requestService) MakeRequest(r *m.Request) {
 	s.requestChan <- r
 }
 
-// GetResponse takes a UUID and returns either the first response for a nil UUID, the response
-// containing the UUID passed, or an empty response with an err if the requested response is not
-// found.
-func (s *requestService) GetResponse(u *uuid.UUID) (toRet *m.RequestResponse) {
-	s.responseLock.Lock()
-	defer s.responseLock.Unlock()
-
-	toRet = &m.RequestResponse{
-		Id:   nil,
-		Resp: nil,
-		Err:  errors.New("response not found"),
-	}
-	if u == nil {
-		if len(s.responses) == 0 {
-			return
-		}
-		toRet = s.responses[0]
-		s.responses = s.responses[1:]
-		return
-	}
-
-	for _, r := range s.responses {
-		if r.Id == u {
-			return r
-		}
-	}
-
-	return
+func (s *requestService) GetResponse() (toRet *m.RequestResponse) {
+	return <-s.responseChan
 }
 
-func requestServiceRoutine(s *requestService) {
-	select {
-	case r := <-s.requestChan:
-		response := s.Request(r)
-		s.responseLock.Lock()
-		s.responses = append(s.responses, response)
-		s.responseLock.Unlock()
+func (s *requestService) Close() {
+	for _, c := range s.workerKill {
+		c <- true
+	}
+}
+
+func requestServiceRoutine(s *requestService, killChan chan bool) {
+	kill := false
+	for kill {
+		select {
+		case r := <-s.requestChan:
+			s.responseChan <- s.Request(r)
+		case <-killChan:
+			kill = true
+		}
 	}
 }

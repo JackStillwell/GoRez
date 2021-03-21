@@ -19,6 +19,7 @@ type RequestService interface {
 type RequestManager interface {
 	MakeRequest(*models.Request)
 	GetResponse(*uuid.UUID) *models.RequestResponse
+	Close()
 }
 
 type Requester interface {
