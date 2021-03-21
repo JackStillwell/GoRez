@@ -1,4 +1,4 @@
-package hirez_models
+package models
 
 type Item struct {
 	ActiveFlag      *string          `json:"ActiveFlag,omitempty"`

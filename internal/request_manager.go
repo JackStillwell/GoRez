@@ -1,4 +1,4 @@
-package gorezinternal
+package internal
 
 import (
 	"crypto/md5"

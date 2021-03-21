@@ -1,4 +1,4 @@
-package hirez_models
+package models
 
 type God struct {
 	Ability1                   *string             `json:"Ability1,omitempty"`

@@ -1,4 +1,4 @@
-package hirez_models
+package models
 
 type Player struct {
 	ActivePlayerID             *int64  `json:"ActivePlayerId,omitempty"`

@@ -1,4 +1,4 @@
-package gorezinternal
+package internal
 
 // APIBase contains the information to create all requests to an API
 type APIBase struct {

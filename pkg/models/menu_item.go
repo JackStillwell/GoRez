@@ -1,4 +1,4 @@
-package hirez_models
+package models
 
 type MenuItem struct {
 	Description *string `json:"Description,omitempty"`

@@ -1,4 +1,4 @@
-package hirez_models
+package models
 
 type PlayerStatus struct {
 	Match                 *int64  `json:"Match,omitempty"`

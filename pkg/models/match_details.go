@@ -1,4 +1,4 @@
-package hirez_models
+package models
 
 type MatchDetails struct {
 	AccountLevel         *int64   `json:"Account_Level,omitempty"`

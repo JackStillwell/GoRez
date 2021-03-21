@@ -1,4 +1,4 @@
-package hirez_models
+package models
 
 type Session struct {
 	RetMsg    *string `json:"ret_msg,omitempty"`

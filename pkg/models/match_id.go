@@ -1,4 +1,4 @@
-package hirez_models
+package models
 
 type MatchID struct {
 	ActiveFlag *string `json:"Active_Flag,omitempty"`

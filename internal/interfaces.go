@@ -1,4 +1,4 @@
-package gorezinternal
+package internal
 
 // HTTPGetter is an interface for mocking
 type HTTPGetter interface {

@@ -1,4 +1,4 @@
-package gorezinternal
+package internal
 
 // APIConstants contains the known method fields
 type APIConstants struct {
