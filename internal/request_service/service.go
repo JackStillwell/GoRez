@@ -1,7 +1,6 @@
 package request_service
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"runtime"
@@ -24,7 +23,7 @@ func (*httpGetter) Get(url string) (*http.Response, error) {
 	return http.Get(url)
 }
 
-func NewMockRequestService(capacity int, hG i.HTTPGet) i.RequestService {
+func NewTestRequestService(capacity int, hG i.HTTPGet) i.RequestService {
 	requests := make(chan *m.Request, capacity)
 	responses := make(chan *m.RequestResponse, capacity)
 
@@ -46,22 +45,7 @@ func NewMockRequestService(capacity int, hG i.HTTPGet) i.RequestService {
 }
 
 func NewRequestService(capacity int) i.RequestService {
-	requests := make(chan *m.Request, capacity)
-	responses := make(chan *m.RequestResponse, capacity)
-
-	rS := &requestService{
-		http:         &httpGetter{},
-		requestChan:  requests,
-		responseChan: responses,
-	}
-
-	wKs := make([]chan bool, runtime.NumCPU())
-	for i := 0; i < runtime.NumCPU(); i++ {
-		wKs[i] = make(chan bool)
-		go requestServiceRoutine(rS, wKs[i])
-	}
-
-	return rS
+	return NewTestRequestService(capacity, &httpGetter{})
 }
 
 func (s *requestService) Request(r *m.Request) *m.RequestResponse {
@@ -110,20 +94,18 @@ func (s *requestService) GetResponse() (toRet *m.RequestResponse) {
 }
 
 func (s *requestService) Close() {
-	for i, c := range s.workerKill {
-		fmt.Println("Sending kill signal to worker", i)
+	for _, c := range s.workerKill {
 		c <- true
 	}
 }
 
 func requestServiceRoutine(s *requestService, killChan chan bool) {
 	kill := false
-	for kill {
+	for !kill {
 		select {
 		case r := <-s.requestChan:
 			s.responseChan <- s.Request(r)
 		case <-killChan:
-			fmt.Println("Kill signal recieved in worker")
 			kill = true
 		}
 	}

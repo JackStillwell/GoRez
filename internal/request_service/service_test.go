@@ -27,7 +27,7 @@ var _ = Describe("Service", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		httpGet = mock.NewMockHTTPGet(ctrl)
-		requestService = s.NewMockRequestService(5, httpGet)
+		requestService = s.NewTestRequestService(5, httpGet)
 	})
 
 	AfterEach(func() {
@@ -138,9 +138,9 @@ var _ = Describe("Service", func() {
 
 			BeforeEach(func() {
 				mRC := mock.NewMockReadCloser(ctrl)
-				mRC.EXPECT().Read(gomock.Any()).SetArg(0, []byte("hello world")).Return(
-					11, io.EOF,
-				)
+				mRC.EXPECT().Read(gomock.Any()).
+					SetArg(0, []byte("hello world")).
+					Return(11, io.EOF)
 				mRC.EXPECT().Close()
 				httpGet.EXPECT().Get("").Return(&http.Response{
 					Body: mRC,
