@@ -45,19 +45,21 @@ var _ = Describe("Service", func() {
 				},
 			}
 
+			var response *m.RequestResponse
+			BeforeEach(func() {
+				response = requestService.Request(request)
+			})
+
 			It("should return the error", func() {
-				response := requestService.Request(request)
 				Expect(response.Err).ToNot(BeNil())
 				Expect(response.Err.Error()).To(Equal("building requesturl: unexpected"))
 			})
 
 			It("should have the same Id as the request", func() {
-				response := requestService.Request(request)
 				Expect(response.Id).To(Equal(request.Id))
 			})
 
 			It("should have a nil Resp", func() {
-				response := requestService.Request(request)
 				Expect(response.Resp).To(BeNil())
 			})
 		})
@@ -71,23 +73,22 @@ var _ = Describe("Service", func() {
 				},
 			}
 
+			var response *m.RequestResponse
 			BeforeEach(func() {
 				httpGet.EXPECT().Get("").Return(nil, errors.New("unexpected"))
+				response = requestService.Request(request)
 			})
 
 			It("should return the error", func() {
-				response := requestService.Request(request)
 				Expect(response.Err).ToNot(BeNil())
 				Expect(response.Err.Error()).To(Equal("getting response: unexpected"))
 			})
 
 			It("should have the same Id as the request", func() {
-				response := requestService.Request(request)
 				Expect(response.Id).To(Equal(request.Id))
 			})
 
 			It("should have a nil Resp", func() {
-				response := requestService.Request(request)
 				Expect(response.Resp).To(BeNil())
 			})
 		})
@@ -101,6 +102,7 @@ var _ = Describe("Service", func() {
 				},
 			}
 
+			var response *m.RequestResponse
 			BeforeEach(func() {
 				mRC := mock.NewMockReadCloser(ctrl)
 				mRC.EXPECT().Read(gomock.Any()).Return(0, errors.New("unexpected"))
@@ -108,21 +110,20 @@ var _ = Describe("Service", func() {
 				httpGet.EXPECT().Get("").Return(&http.Response{
 					Body: mRC,
 				}, nil)
+
+				response = requestService.Request(request)
 			})
 
 			It("should return the error", func() {
-				response := requestService.Request(request)
 				Expect(response.Err).ToNot(BeNil())
 				Expect(response.Err.Error()).To(Equal("reading body: unexpected"))
 			})
 
 			It("should have the same Id as the request", func() {
-				response := requestService.Request(request)
 				Expect(response.Id).To(Equal(request.Id))
 			})
 
 			It("should have a nil Resp", func() {
-				response := requestService.Request(request)
 				Expect(response.Resp).To(BeNil())
 			})
 		})
@@ -136,6 +137,7 @@ var _ = Describe("Service", func() {
 				},
 			}
 
+			var response *m.RequestResponse
 			BeforeEach(func() {
 				mRC := mock.NewMockReadCloser(ctrl)
 				mRC.EXPECT().Read(gomock.Any()).
@@ -145,20 +147,19 @@ var _ = Describe("Service", func() {
 				httpGet.EXPECT().Get("").Return(&http.Response{
 					Body: mRC,
 				}, nil)
+
+				response = requestService.Request(request)
 			})
 
 			It("should have a nil error", func() {
-				response := requestService.Request(request)
 				Expect(response.Err).To(BeNil())
 			})
 
 			It("should have the same Id as the request", func() {
-				response := requestService.Request(request)
 				Expect(response.Id).To(Equal(request.Id))
 			})
 
 			It("should have the Resp returned by httpget", func() {
-				response := requestService.Request(request)
 				Expect(response.Resp).To(Equal([]byte("hello world")))
 			})
 		})
