@@ -11,7 +11,16 @@ import (
 )
 
 type requestService struct {
-	http         i.HTTPGet
+	i.Requester
+	i.RequestManager
+}
+
+type requester struct {
+	http i.HTTPGet
+}
+
+type requestManager struct {
+	r            i.Requester
 	requestChan  chan *m.Request
 	responseChan chan *m.RequestResponse
 	workerKill   []chan bool
@@ -23,12 +32,16 @@ func (*httpGetter) Get(url string) (*http.Response, error) {
 	return http.Get(url)
 }
 
-func NewTestRequestService(capacity int, hG i.HTTPGet) i.RequestService {
+func NewTestRequester(http i.HTTPGet) i.Requester {
+	return &requester{http}
+}
+
+func NewTestRequestService(capacity int, r i.Requester) i.RequestService {
 	requests := make(chan *m.Request, capacity)
 	responses := make(chan *m.RequestResponse, capacity)
 
-	rS := &requestService{
-		http:         hG,
+	rM := &requestManager{
+		r:            r,
 		requestChan:  requests,
 		responseChan: responses,
 	}
@@ -36,75 +49,70 @@ func NewTestRequestService(capacity int, hG i.HTTPGet) i.RequestService {
 	wKs := make([]chan bool, runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
 		wKs[i] = make(chan bool)
-		go requestServiceRoutine(rS, wKs[i])
+		go requestServiceRoutine(rM, wKs[i])
 	}
 
-	rS.workerKill = wKs
+	rM.workerKill = wKs
+
+	rS := &requestService{r, rM}
 
 	return rS
 }
 
 func NewRequestService(capacity int) i.RequestService {
-	return NewTestRequestService(capacity, &httpGetter{})
+	return NewTestRequestService(capacity, NewTestRequester(&httpGetter{}))
 }
 
-func (s *requestService) Request(r *m.Request) *m.RequestResponse {
-	requestURL, err := r.JITBuild(r.JITArgs)
-	if err != nil {
-		return &m.RequestResponse{
-			Id:   r.Id,
-			Resp: nil,
-			Err:  errors.Wrap(err, "building requesturl"),
-		}
+func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {
+	rr = &m.RequestResponse{
+		Id:   rqst.Id,
+		Resp: nil,
+		Err:  nil,
 	}
 
-	resp, err := s.http.Get(requestURL)
+	requestURL, err := rqst.JITBuild(rqst.JITArgs)
 	if err != nil {
-		return &m.RequestResponse{
-			Id:   r.Id,
-			Resp: nil,
-			Err:  errors.Wrap(err, "getting response"),
-		}
+		rr.Err = errors.Wrap(err, "building requesturl")
+		return
+	}
+
+	resp, err := r.http.Get(requestURL)
+	if err != nil {
+		rr.Err = errors.Wrap(err, "getting response")
+		return
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-
 	if err != nil {
-		return &m.RequestResponse{
-			Id:   r.Id,
-			Resp: nil,
-			Err:  errors.Wrap(err, "reading body"),
-		}
+		rr.Err = errors.Wrap(err, "reading body")
+		return
 	}
 
-	return &m.RequestResponse{
-		Id:   r.Id,
-		Resp: body,
-		Err:  nil,
-	}
+	rr.Resp = body
+	return
 }
 
-func (s *requestService) MakeRequest(r *m.Request) {
-	s.requestChan <- r
+func (rM *requestManager) MakeRequest(r *m.Request) {
+	rM.requestChan <- r
 }
 
-func (s *requestService) GetResponse() (toRet *m.RequestResponse) {
-	return <-s.responseChan
+func (rM *requestManager) GetResponse() (toRet *m.RequestResponse) {
+	return <-rM.responseChan
 }
 
-func (s *requestService) Close() {
-	for _, c := range s.workerKill {
+func (rM *requestManager) Close() {
+	for _, c := range rM.workerKill {
 		c <- true
 	}
 }
 
-func requestServiceRoutine(s *requestService, killChan chan bool) {
+func requestServiceRoutine(rM *requestManager, killChan chan bool) {
 	kill := false
 	for !kill {
 		select {
-		case r := <-s.requestChan:
-			s.responseChan <- s.Request(r)
+		case rqst := <-rM.requestChan:
+			rM.responseChan <- rM.r.Request(rqst)
 		case <-killChan:
 			kill = true
 		}

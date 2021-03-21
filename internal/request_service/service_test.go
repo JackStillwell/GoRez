@@ -21,13 +21,12 @@ var _ = Describe("Service", func() {
 	var (
 		ctrl           *gomock.Controller
 		requestService i.RequestService
-		httpGet        *mock.MockHTTPGet
 	)
+
+	uniqueId := uuid.New()
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
-		httpGet = mock.NewMockHTTPGet(ctrl)
-		requestService = s.NewTestRequestService(5, httpGet)
 	})
 
 	AfterEach(func() {
@@ -36,8 +35,15 @@ var _ = Describe("Service", func() {
 	})
 
 	Describe("Request", func() {
+		var httpGet *mock.MockHTTPGet
+
+		BeforeEach(func() {
+			httpGet = mock.NewMockHTTPGet(ctrl)
+			requester := s.NewTestRequester(httpGet)
+			requestService = s.NewTestRequestService(5, requester)
+		})
+
 		Context("Encounters a URL build error", func() {
-			uniqueId := uuid.New()
 			request := &m.Request{
 				Id: &uniqueId,
 				JITBuild: func([]interface{}) (string, error) {
@@ -65,7 +71,6 @@ var _ = Describe("Service", func() {
 		})
 
 		Context("Encounters an HTTPGet error", func() {
-			uniqueId := uuid.New()
 			request := &m.Request{
 				Id: &uniqueId,
 				JITBuild: func([]interface{}) (string, error) {
@@ -94,7 +99,6 @@ var _ = Describe("Service", func() {
 		})
 
 		Context("Encounters a body reading error", func() {
-			uniqueId := uuid.New()
 			request := &m.Request{
 				Id: &uniqueId,
 				JITBuild: func([]interface{}) (string, error) {
@@ -129,7 +133,6 @@ var _ = Describe("Service", func() {
 		})
 
 		Context("Encounters no errors", func() {
-			uniqueId := uuid.New()
 			request := &m.Request{
 				Id: &uniqueId,
 				JITBuild: func([]interface{}) (string, error) {
@@ -161,6 +164,56 @@ var _ = Describe("Service", func() {
 
 			It("should have the Resp returned by httpget", func() {
 				Expect(response.Resp).To(Equal([]byte("hello world")))
+			})
+		})
+	})
+
+	Describe("MakeRequest", func() {
+		var requester *mock.MockRequester
+
+		BeforeEach(func() {
+			requester = mock.NewMockRequester(ctrl)
+			requestService = s.NewTestRequestService(5, requester)
+		})
+
+		Context("Is called with a request", func() {
+			request := &m.Request{
+				Id:      &uniqueId,
+				JITArgs: []interface{}{"one", "two"},
+				JITBuild: func([]interface{}) (string, error) {
+					return "", nil
+				},
+			}
+
+			It("should issue the request", func() {
+				requester.EXPECT().Request(request).Times(1)
+				requestService.MakeRequest(request)
+				requestService.GetResponse() // forces test to wait until it is finished processing
+			})
+		})
+	})
+
+	Describe("GetRequest", func() {
+		var requester *mock.MockRequester
+
+		BeforeEach(func() {
+			requester = mock.NewMockRequester(ctrl)
+			requestService = s.NewTestRequestService(5, requester)
+		})
+
+		Context("Is called after a request has been made", func() {
+			request := &m.Request{
+				Id: &uniqueId,
+			}
+
+			requestResponse := &m.RequestResponse{
+				Id: &uniqueId,
+			}
+
+			It("should return the response", func() {
+				requester.EXPECT().Request(request).Return(requestResponse).Times(1)
+				requestService.MakeRequest(request)
+				Expect(requestService.GetResponse()).To(Equal(requestResponse))
 			})
 		})
 	})
