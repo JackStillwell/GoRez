@@ -1,6 +1,7 @@
 package request_service_test
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/golang/mock/gomock"
@@ -39,7 +40,7 @@ var _ = Describe("Service", func() {
 			uniqueId := uuid.New()
 			request := &m.Request{
 				Id: &uniqueId,
-				JITBuild: func(urlBuilder string, buildArgs []interface{}) (string, error) {
+				JITBuild: func([]interface{}) (string, error) {
 					return "", errors.New("unexpected")
 				},
 			}
@@ -65,7 +66,7 @@ var _ = Describe("Service", func() {
 			uniqueId := uuid.New()
 			request := &m.Request{
 				Id: &uniqueId,
-				JITBuild: func(urlBuilder string, buildArgs []interface{}) (string, error) {
+				JITBuild: func([]interface{}) (string, error) {
 					return "", nil
 				},
 			}
@@ -95,7 +96,7 @@ var _ = Describe("Service", func() {
 			uniqueId := uuid.New()
 			request := &m.Request{
 				Id: &uniqueId,
-				JITBuild: func(urlBuilder string, buildArgs []interface{}) (string, error) {
+				JITBuild: func([]interface{}) (string, error) {
 					return "", nil
 				},
 			}
@@ -123,6 +124,42 @@ var _ = Describe("Service", func() {
 			It("should have a nil Resp", func() {
 				response := requestService.Request(request)
 				Expect(response.Resp).To(BeNil())
+			})
+		})
+
+		Context("Encounters no errors", func() {
+			uniqueId := uuid.New()
+			request := &m.Request{
+				Id: &uniqueId,
+				JITBuild: func([]interface{}) (string, error) {
+					return "", nil
+				},
+			}
+
+			BeforeEach(func() {
+				mRC := mock.NewMockReadCloser(ctrl)
+				mRC.EXPECT().Read(gomock.Any()).SetArg(0, []byte("hello world")).Return(
+					11, io.EOF,
+				)
+				mRC.EXPECT().Close()
+				httpGet.EXPECT().Get("").Return(&http.Response{
+					Body: mRC,
+				}, nil)
+			})
+
+			It("should have a nil error", func() {
+				response := requestService.Request(request)
+				Expect(response.Err).To(BeNil())
+			})
+
+			It("should have the same Id as the request", func() {
+				response := requestService.Request(request)
+				Expect(response.Id).To(Equal(request.Id))
+			})
+
+			It("should have the Resp returned by httpget", func() {
+				response := requestService.Request(request)
+				Expect(response.Resp).To(Equal([]byte("hello world")))
 			})
 		})
 	})

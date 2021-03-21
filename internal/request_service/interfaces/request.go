@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/JackStillwell/GoRez/internal/request_service/models"
-	"github.com/google/uuid"
 )
 
 type HTTPGet interface {
@@ -18,7 +17,7 @@ type RequestService interface {
 
 type RequestManager interface {
 	MakeRequest(*models.Request)
-	GetResponse(*uuid.UUID) *models.RequestResponse
+	GetResponse() *models.RequestResponse
 	Close()
 }
 

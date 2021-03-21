@@ -10,7 +10,6 @@ import (
 
 	models "github.com/JackStillwell/GoRez/internal/request_service/models"
 	gomock "github.com/golang/mock/gomock"
-	uuid "github.com/google/uuid"
 )
 
 // MockHTTPGet is a mock of HTTPGet interface.
@@ -87,17 +86,17 @@ func (mr *MockRequestServiceMockRecorder) Close() *gomock.Call {
 }
 
 // GetResponse mocks base method.
-func (m *MockRequestService) GetResponse(arg0 *uuid.UUID) *models.RequestResponse {
+func (m *MockRequestService) GetResponse() *models.RequestResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResponse", arg0)
+	ret := m.ctrl.Call(m, "GetResponse")
 	ret0, _ := ret[0].(*models.RequestResponse)
 	return ret0
 }
 
 // GetResponse indicates an expected call of GetResponse.
-func (mr *MockRequestServiceMockRecorder) GetResponse(arg0 interface{}) *gomock.Call {
+func (mr *MockRequestServiceMockRecorder) GetResponse() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponse", reflect.TypeOf((*MockRequestService)(nil).GetResponse), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponse", reflect.TypeOf((*MockRequestService)(nil).GetResponse))
 }
 
 // MakeRequest mocks base method.
@@ -162,17 +161,17 @@ func (mr *MockRequestManagerMockRecorder) Close() *gomock.Call {
 }
 
 // GetResponse mocks base method.
-func (m *MockRequestManager) GetResponse(arg0 *uuid.UUID) *models.RequestResponse {
+func (m *MockRequestManager) GetResponse() *models.RequestResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResponse", arg0)
+	ret := m.ctrl.Call(m, "GetResponse")
 	ret0, _ := ret[0].(*models.RequestResponse)
 	return ret0
 }
 
 // GetResponse indicates an expected call of GetResponse.
-func (mr *MockRequestManagerMockRecorder) GetResponse(arg0 interface{}) *gomock.Call {
+func (mr *MockRequestManagerMockRecorder) GetResponse() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponse", reflect.TypeOf((*MockRequestManager)(nil).GetResponse), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponse", reflect.TypeOf((*MockRequestManager)(nil).GetResponse))
 }
 
 // MakeRequest mocks base method.

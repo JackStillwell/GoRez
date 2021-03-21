@@ -1,6 +1,7 @@
 package request_service
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"runtime"
@@ -39,6 +40,8 @@ func NewMockRequestService(capacity int, hG i.HTTPGet) i.RequestService {
 		go requestServiceRoutine(rS, wKs[i])
 	}
 
+	rS.workerKill = wKs
+
 	return rS
 }
 
@@ -62,7 +65,7 @@ func NewRequestService(capacity int) i.RequestService {
 }
 
 func (s *requestService) Request(r *m.Request) *m.RequestResponse {
-	requestURL, err := r.JITBuild(r.URLBuilder, r.BuildArgs)
+	requestURL, err := r.JITBuild(r.JITArgs)
 	if err != nil {
 		return &m.RequestResponse{
 			Id:   r.Id,
@@ -107,7 +110,8 @@ func (s *requestService) GetResponse() (toRet *m.RequestResponse) {
 }
 
 func (s *requestService) Close() {
-	for _, c := range s.workerKill {
+	for i, c := range s.workerKill {
+		fmt.Println("Sending kill signal to worker", i)
 		c <- true
 	}
 }
@@ -119,6 +123,7 @@ func requestServiceRoutine(s *requestService, killChan chan bool) {
 		case r := <-s.requestChan:
 			s.responseChan <- s.Request(r)
 		case <-killChan:
+			fmt.Println("Kill signal recieved in worker")
 			kill = true
 		}
 	}
