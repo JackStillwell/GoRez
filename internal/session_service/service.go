@@ -1,7 +1,9 @@
 package session_service
 
 import (
+	"errors"
 	"fmt"
+	"sort"
 	"sync"
 
 	i "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
@@ -38,24 +40,43 @@ func NewSessionService(maxSessions int, existingSessions []*m.Session) (i.Sessio
 }
 
 func (s *sessionService) ReserveSession(numSessions int) ([]*m.Session, error) {
-	return nil, nil
+	if numSessions > len(s.availableSessions) {
+		return nil, errors.New("not enough sessions available")
+	}
+
+	toReturn := s.availableSessions[:numSessions]
+	s.availableSessions = s.availableSessions[numSessions-1:]
+	s.reservedSessions = append(s.reservedSessions, toReturn...)
+
+	return toReturn, nil
 }
 
 func (s *sessionService) ReleaseSession(sessions []*m.Session) {
-
+	removeFromSlice(&s.reservedSessions, sessions)
+	s.availableSessions = append(s.availableSessions, sessions...)
 }
 
 func (s *sessionService) BadSession(sessions []*m.Session) {
-	remainingSessions := make([]*m.Session, 0, s.maxSessions)
-outerLoop:
-	for _, aS := range s.aSessions {
-		for _, bS := range sessions {
-			if aS.Key == bS.Key {
-				continue outerLoop
+	removeFromSlice(&s.reservedSessions, sessions)
+}
+
+func removeFromSlice(toModify *[]*m.Session, toRemove []*m.Session) {
+	idxsToRemove := make([]int, 0, len(toRemove))
+	for idxRs, rS := range *toModify {
+		for _, bS := range toRemove {
+			if rS.Key == bS.Key {
+				idxsToRemove = append(idxsToRemove, idxRs)
 			}
 		}
-		remainingSessions = append(remainingSessions, aS)
 	}
 
-	s.activeSessions = remainingSessions
+	sort.Ints(idxsToRemove)
+	if idxsToRemove[len(idxsToRemove)-1] == len(*toModify)-1 {
+		idxsToRemove = idxsToRemove[:len(idxsToRemove)-1]
+		*toModify = (*toModify)[:len(idxsToRemove)-1]
+	}
+	for idx := len(idxsToRemove) - 1; idx >= 0; idx-- {
+		iTR := idxsToRemove[idx]
+		*toModify = append((*toModify)[:iTR], (*toModify)[iTR:]...)
+	}
 }
