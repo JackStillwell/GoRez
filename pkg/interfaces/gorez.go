@@ -2,6 +2,12 @@ package interfaces
 
 import m "github.com/JackStillwell/GoRez/pkg/models"
 
+type GoRez interface {
+	GodItemInfo
+	PlayerInfo
+	MatchInfo
+}
+
 type APIUtil interface {
 	CreateSession() *m.Session
 	TestSession(*m.Session) string
