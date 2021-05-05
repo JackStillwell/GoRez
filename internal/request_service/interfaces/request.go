@@ -24,6 +24,5 @@ type RequestManager interface {
 }
 
 type Requester interface {
-	JITBase(args []interface{}) (string, error)
 	Request(*models.Request) *models.RequestResponse
 }

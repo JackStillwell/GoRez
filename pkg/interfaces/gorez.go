@@ -2,6 +2,8 @@ package interfaces
 
 import m "github.com/JackStillwell/GoRez/pkg/models"
 
+// mockgen --source=interfaces/gorez.go --destination=mocks/mock_gorez.go --package=mock
+
 type GoRez interface {
 	GodItemInfo
 	PlayerInfo
@@ -9,9 +11,9 @@ type GoRez interface {
 }
 
 type APIUtil interface {
-	CreateSession() *m.Session
-	TestSession(*m.Session) string
-	GetDataUsed(*m.Session) *m.UsageInfo
+	CreateSession() (*m.Session, error)
+	TestSession(*m.Session) (string, error)
+	GetDataUsed() (*m.UsageInfo, error)
 }
 
 type GodItemInfo interface {
