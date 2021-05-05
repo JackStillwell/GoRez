@@ -26,23 +26,10 @@ func NewAPIUtil(rS requestService.RequestService, aS authService.AuthService) i.
 }
 
 func (a *apiUtil) CreateSession() *m.Session {
-	jitFunc := func(args []interface{}) (string, error) {
-		baseURL := "http://api.smitegame.com/smiteapi.svc/createsessionjson"
-		t := time.Now().UTC()
-		tS := a.aS.GetTimestamp(t)
-		return fmt.Sprintf(
-			"%s/%s/%s/%s",
-			baseURL,
-			a.aS.GetID(),
-			a.aS.GetSignature("createsession", tS),
-			tS,
-		), nil
-	}
-
 	uID := uuid.New()
 	r := rSM.Request{
 		Id:       &uID,
-		JITBuild: jitFunc,
+		JITBuild: nil,
 	}
 
 	resp := a.rS.Request(&r)

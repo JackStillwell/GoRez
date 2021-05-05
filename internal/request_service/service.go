@@ -130,7 +130,7 @@ func requestServiceRoutine(rM *requestManager, killChan chan bool) {
    6) signature func(endpoint, timeStamp string) string
    7) endpointArgs string
 */
-func JITBase(args []interface{}) (string, error) {
+func (*requester) JITBase(args []interface{}) (string, error) {
 	baseURL, ok := args[0].(string)
 	if !ok {
 		return "", errors.New("could not coerce first arg to string")

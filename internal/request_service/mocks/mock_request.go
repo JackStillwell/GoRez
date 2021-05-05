@@ -99,6 +99,21 @@ func (mr *MockRequestServiceMockRecorder) GetResponse() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponse", reflect.TypeOf((*MockRequestService)(nil).GetResponse))
 }
 
+// JITBase mocks base method.
+func (m *MockRequestService) JITBase(args []interface{}) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JITBase", args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// JITBase indicates an expected call of JITBase.
+func (mr *MockRequestServiceMockRecorder) JITBase(args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JITBase", reflect.TypeOf((*MockRequestService)(nil).JITBase), args)
+}
+
 // MakeRequest mocks base method.
 func (m *MockRequestService) MakeRequest(arg0 *models.Request) {
 	m.ctrl.T.Helper()
@@ -207,6 +222,21 @@ func NewMockRequester(ctrl *gomock.Controller) *MockRequester {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRequester) EXPECT() *MockRequesterMockRecorder {
 	return m.recorder
+}
+
+// JITBase mocks base method.
+func (m *MockRequester) JITBase(args []interface{}) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JITBase", args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// JITBase indicates an expected call of JITBase.
+func (mr *MockRequesterMockRecorder) JITBase(args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JITBase", reflect.TypeOf((*MockRequester)(nil).JITBase), args)
 }
 
 // Request mocks base method.
