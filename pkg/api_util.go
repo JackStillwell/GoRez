@@ -8,6 +8,7 @@ import (
 	rSM "github.com/JackStillwell/GoRez/internal/request_service/models"
 	requestUtils "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
+	hRConst "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
 	"github.com/google/uuid"
@@ -67,9 +68,9 @@ func (a *apiUtil) TestSession(s *m.Session) (string, error) {
 	r := rSM.Request{
 		Id: &uID,
 		JITArgs: []interface{}{
-			"http://api.smitegame.com/smiteapi.svc/testsessionjson",
+			hRConst.SmiteURLBase + hRConst.TestSession + "json",
 			a.aS.GetID(),
-			"testsession",
+			hRConst.TestSession,
 			s,
 			a.aS.GetTimestamp,
 			a.aS.GetSignature,
@@ -78,7 +79,8 @@ func (a *apiUtil) TestSession(s *m.Session) (string, error) {
 		JITBuild: requestUtils.JITBase,
 	}
 
-	resp := a.rS.Request(&r)
+	a.rS.MakeRequest(&r)
+	resp := a.rS.GetResponse(&uID)
 	if resp.Err != nil {
 		return "", errors.Wrap(resp.Err, "request")
 	}
@@ -88,18 +90,20 @@ func (a *apiUtil) TestSession(s *m.Session) (string, error) {
 
 func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 	sessions, err := a.sS.ReserveSession(1)
-	s := sessions[0]
 	if err != nil {
 		return nil, errors.Wrap(err, "reserving session")
 	}
+
+	defer a.sS.ReleaseSession(sessions)
+	s := sessions[0]
 
 	uID := uuid.New()
 	r := rSM.Request{
 		Id: &uID,
 		JITArgs: []interface{}{
-			"http://api.smitegame.com/smiteapi.svc/getdatausedjson",
+			hRConst.SmiteURLBase + hRConst.GetDataUsed + "json",
 			a.aS.GetID(),
-			"getdataused",
+			hRConst.GetDataUsed,
 			s.Key,
 			a.aS.GetTimestamp,
 			a.aS.GetSignature,

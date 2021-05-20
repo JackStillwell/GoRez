@@ -4,9 +4,11 @@ import (
 	"io"
 	"net/http"
 	"runtime"
+	"time"
 
 	i "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/request_service/models"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -20,10 +22,11 @@ type requester struct {
 }
 
 type requestManager struct {
-	r            i.Requester
-	requestChan  chan *m.Request
-	responseChan chan *m.RequestResponse
-	workerKill   []chan bool
+	r           i.Requester
+	requestChan chan *m.Request
+	responses   []*m.RequestResponse
+	freeNotify  chan int
+	workerKill  []chan bool
 }
 
 type httpGetter struct{}
@@ -38,12 +41,18 @@ func NewTestRequester(http i.HTTPGet) i.Requester {
 
 func NewTestRequestService(capacity int, r i.Requester) i.RequestService {
 	requests := make(chan *m.Request, capacity)
-	responses := make(chan *m.RequestResponse, capacity)
+	responses := make([]*m.RequestResponse, capacity)
+
+	freeNotifyChan := make(chan int, capacity)
+	for i := 0; i < capacity; i++ {
+		freeNotifyChan <- i
+	}
 
 	rM := &requestManager{
-		r:            r,
-		requestChan:  requests,
-		responseChan: responses,
+		r:           r,
+		requestChan: requests,
+		responses:   responses,
+		freeNotify:  freeNotifyChan,
 	}
 
 	wKs := make([]chan bool, runtime.NumCPU())
@@ -97,8 +106,21 @@ func (rM *requestManager) MakeRequest(r *m.Request) {
 	rM.requestChan <- r
 }
 
-func (rM *requestManager) GetResponse() (toRet *m.RequestResponse) {
-	return <-rM.responseChan
+func (rM *requestManager) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse, timeout time.Duration) error {
+	// NOTE: this could be cleaner and less processor intensive. Rather than just looping for the timeout,
+	// instead make a channel where all newly filled uuids can be checked and returned without being stored, with only
+	// one loop in the beginning.
+	startTime := time.Now()
+	for time.Now().Sub(startTime) < timeout {
+		for idx, v := range rM.responses {
+			if v != nil && v.Id == id {
+				defer freeIdx(rM, idx)
+				retChan <- v
+				return nil
+			}
+		}
+	}
+	return errors.New("timeout")
 }
 
 func (rM *requestManager) Close() {
@@ -107,12 +129,18 @@ func (rM *requestManager) Close() {
 	}
 }
 
+func freeIdx(rM *requestManager, idx int) {
+	rM.freeNotify <- idx
+}
+
 func requestServiceRoutine(rM *requestManager, killChan chan bool) {
 	kill := false
 	for !kill {
 		select {
 		case rqst := <-rM.requestChan:
-			rM.responseChan <- rM.r.Request(rqst)
+			response := rM.r.Request(rqst)
+			responseIdx := <-rM.freeNotify
+			rM.responses[responseIdx] = response
 		case <-killChan:
 			kill = true
 		}

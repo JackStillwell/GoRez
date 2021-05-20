@@ -2,7 +2,7 @@ package constants
 
 const (
 	// API Base URLs
-	SmiteURLBase = "http://api.smitegame.com/smiteapi.svc"
+	SmiteURLBase = "https://api.smitegame.com/smiteapi.svc"
 
 	// API Endpoints
 	GetDataUsed          = "getdataused"

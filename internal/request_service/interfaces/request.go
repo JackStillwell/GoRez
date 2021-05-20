@@ -2,8 +2,10 @@ package interfaces
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/JackStillwell/GoRez/internal/request_service/models"
+	"github.com/google/uuid"
 )
 
 // mockgen --source=interfaces/request.go --destination=mocks/mock_request.go --package=mock
@@ -19,7 +21,7 @@ type RequestService interface {
 
 type RequestManager interface {
 	MakeRequest(*models.Request)
-	GetResponse() *models.RequestResponse
+	GetResponse(*uuid.UUID, chan *models.RequestResponse, time.Duration) error
 	Close()
 }
 
