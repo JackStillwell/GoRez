@@ -43,7 +43,7 @@ func NewTestRequester(http i.HTTPGet) i.Requester {
 	return &requester{http}
 }
 
-func NewTestRequestService(capacity int, r i.Requester) i.RequestService {
+func NewTestRequestManager(capacity int, r i.Requester) *requestManager {
 	responses := make([]*m.RequestResponse, capacity)
 
 	freeNotifyChan := make(chan int, capacity)
@@ -66,13 +66,14 @@ func NewTestRequestService(capacity int, r i.Requester) i.RequestService {
 		listenerLock:   &sync.Mutex{},
 	}
 
-	rS := &requestService{r, rM}
-
-	return rS
+	return rM
 }
 
 func NewRequestService(capacity int) i.RequestService {
-	return NewTestRequestService(capacity, NewTestRequester(&httpGetter{}))
+	return &requestService{
+		Requester:      NewTestRequester(&httpGetter{}),
+		RequestManager: NewTestRequestManager(capacity, NewTestRequester(&httpGetter{})),
+	}
 }
 
 func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {

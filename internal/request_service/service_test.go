@@ -1,8 +1,9 @@
-package request_service_test
+package request_service
 
 import (
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -10,8 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
-	s "github.com/JackStillwell/GoRez/internal/request_service"
-	i "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/request_service/models"
 
 	mock "github.com/JackStillwell/GoRez/internal/request_service/mocks"
@@ -19,8 +18,9 @@ import (
 
 var _ = Describe("Service", func() {
 	var (
-		ctrl           *gomock.Controller
-		requestService i.RequestService
+		ctrl *gomock.Controller
+		rM   *requestManager
+		rS   *requestService
 	)
 
 	uniqueId := uuid.New()
@@ -31,7 +31,6 @@ var _ = Describe("Service", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		requestService.Close()
 	})
 
 	Describe("Request", func() {
@@ -39,8 +38,9 @@ var _ = Describe("Service", func() {
 
 		BeforeEach(func() {
 			httpGet = mock.NewMockHTTPGet(ctrl)
-			requester := s.NewTestRequester(httpGet)
-			requestService = s.NewTestRequestService(5, requester)
+			requester := NewTestRequester(httpGet)
+			rM = NewTestRequestManager(5, requester)
+			rS = &requestService{requester, rM}
 		})
 
 		Context("Encounters a URL build error", func() {
@@ -53,7 +53,7 @@ var _ = Describe("Service", func() {
 
 			var response *m.RequestResponse
 			BeforeEach(func() {
-				response = requestService.Request(request)
+				response = rS.Request(request)
 			})
 
 			It("should return the error", func() {
@@ -81,7 +81,7 @@ var _ = Describe("Service", func() {
 			var response *m.RequestResponse
 			BeforeEach(func() {
 				httpGet.EXPECT().Get("").Return(nil, errors.New("unexpected"))
-				response = requestService.Request(request)
+				response = rS.Request(request)
 			})
 
 			It("should return the error", func() {
@@ -115,7 +115,7 @@ var _ = Describe("Service", func() {
 					Body: mRC,
 				}, nil)
 
-				response = requestService.Request(request)
+				response = rS.Request(request)
 			})
 
 			It("should return the error", func() {
@@ -151,7 +151,7 @@ var _ = Describe("Service", func() {
 					Body: mRC,
 				}, nil)
 
-				response = requestService.Request(request)
+				response = rS.Request(request)
 			})
 
 			It("should have a nil error", func() {
@@ -173,26 +173,28 @@ var _ = Describe("Service", func() {
 
 		BeforeEach(func() {
 			requester = mock.NewMockRequester(ctrl)
-			requestService = s.NewTestRequestService(5, requester)
+			rM = NewTestRequestManager(5, requester)
+			rS = &requestService{requester, rM}
 		})
 
 		Context("Is called with a request", func() {
-			/*
-				request := &m.Request{
-					Id:      &uniqueId,
-					JITArgs: []interface{}{"one", "two"},
-					JITBuild: func([]interface{}) (string, error) {
-						return "", nil
-					},
-				}
-			*/
+			request := &m.Request{
+				Id:      &uniqueId,
+				JITArgs: []interface{}{"one", "two"},
+				JITBuild: func([]interface{}) (string, error) {
+					return "", nil
+				},
+			}
 
 			It("should issue the request", func() {
-				// Have no way to make the test wait for the call
-				/*
-					requester.EXPECT().Request(request).Times(1)
-					requestService.MakeRequest(request)
-				*/
+				requester.EXPECT().Request(request).Return(
+					&m.RequestResponse{
+						Id: &uniqueId,
+					},
+				).Times(1)
+				rS.MakeRequest(request)
+				Eventually(rM.responses[0], time.Second, time.Millisecond).
+					Should(Equal(request))
 			})
 		})
 	})
@@ -202,7 +204,8 @@ var _ = Describe("Service", func() {
 
 		BeforeEach(func() {
 			requester = mock.NewMockRequester(ctrl)
-			requestService = s.NewTestRequestService(5, requester)
+			rM = NewTestRequestManager(5, requester)
+			rS = &requestService{requester, rM}
 		})
 
 		Context("Is called after a request has been made", func() {
