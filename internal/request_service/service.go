@@ -3,8 +3,7 @@ package request_service
 import (
 	"io"
 	"net/http"
-	"runtime"
-	"time"
+	"sync"
 
 	i "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/request_service/models"
@@ -22,11 +21,16 @@ type requester struct {
 }
 
 type requestManager struct {
-	r           i.Requester
-	requestChan chan *m.Request
-	responses   []*m.RequestResponse
-	freeNotify  chan int
-	workerKill  []chan bool
+	r i.Requester
+
+	responses     []*m.RequestResponse
+	responsesLock *sync.RWMutex
+
+	freeNotify chan int
+
+	listenerNotify chan int
+	listenerCount  int
+	listenerLock   *sync.Mutex
 }
 
 type httpGetter struct{}
@@ -40,7 +44,6 @@ func NewTestRequester(http i.HTTPGet) i.Requester {
 }
 
 func NewTestRequestService(capacity int, r i.Requester) i.RequestService {
-	requests := make(chan *m.Request, capacity)
 	responses := make([]*m.RequestResponse, capacity)
 
 	freeNotifyChan := make(chan int, capacity)
@@ -48,20 +51,20 @@ func NewTestRequestService(capacity int, r i.Requester) i.RequestService {
 		freeNotifyChan <- i
 	}
 
+	listenerChan := make(chan int)
+
 	rM := &requestManager{
-		r:           r,
-		requestChan: requests,
-		responses:   responses,
-		freeNotify:  freeNotifyChan,
-	}
+		r: r,
 
-	wKs := make([]chan bool, runtime.NumCPU())
-	for i := 0; i < runtime.NumCPU(); i++ {
-		wKs[i] = make(chan bool)
-		go requestServiceRoutine(rM, wKs[i])
-	}
+		responses:     responses,
+		responsesLock: &sync.RWMutex{},
 
-	rM.workerKill = wKs
+		freeNotify: freeNotifyChan,
+
+		listenerNotify: listenerChan,
+		listenerCount:  0,
+		listenerLock:   &sync.Mutex{},
+	}
 
 	rS := &requestService{r, rM}
 
@@ -103,46 +106,73 @@ func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {
 }
 
 func (rM *requestManager) MakeRequest(r *m.Request) {
-	rM.requestChan <- r
+	go rM.request(r)
 }
 
-func (rM *requestManager) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse, timeout time.Duration) error {
-	// NOTE: this could be cleaner and less processor intensive. Rather than just looping for the timeout,
-	// instead make a channel where all newly filled uuids can be checked and returned without being stored, with only
-	// one loop in the beginning.
-	startTime := time.Now()
-	for time.Now().Sub(startTime) < timeout {
-		for idx, v := range rM.responses {
-			if v != nil && v.Id == id {
-				defer freeIdx(rM, idx)
-				retChan <- v
-				return nil
-			}
+func (rM *requestManager) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse) {
+	rM.listenerLock.Lock()
+	result := rM.searchResponse(id)
+
+	if result == nil {
+		rM.listenerCount++
+	}
+
+	rM.listenerLock.Unlock()
+
+	for result == nil {
+		idx := <-rM.listenerNotify
+		if rM.responses[idx].Id == id {
+			rM.decrementListeners()
+			defer freeIdx(rM, idx)
+			result = rM.responses[idx]
 		}
 	}
-	return errors.New("timeout")
+
+	retChan <- result
 }
 
-func (rM *requestManager) Close() {
-	for _, c := range rM.workerKill {
-		c <- true
+func (rM *requestManager) searchResponse(id *uuid.UUID) *m.RequestResponse {
+	rM.responsesLock.RLock()
+	for idx, v := range rM.responses {
+		if v != nil && v.Id == id {
+			rM.responsesLock.RUnlock()
+			defer freeIdx(rM, idx)
+			return rM.responses[idx]
+		}
 	}
+	rM.responsesLock.RUnlock()
+
+	return nil
 }
 
 func freeIdx(rM *requestManager, idx int) {
+	rM.updateResponses(idx, nil)
 	rM.freeNotify <- idx
 }
 
-func requestServiceRoutine(rM *requestManager, killChan chan bool) {
-	kill := false
-	for !kill {
-		select {
-		case rqst := <-rM.requestChan:
-			response := rM.r.Request(rqst)
-			responseIdx := <-rM.freeNotify
-			rM.responses[responseIdx] = response
-		case <-killChan:
-			kill = true
-		}
+func (rM *requestManager) request(rqst *m.Request) {
+	response := rM.r.Request(rqst)
+	responseIdx := <-rM.freeNotify
+	rM.updateResponses(responseIdx, response)
+	rM.notifyListeners(responseIdx)
+}
+
+func (rM *requestManager) updateResponses(idx int, v *m.RequestResponse) {
+	rM.responsesLock.Lock()
+	rM.responses[idx] = v
+	rM.responsesLock.Unlock()
+}
+
+func (rM *requestManager) notifyListeners(idx int) {
+	rM.listenerLock.Lock()
+	for i := 0; i < rM.listenerCount; i++ {
+		rM.listenerNotify <- idx
 	}
+	rM.listenerLock.Unlock()
+}
+
+func (rM *requestManager) decrementListeners() {
+	rM.listenerLock.Lock()
+	rM.listenerCount--
+	rM.listenerLock.Unlock()
 }
