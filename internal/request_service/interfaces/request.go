@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// mockgen --source=interfaces/request.go --destination=mocks/mock_request.go --package=mock
+//go:generate mockgen --source=request.go --destination=../mocks/mock_request.go --package=mock
 
 type HTTPGet interface {
 	Get(url string) (*http.Response, error)

@@ -33,14 +33,12 @@ func NewAPIUtil(
 	}
 }
 
-func (a *apiUtil) CreateSession() (*m.Session, error) {
-	uID := uuid.New()
+func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	r := rSM.Request{
-		Id: &uID,
 		JITArgs: []interface{}{
-			"http://api.smitegame.com/smiteapi.svc/createsessionjson",
+			hRConst.SmiteURLBase + hRConst.CreateSession + "json",
 			a.authSvc.GetID(),
-			"createsession",
+			hRConst.CreateSession,
 			"",
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
@@ -49,30 +47,48 @@ func (a *apiUtil) CreateSession() (*m.Session, error) {
 		JITBuild: requestUtils.JITBase,
 	}
 
-	resp := a.rqstSvc.Request(&r)
-	if resp.Err != nil {
-		return nil, errors.Wrap(resp.Err, "request")
+	uIDs := make([]*uuid.UUID, numSessions)
+	for i := 0; i < numSessions; i++ {
+		uID := uuid.New()
+		r.Id = &uID
+		a.rqstSvc.MakeRequest(&r)
+		uIDs = append(uIDs, &uID)
 	}
 
-	session := &m.Session{}
-	err := json.Unmarshal(resp.Resp, session)
-	if err != nil {
-		return nil, errors.Wrap(err, "unmarshall response")
+	responseChan := make(chan *rSM.RequestResponse, numSessions)
+	for i := 0; i < numSessions; i++ {
+		a.rqstSvc.GetResponse(uIDs[i], responseChan)
 	}
 
-	return session, nil
+	sessions := make([]*m.Session, 0, numSessions)
+	errs := make([]error, 0, numSessions)
+	for i := 0; i < numSessions; i++ {
+		resp := <-responseChan
+		if resp.Err != nil {
+			errs = append(errs, errors.Wrap(resp.Err, "request"))
+			continue
+		}
+
+		session := &m.Session{}
+		err := json.Unmarshal(resp.Resp, session)
+		if err != nil {
+			errs = append(errs, errors.Wrap(err, "unmarshall response"))
+			continue
+		}
+
+		sessions = append(sessions, session)
+	}
+
+	return sessions, errs
 }
 
-// TODO: make bulk by taking a list and returning a list
-func (a *apiUtil) TestSession(s *m.Session) (string, error) {
-	uID := uuid.New()
+func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 	r := rSM.Request{
-		Id: &uID,
 		JITArgs: []interface{}{
 			hRConst.SmiteURLBase + hRConst.TestSession + "json",
 			a.authSvc.GetID(),
 			hRConst.TestSession,
-			s,
+			"",
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
 			"",
@@ -80,17 +96,36 @@ func (a *apiUtil) TestSession(s *m.Session) (string, error) {
 		JITBuild: requestUtils.JITBase,
 	}
 
-	a.rqstSvc.MakeRequest(&r)
-	respChan := make(chan *rSM.RequestResponse, 1)
-	a.rqstSvc.GetResponse(&uID, respChan)
-	resp := <-respChan
-	if resp.Err != nil {
-		return "", errors.Wrap(resp.Err, "request")
+	uIDs := make([]*uuid.UUID, len(s))
+	for i := 0; i < len(s); i++ {
+		uID := uuid.New()
+		r.Id = &uID
+		a.rqstSvc.MakeRequest(&r)
+		uIDs = append(uIDs, &uID)
 	}
 
-	return string(resp.Resp), nil
+	responseChan := make(chan *rSM.RequestResponse, len(s))
+	for i := 0; i < len(s); i++ {
+		a.rqstSvc.GetResponse(uIDs[i], responseChan)
+	}
+
+	responses := make([]*string, 0, len(s))
+	errs := make([]error, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		resp := <-responseChan
+		if resp.Err != nil {
+			errs = append(errs, errors.Wrap(resp.Err, "request"))
+			continue
+		}
+
+		responseString := string(resp.Resp)
+		responses = append(responses, &responseString)
+	}
+
+	return responses, errs
 }
 
+// NOTE: can only do one at a time, so no need for bulk concurrency
 func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 	sessions, err := a.sesnSvc.ReserveSession(1)
 	if err != nil {
