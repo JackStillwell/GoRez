@@ -16,9 +16,9 @@ import (
 )
 
 type apiUtil struct {
-	aS authService.AuthService
-	rS requestService.RequestService
-	sS sessionService.SessionService
+	authSvc authService.AuthService
+	rqstSvc requestService.RequestService
+	sesnSvc sessionService.SessionService
 }
 
 func NewAPIUtil(
@@ -27,9 +27,9 @@ func NewAPIUtil(
 	sS sessionService.SessionService,
 ) i.APIUtil {
 	return &apiUtil{
-		rS: rS,
-		aS: aS,
-		sS: sS,
+		rqstSvc: rS,
+		authSvc: aS,
+		sesnSvc: sS,
 	}
 }
 
@@ -39,17 +39,17 @@ func (a *apiUtil) CreateSession() (*m.Session, error) {
 		Id: &uID,
 		JITArgs: []interface{}{
 			"http://api.smitegame.com/smiteapi.svc/createsessionjson",
-			a.aS.GetID(),
+			a.authSvc.GetID(),
 			"createsession",
 			"",
-			a.aS.GetTimestamp,
-			a.aS.GetSignature,
+			a.authSvc.GetTimestamp,
+			a.authSvc.GetSignature,
 			"",
 		},
 		JITBuild: requestUtils.JITBase,
 	}
 
-	resp := a.rS.Request(&r)
+	resp := a.rqstSvc.Request(&r)
 	if resp.Err != nil {
 		return nil, errors.Wrap(resp.Err, "request")
 	}
@@ -63,24 +63,27 @@ func (a *apiUtil) CreateSession() (*m.Session, error) {
 	return session, nil
 }
 
+// TODO: make bulk by taking a list and returning a list
 func (a *apiUtil) TestSession(s *m.Session) (string, error) {
 	uID := uuid.New()
 	r := rSM.Request{
 		Id: &uID,
 		JITArgs: []interface{}{
 			hRConst.SmiteURLBase + hRConst.TestSession + "json",
-			a.aS.GetID(),
+			a.authSvc.GetID(),
 			hRConst.TestSession,
 			s,
-			a.aS.GetTimestamp,
-			a.aS.GetSignature,
+			a.authSvc.GetTimestamp,
+			a.authSvc.GetSignature,
 			"",
 		},
 		JITBuild: requestUtils.JITBase,
 	}
 
-	a.rS.MakeRequest(&r)
-	resp := a.rS.GetResponse(&uID)
+	a.rqstSvc.MakeRequest(&r)
+	respChan := make(chan *rSM.RequestResponse, 1)
+	a.rqstSvc.GetResponse(&uID, respChan)
+	resp := <-respChan
 	if resp.Err != nil {
 		return "", errors.Wrap(resp.Err, "request")
 	}
@@ -89,12 +92,12 @@ func (a *apiUtil) TestSession(s *m.Session) (string, error) {
 }
 
 func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
-	sessions, err := a.sS.ReserveSession(1)
+	sessions, err := a.sesnSvc.ReserveSession(1)
 	if err != nil {
 		return nil, errors.Wrap(err, "reserving session")
 	}
 
-	defer a.sS.ReleaseSession(sessions)
+	defer a.sesnSvc.ReleaseSession(sessions)
 	s := sessions[0]
 
 	uID := uuid.New()
@@ -102,17 +105,17 @@ func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 		Id: &uID,
 		JITArgs: []interface{}{
 			hRConst.SmiteURLBase + hRConst.GetDataUsed + "json",
-			a.aS.GetID(),
+			a.authSvc.GetID(),
 			hRConst.GetDataUsed,
 			s.Key,
-			a.aS.GetTimestamp,
-			a.aS.GetSignature,
+			a.authSvc.GetTimestamp,
+			a.authSvc.GetSignature,
 			"",
 		},
 		JITBuild: requestUtils.JITBase,
 	}
 
-	resp := a.rS.Request(&r)
+	resp := a.rqstSvc.Request(&r)
 	if resp.Err != nil {
 		return nil, errors.Wrap(resp.Err, "request")
 	}
