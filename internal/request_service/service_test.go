@@ -187,19 +187,18 @@ var _ = Describe("Service", func() {
 			}
 
 			It("should issue the request", func() {
-				requester.EXPECT().Request(request).Return(
-					&m.RequestResponse{
-						Id: &uniqueId,
-					},
-				).Times(1)
+				response := &m.RequestResponse{
+					Id: &uniqueId,
+				}
+				requester.EXPECT().Request(request).Return(response).Times(1)
 				rS.MakeRequest(request)
-				Eventually(rM.responses[0], time.Second, time.Millisecond).
-					Should(Equal(request))
+				Eventually(rM.responses, time.Second, time.Millisecond).
+					Should(ContainElement(response))
 			})
 		})
 	})
 
-	Describe("GetRequest", func() {
+	Describe("GetResponse", func() {
 		var requester *mock.MockRequester
 
 		BeforeEach(func() {
@@ -209,22 +208,22 @@ var _ = Describe("Service", func() {
 		})
 
 		Context("Is called after a request has been made", func() {
-			// Need to figure out async testing
-			/*
-				request := &m.Request{
-					Id: &uniqueId,
-				}
+			request := &m.Request{
+				Id: &uniqueId,
+			}
 
-				requestResponse := &m.RequestResponse{
-					Id: &uniqueId,
-				}
+			requestResponse := &m.RequestResponse{
+				Id: &uniqueId,
+			}
 
-				It("should return the response", func() {
-					requester.EXPECT().Request(request).Return(requestResponse).Times(1)
-					requestService.MakeRequest(request)
-					Expect(requestService.GetResponse(&uniqueId)).To(Equal(requestResponse))
-				})
-			*/
+			It("should return the response", func() {
+				requester.EXPECT().Request(request).Return(requestResponse).Times(1)
+				rS.MakeRequest(request)
+				responseChan := make(chan *m.RequestResponse, 1)
+				rS.GetResponse(&uniqueId, responseChan)
+				response := <-responseChan
+				Expect(response).To(Equal(requestResponse))
+			})
 		})
 	})
 })
