@@ -19,20 +19,25 @@ type APIUtil interface {
 type GodItemInfo interface {
 	GetGods() []*m.God
 	GetItems() []*m.Item
-	GetGodRecItems(godID int) []*m.ItemRecommendation
+	// TODO: need a parent obj to include godID
+	GetGodRecItems(godID []int) []*m.ItemRecommendation
 }
 
 type PlayerInfo interface {
-	GetPlayerIDByName(playerName string) *m.PlayerID
+	// TODO: need a parent obj to include playerName
+	GetPlayerIDByName(playerName []string) *m.PlayerID
 	GetPlayer(playerID int) *m.Player
 	GetPlayerBatch(playerIDs []int) []*m.Player
-	GetMatchHistory(playerID int) []*m.MatchDetails
-	GetQueueStats(playerID int) []*m.QueueStat
+	// TODO: need a parent obj to include playerID
+	GetMatchHistory(playerID []int) []*m.MatchDetails
+	// TODO: need a parent obj to include playerID
+	GetQueueStats(playerID []int) []*m.QueueStat
 }
 
 type MatchInfo interface {
 	GetMatchDetails(matchID int) *m.MatchDetails
 	GetMatchDetailsBatch(matchIDs []int) []*m.MatchDetails
-	GetMatchIDsByQueue(queueID m.QueueID) []*m.MatchID
-	GetMatchPlayerDetails(matchID int) *m.MatchDetails
+	// TODO: need a parent obj to include queueid
+	GetMatchIDsByQueue(queueID []m.QueueID) []*m.MatchID
+	GetMatchPlayerDetails(matchID []int) []*m.MatchDetails
 }
