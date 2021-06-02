@@ -29,7 +29,6 @@ type requestManager struct {
 	freeNotify chan int
 
 	listenerNotify chan int
-	listeningLock  *sync.Mutex
 
 	listenerCount    int
 	numListenersLock *sync.RWMutex
@@ -64,7 +63,6 @@ func NewTestRequestManager(capacity int, r i.Requester) *requestManager {
 		freeNotify: freeNotifyChan,
 
 		listenerNotify: listenerChan,
-		listeningLock:  &sync.Mutex{},
 
 		listenerCount:    0,
 		numListenersLock: &sync.RWMutex{},
@@ -114,47 +112,33 @@ func (rM *requestManager) MakeRequest(r *m.Request) {
 	go rM.request(r)
 }
 
-/*
-	IDEA: find a way to use defer and goroutines to ensure atomic operations around listening?
-	* I think it would have to be it's own object, no way to do it with primitive types.
-	* Would need to know the number of listeners, when stuff is sending, etc.
-*/
-
 func (rM *requestManager) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse) {
-	result := rM.searchResponse(id)
-
-	if result == nil {
-		rM.numListenersLock.Lock()
-		rM.listenerCount++
-		rM.numListenersLock.Unlock()
+	rM.responsesLock.RLock()
+	for idx, v := range rM.responses {
+		if v != nil && v.Id == id {
+			rM.responsesLock.RUnlock()
+			defer freeIdx(rM, idx)
+			retChan <- rM.responses[idx]
+			return
+		}
 	}
 
-	for result == nil {
+	rM.numListenersLock.Lock()
+	rM.listenerCount++
+	rM.numListenersLock.Unlock()
+	rM.responsesLock.RUnlock()
+
+	for {
 		idx := <-rM.listenerNotify
 		if rM.responses[idx].Id == id {
 			rM.numListenersLock.Lock()
 			rM.listenerCount--
 			rM.numListenersLock.Unlock()
 			defer freeIdx(rM, idx)
-			result = rM.responses[idx]
+			retChan <- rM.responses[idx]
+			return
 		}
 	}
-
-	retChan <- result
-}
-
-func (rM *requestManager) searchResponse(id *uuid.UUID) *m.RequestResponse {
-	rM.responsesLock.RLock()
-	for idx, v := range rM.responses {
-		if v != nil && v.Id == id {
-			rM.responsesLock.RUnlock()
-			defer freeIdx(rM, idx)
-			return rM.responses[idx]
-		}
-	}
-	rM.responsesLock.RUnlock()
-
-	return nil
 }
 
 func freeIdx(rM *requestManager, idx int) {
