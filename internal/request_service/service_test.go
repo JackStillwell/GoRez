@@ -225,5 +225,47 @@ var _ = Describe("Service", func() {
 				Expect(response).To(Equal(requestResponse))
 			})
 		})
+
+		Context("Can handle multiple listeners", func() {
+
+			numRequests := 5
+			IDs := make([]*uuid.UUID, numRequests)
+			for idx := range IDs {
+				uid := uuid.New()
+				IDs[idx] = &uid
+			}
+
+			It("should return the response", func() {
+				for _, ID := range IDs {
+					requester.EXPECT().Request(
+						&m.Request{
+							Id: ID,
+						},
+					).Return(&m.RequestResponse{
+						Id: ID,
+					}).Times(1)
+				}
+
+				for _, ID := range IDs {
+					rS.MakeRequest(&m.Request{Id: ID})
+				}
+				responseChan := make(chan *m.RequestResponse, numRequests)
+
+				for _, ID := range IDs {
+					rS.GetResponse(ID, responseChan)
+				}
+
+				responses := make([]*m.RequestResponse, numRequests)
+				expecteds := make([]*m.RequestResponse, numRequests)
+				for idx, ID := range IDs {
+					expected := &m.RequestResponse{Id: ID}
+					expecteds[idx] = expected
+					response := <-responseChan
+					responses[idx] = response
+				}
+
+				Expect(expecteds).To(ContainElements(responses))
+			})
+		})
 	})
 })
