@@ -108,25 +108,31 @@ func (g *godItemInfo) GetItems() ([]*m.Item, error) {
 }
 
 func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []error) {
-	r := rSM.Request{
-		JITArgs: []interface{}{
-			hRConst.SmiteURLBase + hRConst.TestSession + "json",
-			g.authSvc.GetID(),
-			hRConst.TestSession,
-			"",
-			g.authSvc.GetTimestamp,
-			g.authSvc.GetSignature,
-			"",
-		},
-		JITBuild: requestUtils.JITBase,
-	}
-
 	uIDs := make([]*uuid.UUID, len(godIDs))
-	for i := 0; i < len(godIDs); i++ {
-		uID := uuid.New()
-		r.Id = &uID
-		g.rqstSvc.MakeRequest(&r)
-		uIDs = append(uIDs, &uID)
+	for idx, gid := range godIDs {
+		s, err := g.sesnSvc.ReserveSession(1)
+		if err != nil {
+
+		}
+		r := rSM.Request{
+			JITArgs: []interface{}{
+				hRConst.SmiteURLBase + hRConst.GetGodRecommendedItems + "json",
+				g.authSvc.GetID(),
+				hRConst.GetGodRecommendedItems,
+				"",
+				g.authSvc.GetTimestamp,
+				g.authSvc.GetSignature,
+				string(gid) + "/1",
+			},
+			JITBuild: requestUtils.JITBase,
+		}
+
+		for i := 0; i < len(godIDs); i++ {
+			uID := uuid.New()
+			r.Id = &uID
+			g.rqstSvc.MakeRequest(&r)
+			uIDs = append(uIDs, &uID)
+		}
 	}
 
 	responseChan := make(chan *rSM.RequestResponse, len(s))

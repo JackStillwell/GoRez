@@ -39,9 +39,10 @@ func NewSessionService(maxSessions int, existingSessions []*m.Session) (i.Sessio
 	}, nil
 }
 
-func (s *sessionService) ReserveSession(numSessions int) ([]*m.Session, error) {
+func (s *sessionService) ReserveSession(numSessions int, retChan chan *m.Session) {
 	if numSessions > len(s.availableSessions) {
-		return nil, errors.New("not enough sessions available")
+		// TODO: wait until available and return then
+		return errors.New("not enough sessions available")
 	}
 
 	toReturn := s.availableSessions[:numSessions]
