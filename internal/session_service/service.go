@@ -1,7 +1,6 @@
 package session_service
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -12,7 +11,7 @@ import (
 
 type sessionService struct {
 	maxSessions       int
-	availableSessions []*m.Session
+	availableSessions chan *m.Session
 	reservedSessions  []*m.Session
 	lock              sync.Mutex
 }
@@ -26,8 +25,10 @@ func NewSessionService(maxSessions int, existingSessions []*m.Session) (i.Sessio
 		)
 	}
 
-	aS := make([]*m.Session, 0, maxSessions)
-	copy(aS, existingSessions)
+	aS := make(chan *m.Session, maxSessions)
+	for i := range existingSessions {
+		aS <- existingSessions[i]
+	}
 
 	rS := make([]*m.Session, 0, maxSessions)
 
@@ -40,21 +41,19 @@ func NewSessionService(maxSessions int, existingSessions []*m.Session) (i.Sessio
 }
 
 func (s *sessionService) ReserveSession(numSessions int, retChan chan *m.Session) {
-	if numSessions > len(s.availableSessions) {
-		// TODO: wait until available and return then
-		return errors.New("not enough sessions available")
+	for i := 0; i < numSessions; i++ {
+		toReturn := <-s.availableSessions
+		s.reservedSessions = append(s.reservedSessions, toReturn)
+		retChan <- toReturn
 	}
-
-	toReturn := s.availableSessions[:numSessions]
-	s.availableSessions = s.availableSessions[numSessions-1:]
-	s.reservedSessions = append(s.reservedSessions, toReturn...)
-
-	return toReturn, nil
 }
 
 func (s *sessionService) ReleaseSession(sessions []*m.Session) {
 	removeFromSlice(&s.reservedSessions, sessions)
-	s.availableSessions = append(s.availableSessions, sessions...)
+
+	for i := range sessions {
+		s.availableSessions <- sessions[i]
+	}
 }
 
 func (s *sessionService) BadSession(sessions []*m.Session) {

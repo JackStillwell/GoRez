@@ -8,6 +8,7 @@ import (
 	rSM "github.com/JackStillwell/GoRez/internal/request_service/models"
 	requestUtils "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
+	sSM "github.com/JackStillwell/GoRez/internal/session_service/models"
 	hRConst "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
@@ -34,13 +35,12 @@ func NewGodItemInfo(
 }
 
 func (g *godItemInfo) GetGods() ([]*m.God, error) {
-	sessions, err := g.sesnSvc.ReserveSession(1)
-	if err != nil {
-		return nil, errors.Wrap(err, "reserving session")
-	}
+	sesnChan := make(chan *sSM.Session, 1)
+	g.sesnSvc.ReserveSession(1, sesnChan)
+	s := <-sesnChan
 
+	sessions := []*sSM.Session{s}
 	defer g.sesnSvc.ReleaseSession(sessions)
-	s := sessions[0]
 
 	r := rSM.Request{
 		JITArgs: []interface{}{
@@ -62,7 +62,7 @@ func (g *godItemInfo) GetGods() ([]*m.God, error) {
 	}
 
 	gods := []*m.God{}
-	err = json.Unmarshal(resp.Resp, gods)
+	err := json.Unmarshal(resp.Resp, gods)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling response")
 	}
@@ -71,13 +71,12 @@ func (g *godItemInfo) GetGods() ([]*m.God, error) {
 }
 
 func (g *godItemInfo) GetItems() ([]*m.Item, error) {
-	sessions, err := g.sesnSvc.ReserveSession(1)
-	if err != nil {
-		return nil, errors.Wrap(err, "reserving session")
-	}
+	sesnChan := make(chan *sSM.Session, 1)
+	g.sesnSvc.ReserveSession(1, sesnChan)
+	s := <-sesnChan
 
+	sessions := []*sSM.Session{s}
 	defer g.sesnSvc.ReleaseSession(sessions)
-	s := sessions[0]
 
 	r := rSM.Request{
 		JITArgs: []interface{}{
@@ -99,7 +98,7 @@ func (g *godItemInfo) GetItems() ([]*m.Item, error) {
 	}
 
 	items := []*m.Item{}
-	err = json.Unmarshal(resp.Resp, items)
+	err := json.Unmarshal(resp.Resp, items)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling response")
 	}
@@ -154,43 +153,4 @@ func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []e
 	}
 
 	return responses, errs
-}
-
-// NOTE: can only do one at a time, so no need for bulk concurrency
-func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
-	sessions, err := a.sesnSvc.ReserveSession(1)
-	if err != nil {
-		return nil, errors.Wrap(err, "reserving session")
-	}
-
-	defer a.sesnSvc.ReleaseSession(sessions)
-	s := sessions[0]
-
-	uID := uuid.New()
-	r := rSM.Request{
-		Id: &uID,
-		JITArgs: []interface{}{
-			hRConst.SmiteURLBase + hRConst.GetDataUsed + "json",
-			a.authSvc.GetID(),
-			hRConst.GetDataUsed,
-			s.Key,
-			a.authSvc.GetTimestamp,
-			a.authSvc.GetSignature,
-			"",
-		},
-		JITBuild: requestUtils.JITBase,
-	}
-
-	resp := a.rqstSvc.Request(&r)
-	if resp.Err != nil {
-		return nil, errors.Wrap(resp.Err, "request")
-	}
-
-	uI := &m.UsageInfo{}
-	err = json.Unmarshal(resp.Resp, uI)
-	if err != nil {
-		return nil, errors.Wrap(err, "unmarshalling response")
-	}
-
-	return uI, nil
 }

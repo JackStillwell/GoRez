@@ -8,6 +8,7 @@ import (
 	rSM "github.com/JackStillwell/GoRez/internal/request_service/models"
 	requestUtils "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
+	sSM "github.com/JackStillwell/GoRez/internal/session_service/models"
 	hRConst "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
@@ -127,13 +128,12 @@ func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 
 // NOTE: can only do one at a time, so no need for bulk concurrency
 func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
-	sessions, err := a.sesnSvc.ReserveSession(1)
-	if err != nil {
-		return nil, errors.Wrap(err, "reserving session")
-	}
+	sesnChan := make(chan *sSM.Session, 1)
+	a.sesnSvc.ReserveSession(1, sesnChan)
+	s := <-sesnChan
 
+	sessions := []*sSM.Session{s}
 	defer a.sesnSvc.ReleaseSession(sessions)
-	s := sessions[0]
 
 	uID := uuid.New()
 	r := rSM.Request{
@@ -156,7 +156,7 @@ func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 	}
 
 	uI := &m.UsageInfo{}
-	err = json.Unmarshal(resp.Resp, uI)
+	err := json.Unmarshal(resp.Resp, uI)
 	if err != nil {
 		return nil, errors.Wrap(err, "unmarshalling response")
 	}
