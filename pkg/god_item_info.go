@@ -2,6 +2,11 @@ package gorez
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
+
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 
 	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
 	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
@@ -12,8 +17,6 @@ import (
 	hRConst "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
-	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 type godItemInfo struct {
@@ -62,7 +65,7 @@ func (g *godItemInfo) GetGods() ([]*m.God, error) {
 	}
 
 	gods := []*m.God{}
-	err := json.Unmarshal(resp.Resp, gods)
+	err := json.Unmarshal(resp.Resp, &gods)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling response")
 	}
@@ -98,7 +101,7 @@ func (g *godItemInfo) GetItems() ([]*m.Item, error) {
 	}
 
 	items := []*m.Item{}
-	err := json.Unmarshal(resp.Resp, items)
+	err := json.Unmarshal(resp.Resp, &items)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling response")
 	}
@@ -107,49 +110,61 @@ func (g *godItemInfo) GetItems() ([]*m.Item, error) {
 }
 
 func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []error) {
-	uIDs := make([]*uuid.UUID, len(godIDs))
-	for idx, gid := range godIDs {
-		s, err := g.sesnSvc.ReserveSession(1)
-		if err != nil {
+	numIDs := len(godIDs)
+	responseChan := make(chan *rSM.RequestResponse, numIDs)
+	uIDSessionMap := make(map[*uuid.UUID]*sSM.Session, numIDs)
 
-		}
-		r := rSM.Request{
-			JITArgs: []interface{}{
-				hRConst.SmiteURLBase + hRConst.GetGodRecommendedItems + "json",
-				g.authSvc.GetID(),
-				hRConst.GetGodRecommendedItems,
-				"",
-				g.authSvc.GetTimestamp,
-				g.authSvc.GetSignature,
-				string(gid) + "/1",
-			},
-			JITBuild: requestUtils.JITBase,
-		}
+	// NOTE: this is async so the reservation and release of sessions is possible, but the func
+	// return depends upon responses being completed.
+	go func() {
+		for _, gid := range godIDs {
+			sessChan := make(chan *sSM.Session, 1)
+			g.sesnSvc.ReserveSession(1, sessChan)
+			s := <-sessChan // NOTE: will wait here until session recieved
+			r := rSM.Request{
+				JITArgs: []interface{}{
+					hRConst.SmiteURLBase + hRConst.GetGodRecommendedItems + "json",
+					g.authSvc.GetID(),
+					hRConst.GetGodRecommendedItems,
+					s.Key,
+					g.authSvc.GetTimestamp,
+					g.authSvc.GetSignature,
+					fmt.Sprint(gid) + "/1",
+				},
+				JITBuild: requestUtils.JITBase,
+			}
 
-		for i := 0; i < len(godIDs); i++ {
 			uID := uuid.New()
 			r.Id = &uID
+			uIDSessionMap[&uID] = s
 			g.rqstSvc.MakeRequest(&r)
-			uIDs = append(uIDs, &uID)
+			g.rqstSvc.GetResponse(&uID, responseChan)
 		}
-	}
+	}()
 
-	responseChan := make(chan *rSM.RequestResponse, len(s))
-	for i := 0; i < len(s); i++ {
-		a.rqstSvc.GetResponse(uIDs[i], responseChan)
-	}
-
-	responses := make([]*string, 0, len(s))
-	errs := make([]error, 0, len(s))
-	for i := 0; i < len(s); i++ {
+	responses := make([]*m.ItemRecommendation, 0, numIDs)
+	errs := make([]error, 0, numIDs)
+	for i := 0; i < numIDs; i++ {
 		resp := <-responseChan
 		if resp.Err != nil {
+			if strings.Contains(resp.Err.Error(), "session") {
+				g.sesnSvc.BadSession([]*sSM.Session{uIDSessionMap[resp.Id]})
+			} else {
+				g.sesnSvc.ReleaseSession([]*sSM.Session{uIDSessionMap[resp.Id]})
+			}
 			errs = append(errs, errors.Wrap(resp.Err, "request"))
 			continue
 		}
 
-		responseString := string(resp.Resp)
-		responses = append(responses, &responseString)
+		g.sesnSvc.ReleaseSession([]*sSM.Session{uIDSessionMap[resp.Id]})
+
+		itemRec := &m.ItemRecommendation{}
+		err := json.Unmarshal(resp.Resp, itemRec)
+		if err != nil {
+			errs = append(errs, errors.Wrap(resp.Err, "marshaling response"))
+			continue
+		}
+		responses = append(responses, itemRec)
 	}
 
 	return responses, errs
