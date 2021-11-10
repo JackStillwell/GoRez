@@ -70,10 +70,15 @@ func removeFromSlice(toModify *[]*m.Session, toRemove []*m.Session) {
 		}
 	}
 
+	// None of the sessions to be removed were present in the slice to be modified
+	if len(idxsToRemove) == 0 {
+		return
+	}
+
 	sort.Ints(idxsToRemove)
 	if idxsToRemove[len(idxsToRemove)-1] == len(*toModify)-1 {
-		idxsToRemove = idxsToRemove[:len(idxsToRemove)-1]
 		*toModify = (*toModify)[:len(idxsToRemove)-1]
+		idxsToRemove = idxsToRemove[:len(idxsToRemove)-1]
 	}
 	for idx := len(idxsToRemove) - 1; idx >= 0; idx-- {
 		iTR := idxsToRemove[idx]
