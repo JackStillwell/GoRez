@@ -3,11 +3,10 @@ package gorez
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
+	"github.com/JackStillwell/GoRez/internal"
 	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
 	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	rSM "github.com/JackStillwell/GoRez/internal/request_service/models"
@@ -110,18 +109,11 @@ func (g *godItemInfo) GetItems() ([]*m.Item, error) {
 }
 
 func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []error) {
-	numIDs := len(godIDs)
-	responseChan := make(chan *rSM.RequestResponse, numIDs)
-	uIDSessionMap := make(map[*uuid.UUID]*sSM.Session, numIDs)
+	requestBuilders := make([]func(*sSM.Session) *rSM.Request, len(godIDs))
 
-	// NOTE: this is async so the reservation and release of sessions is possible, but the func
-	// return depends upon responses being completed.
-	go func() {
-		for _, gid := range godIDs {
-			sessChan := make(chan *sSM.Session, 1)
-			g.sesnSvc.ReserveSession(1, sessChan)
-			s := <-sessChan // NOTE: will wait here until session recieved
-			r := rSM.Request{
+	for i, gid := range godIDs {
+		requestBuilders[i] = func(s *sSM.Session) *rSM.Request {
+			return &rSM.Request{
 				JITArgs: []interface{}{
 					hRConst.SmiteURLBase + hRConst.GetGodRecommendedItems + "json",
 					g.authSvc.GetID(),
@@ -133,39 +125,28 @@ func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []e
 				},
 				JITBuild: requestUtils.JITBase,
 			}
-
-			uID := uuid.New()
-			r.Id = &uID
-			uIDSessionMap[&uID] = s
-			g.rqstSvc.MakeRequest(&r)
-			g.rqstSvc.GetResponse(&uID, responseChan)
 		}
-	}()
-
-	responses := make([]*m.ItemRecommendation, 0, numIDs)
-	errs := make([]error, 0, numIDs)
-	for i := 0; i < numIDs; i++ {
-		resp := <-responseChan
-		if resp.Err != nil {
-			if strings.Contains(resp.Err.Error(), "session") {
-				g.sesnSvc.BadSession([]*sSM.Session{uIDSessionMap[resp.Id]})
-			} else {
-				g.sesnSvc.ReleaseSession([]*sSM.Session{uIDSessionMap[resp.Id]})
-			}
-			errs = append(errs, errors.Wrap(resp.Err, "request"))
-			continue
-		}
-
-		g.sesnSvc.ReleaseSession([]*sSM.Session{uIDSessionMap[resp.Id]})
-
-		itemRec := &m.ItemRecommendation{}
-		err := json.Unmarshal(resp.Resp, itemRec)
-		if err != nil {
-			errs = append(errs, errors.Wrap(resp.Err, "marshaling response"))
-			continue
-		}
-		responses = append(responses, itemRec)
 	}
 
-	return responses, errs
+	rawObjs, errs := internal.BulkAsyncSessionRequest(g.rqstSvc, g.sesnSvc, requestBuilders,
+		func(b []byte) (interface{}, error) {
+			itemRec := &m.ItemRecommendation{}
+			err := json.Unmarshal(b, itemRec)
+			if err != nil {
+				return nil, errors.Wrap(err, "marshaling response")
+			}
+			return itemRec, nil
+		})
+
+	itemRecs := make([]*m.ItemRecommendation, len(godIDs))
+	for i, obj := range rawObjs {
+		rec, ok := obj.(*m.ItemRecommendation)
+		if !ok {
+			errs = append(errs, errors.New("converting from interface to itemrecommendation"))
+		}
+
+		itemRecs[i] = rec
+	}
+
+	return itemRecs, errs
 }
