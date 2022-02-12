@@ -79,11 +79,12 @@ func (mr *MockGoRezMockRecorder) GetGodRecItems(godIDs interface{}) *gomock.Call
 }
 
 // GetPlayerIDByName mocks base method
-func (m *MockGoRez) GetPlayerIDByName(playerName []string) *models.PlayerIDWithName {
+func (m *MockGoRez) GetPlayerIDByName(playerName []string) (*models.PlayerIDWithName, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerIDByName", playerName)
 	ret0, _ := ret[0].(*models.PlayerIDWithName)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetPlayerIDByName indicates an expected call of GetPlayerIDByName
@@ -93,11 +94,12 @@ func (mr *MockGoRezMockRecorder) GetPlayerIDByName(playerName interface{}) *gomo
 }
 
 // GetPlayer mocks base method
-func (m *MockGoRez) GetPlayer(playerID int) *models.Player {
+func (m *MockGoRez) GetPlayer(playerID int) (*models.Player, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayer", playerID)
 	ret0, _ := ret[0].(*models.Player)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetPlayer indicates an expected call of GetPlayer
@@ -107,11 +109,12 @@ func (mr *MockGoRezMockRecorder) GetPlayer(playerID interface{}) *gomock.Call {
 }
 
 // GetPlayerBatch mocks base method
-func (m *MockGoRez) GetPlayerBatch(playerIDs []int) []*models.Player {
+func (m *MockGoRez) GetPlayerBatch(playerIDs []int) ([]*models.Player, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerBatch", playerIDs)
 	ret0, _ := ret[0].([]*models.Player)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetPlayerBatch indicates an expected call of GetPlayerBatch
@@ -121,11 +124,12 @@ func (mr *MockGoRezMockRecorder) GetPlayerBatch(playerIDs interface{}) *gomock.C
 }
 
 // GetMatchHistory mocks base method
-func (m *MockGoRez) GetMatchHistory(playerID []int) []*models.MatchDetails {
+func (m *MockGoRez) GetMatchHistory(playerID []int) ([]*models.MatchDetails, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
 	ret0, _ := ret[0].([]*models.MatchDetails)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetMatchHistory indicates an expected call of GetMatchHistory
@@ -135,11 +139,12 @@ func (mr *MockGoRezMockRecorder) GetMatchHistory(playerID interface{}) *gomock.C
 }
 
 // GetQueueStats mocks base method
-func (m *MockGoRez) GetQueueStats(playerID []int) []*models.QueueStat {
+func (m *MockGoRez) GetQueueStats(playerID []int) ([]*models.QueueStat, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetQueueStats", playerID)
 	ret0, _ := ret[0].([]*models.QueueStat)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetQueueStats indicates an expected call of GetQueueStats
@@ -149,11 +154,12 @@ func (mr *MockGoRezMockRecorder) GetQueueStats(playerID interface{}) *gomock.Cal
 }
 
 // GetMatchDetails mocks base method
-func (m *MockGoRez) GetMatchDetails(matchID int) *models.MatchDetails {
+func (m *MockGoRez) GetMatchDetails(matchID int) (*models.MatchDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
 	ret0, _ := ret[0].(*models.MatchDetails)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetMatchDetails indicates an expected call of GetMatchDetails
@@ -163,11 +169,12 @@ func (mr *MockGoRezMockRecorder) GetMatchDetails(matchID interface{}) *gomock.Ca
 }
 
 // GetMatchDetailsBatch mocks base method
-func (m *MockGoRez) GetMatchDetailsBatch(matchIDs []int) []*models.MatchDetails {
+func (m *MockGoRez) GetMatchDetailsBatch(matchIDs []int) ([]*models.MatchDetails, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetailsBatch", matchIDs)
 	ret0, _ := ret[0].([]*models.MatchDetails)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetMatchDetailsBatch indicates an expected call of GetMatchDetailsBatch
@@ -177,11 +184,12 @@ func (mr *MockGoRezMockRecorder) GetMatchDetailsBatch(matchIDs interface{}) *gom
 }
 
 // GetMatchIDsByQueue mocks base method
-func (m *MockGoRez) GetMatchIDsByQueue(queueID []models.QueueID) []*models.MatchIDWithQueue {
+func (m *MockGoRez) GetMatchIDsByQueue(queueID []models.QueueID) ([]*models.MatchIDWithQueue, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchIDsByQueue", queueID)
 	ret0, _ := ret[0].([]*models.MatchIDWithQueue)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetMatchIDsByQueue indicates an expected call of GetMatchIDsByQueue
@@ -191,11 +199,12 @@ func (mr *MockGoRezMockRecorder) GetMatchIDsByQueue(queueID interface{}) *gomock
 }
 
 // GetMatchPlayerDetails mocks base method
-func (m *MockGoRez) GetMatchPlayerDetails(matchID []int) []*models.MatchDetails {
+func (m *MockGoRez) GetMatchPlayerDetails(matchID []int) ([]*models.MatchDetails, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchPlayerDetails", matchID)
 	ret0, _ := ret[0].([]*models.MatchDetails)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetMatchPlayerDetails indicates an expected call of GetMatchPlayerDetails
@@ -364,11 +373,12 @@ func (m *MockPlayerInfo) EXPECT() *MockPlayerInfoMockRecorder {
 }
 
 // GetPlayerIDByName mocks base method
-func (m *MockPlayerInfo) GetPlayerIDByName(playerName []string) *models.PlayerIDWithName {
+func (m *MockPlayerInfo) GetPlayerIDByName(playerName []string) (*models.PlayerIDWithName, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerIDByName", playerName)
 	ret0, _ := ret[0].(*models.PlayerIDWithName)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetPlayerIDByName indicates an expected call of GetPlayerIDByName
@@ -378,11 +388,12 @@ func (mr *MockPlayerInfoMockRecorder) GetPlayerIDByName(playerName interface{}) 
 }
 
 // GetPlayer mocks base method
-func (m *MockPlayerInfo) GetPlayer(playerID int) *models.Player {
+func (m *MockPlayerInfo) GetPlayer(playerID int) (*models.Player, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayer", playerID)
 	ret0, _ := ret[0].(*models.Player)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetPlayer indicates an expected call of GetPlayer
@@ -392,11 +403,12 @@ func (mr *MockPlayerInfoMockRecorder) GetPlayer(playerID interface{}) *gomock.Ca
 }
 
 // GetPlayerBatch mocks base method
-func (m *MockPlayerInfo) GetPlayerBatch(playerIDs []int) []*models.Player {
+func (m *MockPlayerInfo) GetPlayerBatch(playerIDs []int) ([]*models.Player, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerBatch", playerIDs)
 	ret0, _ := ret[0].([]*models.Player)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetPlayerBatch indicates an expected call of GetPlayerBatch
@@ -406,11 +418,12 @@ func (mr *MockPlayerInfoMockRecorder) GetPlayerBatch(playerIDs interface{}) *gom
 }
 
 // GetMatchHistory mocks base method
-func (m *MockPlayerInfo) GetMatchHistory(playerID []int) []*models.MatchDetails {
+func (m *MockPlayerInfo) GetMatchHistory(playerID []int) ([]*models.MatchDetails, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
 	ret0, _ := ret[0].([]*models.MatchDetails)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetMatchHistory indicates an expected call of GetMatchHistory
@@ -420,11 +433,12 @@ func (mr *MockPlayerInfoMockRecorder) GetMatchHistory(playerID interface{}) *gom
 }
 
 // GetQueueStats mocks base method
-func (m *MockPlayerInfo) GetQueueStats(playerID []int) []*models.QueueStat {
+func (m *MockPlayerInfo) GetQueueStats(playerID []int) ([]*models.QueueStat, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetQueueStats", playerID)
 	ret0, _ := ret[0].([]*models.QueueStat)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetQueueStats indicates an expected call of GetQueueStats
@@ -457,11 +471,12 @@ func (m *MockMatchInfo) EXPECT() *MockMatchInfoMockRecorder {
 }
 
 // GetMatchDetails mocks base method
-func (m *MockMatchInfo) GetMatchDetails(matchID int) *models.MatchDetails {
+func (m *MockMatchInfo) GetMatchDetails(matchID int) (*models.MatchDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
 	ret0, _ := ret[0].(*models.MatchDetails)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetMatchDetails indicates an expected call of GetMatchDetails
@@ -471,11 +486,12 @@ func (mr *MockMatchInfoMockRecorder) GetMatchDetails(matchID interface{}) *gomoc
 }
 
 // GetMatchDetailsBatch mocks base method
-func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs []int) []*models.MatchDetails {
+func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs []int) ([]*models.MatchDetails, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetailsBatch", matchIDs)
 	ret0, _ := ret[0].([]*models.MatchDetails)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetMatchDetailsBatch indicates an expected call of GetMatchDetailsBatch
@@ -485,11 +501,12 @@ func (mr *MockMatchInfoMockRecorder) GetMatchDetailsBatch(matchIDs interface{}) 
 }
 
 // GetMatchIDsByQueue mocks base method
-func (m *MockMatchInfo) GetMatchIDsByQueue(queueID []models.QueueID) []*models.MatchIDWithQueue {
+func (m *MockMatchInfo) GetMatchIDsByQueue(queueID []models.QueueID) ([]*models.MatchIDWithQueue, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchIDsByQueue", queueID)
 	ret0, _ := ret[0].([]*models.MatchIDWithQueue)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetMatchIDsByQueue indicates an expected call of GetMatchIDsByQueue
@@ -499,11 +516,12 @@ func (mr *MockMatchInfoMockRecorder) GetMatchIDsByQueue(queueID interface{}) *go
 }
 
 // GetMatchPlayerDetails mocks base method
-func (m *MockMatchInfo) GetMatchPlayerDetails(matchID []int) []*models.MatchDetails {
+func (m *MockMatchInfo) GetMatchPlayerDetails(matchID []int) ([]*models.MatchDetails, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchPlayerDetails", matchID)
 	ret0, _ := ret[0].([]*models.MatchDetails)
-	return ret0
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
 }
 
 // GetMatchPlayerDetails indicates an expected call of GetMatchPlayerDetails
