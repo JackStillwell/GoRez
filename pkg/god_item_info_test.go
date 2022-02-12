@@ -41,27 +41,24 @@ var _ = Describe("GodItemInfo", func() {
 	)
 
 	Describe("IntegratedUnitTest", func() {
-		var testServer *httptest.Server
-
 		BeforeEach(func() {
-			testServer = httptest.NewServer(http.HandlerFunc(
-				func(rw http.ResponseWriter, r *http.Request) {
-					rw.WriteHeader(http.StatusOK)
-					_, _ = rw.Write([]byte(""))
-				}))
-
 			authSvc = auth.NewAuthService(authM.Auth{})
 			rqstSvc = request.NewRequestService(1)
 			sesnSvc = session.NewSessionService(1, []*sessionM.Session{{}})
 
 			hiRezConsts = c.NewHiRezConstants()
-			hiRezConsts.SmiteURLBase = testServer.URL
 
 			target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
 		})
 
 		FContext("GetGods", func() {
 			It("should return an error from requesting a response", func() {
+				testServer := httptest.NewServer(http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusInternalServerError)
+					}))
+				hiRezConsts.SmiteURLBase = testServer.URL + "/"
+
 				_, err := target.GetGods()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("requesting response"))
