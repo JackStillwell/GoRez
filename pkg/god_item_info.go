@@ -8,7 +8,7 @@ import (
 
 	"github.com/JackStillwell/GoRez/internal"
 
-	hRConst "github.com/JackStillwell/GoRez/pkg/constants"
+	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
 
@@ -23,7 +23,7 @@ import (
 )
 
 type godItemInfo struct {
-	hrC hRConst.HiRezConstants
+	hrC c.HiRezConstants
 
 	authSvc authI.AuthService
 	rqstSvc requestI.RequestService
@@ -31,7 +31,7 @@ type godItemInfo struct {
 }
 
 func NewGodItemInfo(
-	hrC hRConst.HiRezConstants,
+	hrC c.HiRezConstants,
 	rS requestI.RequestService,
 	aS authI.AuthService,
 	sS sessionI.SessionService,
