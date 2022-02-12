@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/pkg/errors"
 
 	rSI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"

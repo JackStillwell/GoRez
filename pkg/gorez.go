@@ -1,6 +1,7 @@
 package gorez
 
 import (
+	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 
 	auth "github.com/JackStillwell/GoRez/internal/auth_service"
@@ -38,7 +39,7 @@ func NewGorez() i.GoRez {
 	}
 
 	return &g{
-		GodItemInfo: NewGodItemInfo(s.requestSvc, s.authSvc, s.sessionSvc),
+		GodItemInfo: NewGodItemInfo(c.NewHiRezConstants(), s.requestSvc, s.authSvc, s.sessionSvc),
 		PlayerInfo:  NewPlayerInfo(s.requestSvc, s.authSvc, s.sessionSvc),
 		MatchInfo:   NewMatchInfo(s.requestSvc, s.authSvc, s.sessionSvc),
 	}

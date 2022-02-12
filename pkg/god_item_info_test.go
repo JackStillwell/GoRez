@@ -1,6 +1,9 @@
 package gorez_test
 
 import (
+	"net/http"
+	"net/http/httptest"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,6 +24,7 @@ import (
 	session "github.com/JackStillwell/GoRez/internal/session_service"
 	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
 	sessionMock "github.com/JackStillwell/GoRez/internal/session_service/mocks"
+	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
 )
 
 var _ = Describe("GodItemInfo", func() {
@@ -37,20 +41,30 @@ var _ = Describe("GodItemInfo", func() {
 	)
 
 	Describe("IntegratedUnitTest", func() {
+		var testServer *httptest.Server
+
 		BeforeEach(func() {
+			testServer = httptest.NewServer(http.HandlerFunc(
+				func(rw http.ResponseWriter, r *http.Request) {
+					rw.WriteHeader(http.StatusOK)
+					_, _ = rw.Write([]byte(""))
+				}))
+
 			authSvc = auth.NewAuthService(authM.Auth{})
-			rqstSvc = request.NewRequestService(0)
-			sesnSvc = session.NewSessionService(0, nil)
+			rqstSvc = request.NewRequestService(1)
+			sesnSvc = session.NewSessionService(1, []*sessionM.Session{{}})
 
 			hiRezConsts = c.NewHiRezConstants()
+			hiRezConsts.SmiteURLBase = testServer.URL
 
 			target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
 		})
 
-		Context("GetGods", func() {
+		FContext("GetGods", func() {
 			It("should return an error from requesting a response", func() {
-
-				target.GetGods()
+				_, err := target.GetGods()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("requesting response"))
 			})
 		})
 	})
