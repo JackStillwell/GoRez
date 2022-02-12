@@ -7,29 +7,38 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/JackStillwell/GoRez/internal"
-	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
-	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	rSM "github.com/JackStillwell/GoRez/internal/request_service/models"
-	requestUtils "github.com/JackStillwell/GoRez/internal/request_service/utilities"
-	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	sSM "github.com/JackStillwell/GoRez/internal/session_service/models"
+
 	hRConst "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
+
+	authI "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
+
+	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
+	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
+	requestU "github.com/JackStillwell/GoRez/internal/request_service/utilities"
+
+	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
+	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
 )
 
 type godItemInfo struct {
-	authSvc authService.AuthService
-	rqstSvc requestService.RequestService
-	sesnSvc sessionService.SessionService
+	hrC hRConst.HiRezConstants
+
+	authSvc authI.AuthService
+	rqstSvc requestI.RequestService
+	sesnSvc sessionI.SessionService
 }
 
 func NewGodItemInfo(
-	rS requestService.RequestService,
-	aS authService.AuthService,
-	sS sessionService.SessionService,
+	hrC hRConst.HiRezConstants,
+	rS requestI.RequestService,
+	aS authI.AuthService,
+	sS sessionI.SessionService,
 ) i.GodItemInfo {
 	return &godItemInfo{
+		hrC: hrC,
+
 		rqstSvc: rS,
 		authSvc: aS,
 		sesnSvc: sS,
@@ -37,24 +46,24 @@ func NewGodItemInfo(
 }
 
 func (g *godItemInfo) GetGods() ([]*m.God, error) {
-	sesnChan := make(chan *sSM.Session, 1)
+	sesnChan := make(chan *sessionM.Session, 1)
 	g.sesnSvc.ReserveSession(1, sesnChan)
 	s := <-sesnChan
 
-	sessions := []*sSM.Session{s}
+	sessions := []*sessionM.Session{s}
 	defer g.sesnSvc.ReleaseSession(sessions)
 
-	r := rSM.Request{
+	r := requestM.Request{
 		JITArgs: []interface{}{
-			hRConst.SmiteURLBase + hRConst.GetGods + "json",
+			g.hrC.SmiteURLBase + g.hrC.GetGods + "json",
 			g.authSvc.GetID(),
-			hRConst.GetGods,
+			g.hrC.GetGods,
 			s.Key,
 			g.authSvc.GetTimestamp,
 			g.authSvc.GetSignature,
 			"",
 		},
-		JITBuild: requestUtils.JITBase,
+		JITBuild: requestU.JITBase,
 	}
 
 	resp := g.rqstSvc.Request(&r)
@@ -73,24 +82,24 @@ func (g *godItemInfo) GetGods() ([]*m.God, error) {
 }
 
 func (g *godItemInfo) GetItems() ([]*m.Item, error) {
-	sesnChan := make(chan *sSM.Session, 1)
+	sesnChan := make(chan *sessionM.Session, 1)
 	g.sesnSvc.ReserveSession(1, sesnChan)
 	s := <-sesnChan
 
-	sessions := []*sSM.Session{s}
+	sessions := []*sessionM.Session{s}
 	defer g.sesnSvc.ReleaseSession(sessions)
 
-	r := rSM.Request{
+	r := requestM.Request{
 		JITArgs: []interface{}{
-			hRConst.SmiteURLBase + hRConst.GetItems + "json",
+			g.hrC.SmiteURLBase + g.hrC.GetItems + "json",
 			g.authSvc.GetID(),
-			hRConst.GetItems,
+			g.hrC.GetItems,
 			s.Key,
 			g.authSvc.GetTimestamp,
 			g.authSvc.GetSignature,
 			"",
 		},
-		JITBuild: requestUtils.JITBase,
+		JITBuild: requestU.JITBase,
 	}
 
 	resp := g.rqstSvc.Request(&r)
@@ -109,21 +118,21 @@ func (g *godItemInfo) GetItems() ([]*m.Item, error) {
 }
 
 func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []error) {
-	requestBuilders := make([]func(*sSM.Session) *rSM.Request, len(godIDs))
+	requestBuilders := make([]func(*sessionM.Session) *requestM.Request, len(godIDs))
 
 	for i, gid := range godIDs {
-		requestBuilders[i] = func(s *sSM.Session) *rSM.Request {
-			return &rSM.Request{
+		requestBuilders[i] = func(s *sessionM.Session) *requestM.Request {
+			return &requestM.Request{
 				JITArgs: []interface{}{
-					hRConst.SmiteURLBase + hRConst.GetGodRecommendedItems + "json",
+					g.hrC.SmiteURLBase + g.hrC.GetGodRecommendedItems + "json",
 					g.authSvc.GetID(),
-					hRConst.GetGodRecommendedItems,
+					g.hrC.GetGodRecommendedItems,
 					s.Key,
 					g.authSvc.GetTimestamp,
 					g.authSvc.GetSignature,
 					fmt.Sprint(gid) + "/1",
 				},
-				JITBuild: requestUtils.JITBase,
+				JITBuild: requestU.JITBase,
 			}
 		}
 	}

@@ -15,3 +15,23 @@ const (
 	GetItems               = "getitems"
 	GetGodRecommendedItems = "getgodrecommendeditems"
 )
+
+type HiRezConstants struct {
+	SmiteURLBase, GetDataUsed, CreateSession, TestSession, GetMatchDetails, GetMatchDetailsBatch,
+	GetMatchIDsByQueue, GetGods, GetItems, GetGodRecommendedItems string
+}
+
+func NewHiRezConstants() HiRezConstants {
+	return HiRezConstants{
+		SmiteURLBase,
+		GetDataUsed,
+		CreateSession,
+		TestSession,
+		GetMatchDetails,
+		GetMatchDetailsBatch,
+		GetMatchIDsByQueue,
+		GetGods,
+		GetItems,
+		GetGodRecommendedItems,
+	}
+}

@@ -26,9 +26,11 @@ type svc struct {
 
 type g struct {
 	i.GodItemInfo
+	i.PlayerInfo
+	i.MatchInfo
 }
 
-func NewGorez() i.GodItemInfo {
+func NewGorez() i.GoRez {
 	s := svc{
 		authSvc:    auth.NewAuthService(authM.Auth{}),
 		requestSvc: request.NewRequestService(0),
@@ -37,5 +39,11 @@ func NewGorez() i.GodItemInfo {
 
 	return &g{
 		GodItemInfo: NewGodItemInfo(s.requestSvc, s.authSvc, s.sessionSvc),
+		PlayerInfo:  NewPlayerInfo(s.requestSvc, s.authSvc, s.sessionSvc),
+		MatchInfo:   NewMatchInfo(s.requestSvc, s.authSvc, s.sessionSvc),
 	}
+}
+
+func (r *g) Init() {
+
 }

@@ -23,16 +23,16 @@ type GodItemInfo interface {
 }
 
 type PlayerInfo interface {
-	GetPlayerIDByName(playerName []string) *m.PlayerIDWithName
-	GetPlayer(playerID int) *m.Player
-	GetPlayerBatch(playerIDs []int) []*m.Player
-	GetMatchHistory(playerID []int) []*m.MatchDetails
-	GetQueueStats(playerID []int) []*m.QueueStat
+	GetPlayerIDByName(playerName []string) (*m.PlayerIDWithName, error)
+	GetPlayer(playerID int) (*m.Player, error)
+	GetPlayerBatch(playerIDs []int) ([]*m.Player, []error)
+	GetMatchHistory(playerID []int) ([]*m.MatchDetails, []error)
+	GetQueueStats(playerID []int) ([]*m.QueueStat, []error)
 }
 
 type MatchInfo interface {
-	GetMatchDetails(matchID int) *m.MatchDetails
-	GetMatchDetailsBatch(matchIDs []int) []*m.MatchDetails
-	GetMatchIDsByQueue(queueID []m.QueueID) []*m.MatchIDWithQueue
-	GetMatchPlayerDetails(matchID []int) []*m.MatchDetails
+	GetMatchDetails(matchID int) (*m.MatchDetails, error)
+	GetMatchDetailsBatch(matchIDs []int) ([]*m.MatchDetails, []error)
+	GetMatchIDsByQueue(queueID []m.QueueID) ([]*m.MatchIDWithQueue, []error)
+	GetMatchPlayerDetails(matchID []int) ([]*m.MatchDetails, []error)
 }
