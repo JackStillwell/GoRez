@@ -16,13 +16,13 @@ type sessionService struct {
 	lock              sync.Mutex
 }
 
-func NewSessionService(maxSessions int, existingSessions []*m.Session) (i.SessionService, error) {
+func NewSessionService(maxSessions int, existingSessions []*m.Session) i.SessionService {
 	if len(existingSessions) > maxSessions {
-		return nil, fmt.Errorf(
+		panic(fmt.Sprintf(
 			"cannot create a session service with capacity %d and %d existing sessions",
-			len(existingSessions),
 			maxSessions,
-		)
+			len(existingSessions),
+		))
 	}
 
 	aS := make(chan *m.Session, maxSessions)
@@ -37,7 +37,7 @@ func NewSessionService(maxSessions int, existingSessions []*m.Session) (i.Sessio
 		availableSessions: aS,
 		reservedSessions:  rS,
 		lock:              sync.Mutex{},
-	}, nil
+	}
 }
 
 func (s *sessionService) ReserveSession(numSessions int, retChan chan *m.Session) {

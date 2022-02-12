@@ -5,24 +5,26 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/JackStillwell/GoRez/internal/session_service"
+	i "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/session_service/models"
 )
 
 var _ = Describe("Service", func() {
 	Context("NewSessionService", func() {
 		It("should fail to create a session with more existing sessions than max sessions", func() {
-			svc, err := session_service.NewSessionService(0, []*m.Session{{}})
-
-			Expect(svc).To(BeNil())
-			Expect(err.Error()).To(ContainSubstring("cannot create a session service"))
+			Expect(func() { session_service.NewSessionService(0, []*m.Session{{}}) }).To(PanicWith(
+				"cannot create a session service with capacity 0 and 1 existing sessions",
+			))
 		})
 
 		It("should add existing sessions to available sessions", func() {
 			existingSession := &m.Session{
 				Key: "123",
 			}
-			svc, err := session_service.NewSessionService(10, []*m.Session{existingSession})
-			Expect(err).To(BeNil())
+			var svc i.SessionService
+			Expect(func() {
+				svc = session_service.NewSessionService(10, []*m.Session{existingSession})
+			}).ToNot(Panic())
 
 			sessChan := make(chan *m.Session, 10)
 			svc.ReserveSession(1, sessChan)
@@ -32,15 +34,13 @@ var _ = Describe("Service", func() {
 
 	Context("ReserveSession", func() {
 		It("should return the requested number of sessions when avaialble", func() {
-			svc, err := session_service.NewSessionService(5, []*m.Session{
+			svc := session_service.NewSessionService(5, []*m.Session{
 				{Key: "123"},
 				{Key: "123"},
 				{Key: "123"},
 				{Key: "123"},
 				{Key: "123"},
 			})
-
-			Expect(err).To(BeNil())
 
 			sessChan := make(chan *m.Session, 5)
 			svc.ReserveSession(5, sessChan)
@@ -53,8 +53,7 @@ var _ = Describe("Service", func() {
 
 	Context("ReleaseSession", func() {
 		It("should make released sessions available", func() {
-			svc, err := session_service.NewSessionService(1, []*m.Session{})
-			Expect(err).To(BeNil())
+			svc := session_service.NewSessionService(1, []*m.Session{})
 
 			sessChan := make(chan *m.Session, 1)
 			go svc.ReserveSession(1, sessChan)
@@ -69,8 +68,7 @@ var _ = Describe("Service", func() {
 	Context("BadSession", func() {
 		It("should remove one bad session from available sessions", func() {
 			badSess := &m.Session{Key: "bad"}
-			svc, err := session_service.NewSessionService(1, []*m.Session{badSess})
-			Expect(err).To(BeNil())
+			svc := session_service.NewSessionService(1, []*m.Session{badSess})
 
 			sessChan := make(chan *m.Session, 1)
 			go svc.ReserveSession(1, sessChan)
@@ -85,12 +83,11 @@ var _ = Describe("Service", func() {
 			badSess := &m.Session{Key: "bad"}
 			goodSess1 := &m.Session{Key: "bad"}
 			goodSess2 := &m.Session{Key: "bad"}
-			svc, err := session_service.NewSessionService(3, []*m.Session{
+			svc := session_service.NewSessionService(3, []*m.Session{
 				goodSess1,
 				badSess,
 				goodSess2,
 			})
-			Expect(err).To(BeNil())
 
 			sessChan := make(chan *m.Session, 1)
 			go svc.ReserveSession(3, sessChan)
