@@ -98,9 +98,8 @@ func (g *godItemInfo) GetItems() ([]*m.Item, error) {
 	return items, err
 }
 
-func (g *godItemInfo) multiRequest(
-	requestArgs []string, endpoint, method string, unmarshalTo interface{},
-) []error {
+func (g *godItemInfo) multiRequest(requestArgs []string, endpoint, method string,
+) ([][]byte, []error) {
 	requestBuilders := make([]func(*sessionM.Session) *requestM.Request, len(requestArgs))
 
 	for i, arg := range requestArgs {
@@ -122,55 +121,25 @@ func (g *godItemInfo) multiRequest(
 
 	rawObjs, errs := internal.BulkAsyncSessionRequest(g.rqstSvc, g.sesnSvc, requestBuilders)
 
-	itemRecs := make([]*m.ItemRecommendation, len(requestArgs))
-	for i, obj := range rawObjs {
-		rec, ok := obj.(*m.ItemRecommendation)
-		if !ok {
-			errs = append(errs, errors.New("converting from interface to itemrecommendation"))
-		}
-
-		itemRecs[i] = rec
-	}
-
-	return itemRecs, errs
+	return rawObjs, errs
 }
 
 func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []error) {
+	args := make([]string, 0, len(godIDs))
 	for i, gid := range godIDs {
-		requestBuilders[i] = func(s *sessionM.Session) *requestM.Request {
-			return &requestM.Request{
-				JITArgs: []interface{}{
-					g.hrC.SmiteURLBase + g.hrC.GetGodRecommendedItems + "json",
-					g.authSvc.GetID(),
-					g.hrC.GetGodRecommendedItems,
-					s.Key,
-					g.authSvc.GetTimestamp,
-					g.authSvc.GetSignature,
-					fmt.Sprint(gid) + "/1",
-				},
-				JITBuild: requestU.JITBase,
-			}
-		}
+		args[i] = fmt.Sprint(gid) + "/1"
 	}
 
-	rawObjs, errs := internal.BulkAsyncSessionRequest(g.rqstSvc, g.sesnSvc, requestBuilders,
-		func(b []byte) (interface{}, error) {
-			itemRec := &m.ItemRecommendation{}
-			err := json.Unmarshal(b, itemRec)
-			if err != nil {
-				return nil, errors.Wrap(err, "marshaling response")
-			}
-			return itemRec, nil
-		})
+	endpoint := g.hrC.GetGodRecommendedItems + "json"
+	rawObjs, errs := g.multiRequest(args, endpoint, g.hrC.GetGodRecommendedItems)
 
 	itemRecs := make([]*m.ItemRecommendation, len(godIDs))
 	for i, obj := range rawObjs {
-		rec, ok := obj.(*m.ItemRecommendation)
-		if !ok {
-			errs = append(errs, errors.New("converting from interface to itemrecommendation"))
+		itemRec := &itemRecs[i]
+		err := json.Unmarshal(obj, itemRec)
+		if err != nil {
+			errs[i] = errors.Wrap(err, "marshaling response")
 		}
-
-		itemRecs[i] = rec
 	}
 
 	return itemRecs, errs
