@@ -37,8 +37,7 @@ func (t DefaultGetter) Get(url string) ([]byte, error) {
 }
 
 func BulkAsyncSessionRequest(rqstSvc rSI.RequestService, sesnSvc sSI.SessionService,
-	requestBuilders []func(*sSM.Session) *rSM.Request, transform func([]byte) (interface{}, error),
-) ([]interface{}, []error) {
+	requestBuilders []func(*sSM.Session) *rSM.Request) ([][]byte, []error) {
 	numRequests := len(requestBuilders)
 	responseChan := make(chan *rSM.RequestResponse, numRequests)
 	uIDSessionMap := make(map[*uuid.UUID]*sSM.Session, numRequests)
@@ -67,7 +66,7 @@ func BulkAsyncSessionRequest(rqstSvc rSI.RequestService, sesnSvc sSI.SessionServ
 		}
 	}()
 
-	responses := make([]interface{}, 0, numRequests)
+	responses := make([][]byte, 0, numRequests)
 	errs := make([]error, 0, numRequests)
 	for i := 0; i < numRequests; i++ {
 		resp := <-responseChan
@@ -83,12 +82,7 @@ func BulkAsyncSessionRequest(rqstSvc rSI.RequestService, sesnSvc sSI.SessionServ
 
 		sesnSvc.ReleaseSession([]*sSM.Session{uIDSessionMap[resp.Id]})
 
-		result, err := transform(resp.Resp)
-		if err != nil {
-			errs = append(errs, errors.Wrap(resp.Err, "transforming response"))
-			continue
-		}
-		responses = append(responses, result)
+		responses = append(responses, resp.Resp)
 	}
 
 	return responses, errs

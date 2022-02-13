@@ -45,7 +45,7 @@ func NewGodItemInfo(
 	}
 }
 
-func (g *godItemInfo) GetGods() ([]*m.God, error) {
+func (g *godItemInfo) singleRequest(r requestM.Request, unmarshalTo interface{}) error {
 	sesnChan := make(chan *sessionM.Session, 1)
 	g.sesnSvc.ReserveSession(1, sesnChan)
 	s := <-sesnChan
@@ -53,73 +53,89 @@ func (g *godItemInfo) GetGods() ([]*m.God, error) {
 	sessions := []*sessionM.Session{s}
 	defer g.sesnSvc.ReleaseSession(sessions)
 
-	r := requestM.Request{
-		JITArgs: []interface{}{
-			g.hrC.SmiteURLBase + g.hrC.GetGods + "json",
-			g.authSvc.GetID(),
-			g.hrC.GetGods,
-			s.Key,
-			g.authSvc.GetTimestamp,
-			g.authSvc.GetSignature,
-			"",
-		},
-		JITBuild: requestU.JITBase,
-	}
+	r.JITArgs[1] = g.authSvc.GetID()
+	r.JITArgs[3] = s.Key
+	r.JITArgs[4] = g.authSvc.GetTimestamp
+	r.JITArgs[5] = g.authSvc.GetSignature
 
 	resp := g.rqstSvc.Request(&r)
 
 	if resp.Err != nil {
-		return nil, errors.Wrap(resp.Err, "requesting response")
+		return errors.Wrap(resp.Err, "requesting response")
+	}
+
+	err := json.Unmarshal(resp.Resp, &unmarshalTo)
+	if err != nil {
+		return errors.Wrap(err, "marshaling response")
+	}
+
+	return nil
+}
+
+func (g *godItemInfo) GetGods() ([]*m.God, error) {
+	r := requestM.Request{
+		JITArgs: []interface{}{
+			g.hrC.SmiteURLBase + g.hrC.GetGods + "json", "", g.hrC.GetGods, "", "", "", "",
+		},
+		JITBuild: requestU.JITBase,
 	}
 
 	gods := []*m.God{}
-	err := json.Unmarshal(resp.Resp, &gods)
-	if err != nil {
-		return nil, errors.Wrap(err, "marshalling response")
-	}
-
-	return gods, nil
+	err := g.singleRequest(r, &gods)
+	return gods, err
 }
 
 func (g *godItemInfo) GetItems() ([]*m.Item, error) {
-	sesnChan := make(chan *sessionM.Session, 1)
-	g.sesnSvc.ReserveSession(1, sesnChan)
-	s := <-sesnChan
-
-	sessions := []*sessionM.Session{s}
-	defer g.sesnSvc.ReleaseSession(sessions)
-
 	r := requestM.Request{
 		JITArgs: []interface{}{
-			g.hrC.SmiteURLBase + g.hrC.GetItems + "json",
-			g.authSvc.GetID(),
-			g.hrC.GetItems,
-			s.Key,
-			g.authSvc.GetTimestamp,
-			g.authSvc.GetSignature,
-			"",
+			g.hrC.SmiteURLBase + g.hrC.GetItems + "json", "", g.hrC.GetItems, "", "", "", "",
 		},
 		JITBuild: requestU.JITBase,
 	}
 
-	resp := g.rqstSvc.Request(&r)
-
-	if resp.Err != nil {
-		return nil, errors.Wrap(resp.Err, "requesting response")
-	}
-
 	items := []*m.Item{}
-	err := json.Unmarshal(resp.Resp, &items)
-	if err != nil {
-		return nil, errors.Wrap(err, "marshalling response")
+	err := g.singleRequest(r, &items)
+	return items, err
+}
+
+func (g *godItemInfo) multiRequest(
+	requestArgs []string, endpoint, method string, unmarshalTo interface{},
+) []error {
+	requestBuilders := make([]func(*sessionM.Session) *requestM.Request, len(requestArgs))
+
+	for i, arg := range requestArgs {
+		requestBuilders[i] = func(s *sessionM.Session) *requestM.Request {
+			return &requestM.Request{
+				JITArgs: []interface{}{
+					endpoint,
+					g.authSvc.GetID(),
+					method,
+					s.Key,
+					g.authSvc.GetTimestamp,
+					g.authSvc.GetSignature,
+					arg,
+				},
+				JITBuild: requestU.JITBase,
+			}
+		}
 	}
 
-	return items, nil
+	rawObjs, errs := internal.BulkAsyncSessionRequest(g.rqstSvc, g.sesnSvc, requestBuilders)
+
+	itemRecs := make([]*m.ItemRecommendation, len(requestArgs))
+	for i, obj := range rawObjs {
+		rec, ok := obj.(*m.ItemRecommendation)
+		if !ok {
+			errs = append(errs, errors.New("converting from interface to itemrecommendation"))
+		}
+
+		itemRecs[i] = rec
+	}
+
+	return itemRecs, errs
 }
 
 func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []error) {
-	requestBuilders := make([]func(*sessionM.Session) *requestM.Request, len(godIDs))
-
 	for i, gid := range godIDs {
 		requestBuilders[i] = func(s *sessionM.Session) *requestM.Request {
 			return &requestM.Request{

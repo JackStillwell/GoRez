@@ -1,6 +1,7 @@
 package request_service
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -95,6 +96,8 @@ func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {
 	if err != nil {
 		rr.Err = errors.Wrap(err, "getting response")
 		return
+	} else if resp.StatusCode != http.StatusOK {
+		rr.Err = fmt.Errorf("status code %d, require %d", resp.StatusCode, http.StatusOK)
 	}
 
 	defer resp.Body.Close()
