@@ -96,7 +96,9 @@ func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {
 	if err != nil {
 		rr.Err = errors.Wrap(err, "getting response")
 		return
-	} else if resp.StatusCode != http.StatusOK {
+	}
+
+	if resp.StatusCode != http.StatusOK {
 		rr.Err = fmt.Errorf("status code %d, require %d", resp.StatusCode, http.StatusOK)
 	}
 
@@ -105,6 +107,10 @@ func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {
 	if err != nil {
 		rr.Err = errors.Wrap(err, "reading body")
 		return
+	}
+
+	if rr.Err != nil {
+		rr.Err = fmt.Errorf("%s: %s", rr.Err.Error(), body)
 	}
 
 	rr.Resp = body

@@ -106,7 +106,7 @@ func (g *godItemInfo) multiRequest(requestArgs []string, endpoint, method string
 		requestBuilders[i] = func(s *sessionM.Session) *requestM.Request {
 			return &requestM.Request{
 				JITArgs: []interface{}{
-					endpoint,
+					g.hrC.SmiteURLBase + endpoint,
 					g.authSvc.GetID(),
 					method,
 					s.Key,
@@ -125,7 +125,7 @@ func (g *godItemInfo) multiRequest(requestArgs []string, endpoint, method string
 }
 
 func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []error) {
-	args := make([]string, 0, len(godIDs))
+	args := make([]string, len(godIDs))
 	for i, gid := range godIDs {
 		args[i] = fmt.Sprint(gid) + "/1"
 	}
