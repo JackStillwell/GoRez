@@ -78,7 +78,7 @@ var _ = Describe("Utils", func() {
 				},
 			)
 
-			responsesChan := make(chan []interface{}, 1)
+			responsesChan := make(chan [][]byte, 1)
 			errorsChan := make(chan []error, 1)
 			go func() {
 				defer GinkgoRecover()
@@ -87,14 +87,13 @@ var _ = Describe("Utils", func() {
 					rqstSvc,
 					sesnSvc,
 					[]func(*sSM.Session) *rSM.Request{requestBuilder},
-					func(_ []byte) (interface{}, error) { return "hi", nil },
 				)
 				responsesChan <- r
 				errorsChan <- e
 			}()
 
-			Eventually(responsesChan).Should(Receive(ConsistOf("hi")))
-			Eventually(errorsChan).Should(Receive(HaveLen(0)))
+			Eventually(responsesChan).Should(Receive(ConsistOf([][]byte{[]byte("stuff")})))
+			Eventually(errorsChan).Should(Receive(&[]error{nil}))
 		})
 	})
 })

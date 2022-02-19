@@ -108,6 +108,50 @@ var _ = Describe("GodItemInfo", func() {
 		})
 
 		Context("multirequest via GetGodRecItems", func() {
+			It("should remove a bad session", func() {
+				testServer := httptest.NewServer(http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusInternalServerError)
+						rw.Write([]byte("session"))
+					}))
+				defer testServer.Close()
+
+				hiRezConsts.SmiteURLBase = testServer.URL + "/"
+
+				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+
+				_, errs := target.GetGodRecItems([]int{0})
+				Expect(errs).To(HaveLen(1))
+				Expect(errs[0].Error()).To(And(
+					ContainSubstring("request"),
+					ContainSubstring(fmt.Sprint(http.StatusInternalServerError)),
+					ContainSubstring("session"),
+				))
+
+				Expect(sesnSvc.GetAvailableSessions()).To(HaveLen(0))
+			})
+
+			It("should return a good session", func() {
+				testServer := httptest.NewServer(http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusInternalServerError)
+					}))
+				defer testServer.Close()
+
+				hiRezConsts.SmiteURLBase = testServer.URL + "/"
+
+				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+
+				_, errs := target.GetGodRecItems([]int{0})
+				Expect(errs).To(HaveLen(1))
+				Expect(errs[0].Error()).To(And(
+					ContainSubstring("request"),
+					ContainSubstring(fmt.Sprint(http.StatusInternalServerError)),
+				))
+
+				Expect(sesnSvc.GetAvailableSessions()).To(HaveLen(1))
+			})
+
 			It("should return an error from requesting a response", func() {
 				testServer := httptest.NewServer(http.HandlerFunc(
 					func(rw http.ResponseWriter, r *http.Request) {
@@ -124,6 +168,25 @@ var _ = Describe("GodItemInfo", func() {
 				Expect(errs[0].Error()).To(And(
 					ContainSubstring("request"),
 					ContainSubstring(fmt.Sprint(http.StatusInternalServerError)),
+				))
+			})
+
+			It("should return an error from marshaling a response", func() {
+				testServer := httptest.NewServer(http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusOK)
+						rw.Write([]byte(""))
+					}))
+				defer testServer.Close()
+
+				hiRezConsts.SmiteURLBase = testServer.URL + "/"
+
+				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+
+				_, errs := target.GetGodRecItems([]int{0})
+				Expect(errs).To(HaveLen(1))
+				Expect(errs[0].Error()).To(And(
+					ContainSubstring("marshaling response"),
 				))
 			})
 		})

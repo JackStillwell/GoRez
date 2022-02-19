@@ -40,6 +40,15 @@ func NewSessionService(maxSessions int, existingSessions []*m.Session) i.Session
 	}
 }
 
+func (s *sessionService) GetAvailableSessions() []*m.Session {
+	numSessions := len(s.availableSessions)
+	toRet := make([]*m.Session, 0, numSessions)
+	for i := 0; i < numSessions; i++ {
+		toRet = append(toRet, <-s.availableSessions)
+	}
+	return toRet
+}
+
 func (s *sessionService) ReserveSession(numSessions int, retChan chan *m.Session) {
 	for i := 0; i < numSessions; i++ {
 		toReturn := <-s.availableSessions

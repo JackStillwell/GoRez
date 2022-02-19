@@ -33,6 +33,20 @@ func (m *MockSessionService) EXPECT() *MockSessionServiceMockRecorder {
 	return m.recorder
 }
 
+// GetAvailableSessions mocks base method
+func (m *MockSessionService) GetAvailableSessions() []*models.Session {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAvailableSessions")
+	ret0, _ := ret[0].([]*models.Session)
+	return ret0
+}
+
+// GetAvailableSessions indicates an expected call of GetAvailableSessions
+func (mr *MockSessionServiceMockRecorder) GetAvailableSessions() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAvailableSessions", reflect.TypeOf((*MockSessionService)(nil).GetAvailableSessions))
+}
+
 // ReserveSession mocks base method
 func (m *MockSessionService) ReserveSession(arg0 int, arg1 chan *models.Session) {
 	m.ctrl.T.Helper()

@@ -66,8 +66,8 @@ func BulkAsyncSessionRequest(rqstSvc rSI.RequestService, sesnSvc sSI.SessionServ
 		}
 	}()
 
-	responses := make([][]byte, 0, numRequests)
-	errs := make([]error, 0, numRequests)
+	responses := make([][]byte, numRequests)
+	errs := make([]error, numRequests)
 	for i := 0; i < numRequests; i++ {
 		resp := <-responseChan
 		if resp.Err != nil {
@@ -76,13 +76,13 @@ func BulkAsyncSessionRequest(rqstSvc rSI.RequestService, sesnSvc sSI.SessionServ
 			} else {
 				sesnSvc.ReleaseSession([]*sSM.Session{uIDSessionMap[resp.Id]})
 			}
-			errs = append(errs, errors.Wrap(resp.Err, "request"))
+			errs[i] = errors.Wrap(resp.Err, "request")
 			continue
 		}
 
 		sesnSvc.ReleaseSession([]*sSM.Session{uIDSessionMap[resp.Id]})
 
-		responses = append(responses, resp.Resp)
+		responses[i] = resp.Resp
 	}
 
 	return responses, errs

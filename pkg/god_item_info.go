@@ -135,10 +135,12 @@ func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []e
 
 	itemRecs := make([]*m.ItemRecommendation, len(godIDs))
 	for i, obj := range rawObjs {
-		itemRec := &itemRecs[i]
-		err := json.Unmarshal(obj, itemRec)
-		if err != nil {
-			errs[i] = errors.Wrap(err, "marshaling response")
+		if obj != nil {
+			itemRec := itemRecs[i]
+			err := json.Unmarshal(obj, itemRec)
+			if err != nil {
+				errs[i] = errors.Wrap(err, "marshaling response")
+			}
 		}
 	}
 
