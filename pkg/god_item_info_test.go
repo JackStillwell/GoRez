@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 
 	gorez "github.com/JackStillwell/GoRez/pkg"
 	c "github.com/JackStillwell/GoRez/pkg/constants"
@@ -21,6 +22,7 @@ import (
 	request "github.com/JackStillwell/GoRez/internal/request_service"
 	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	requestMock "github.com/JackStillwell/GoRez/internal/request_service/mocks"
+	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
 
 	session "github.com/JackStillwell/GoRez/internal/session_service"
 	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
@@ -30,18 +32,18 @@ import (
 
 var _ = Describe("GodItemInfo", func() {
 	var (
-		ctrl *gomock.Controller
-
-		authSvc authI.AuthService
-		rqstSvc requestI.RequestService
-		sesnSvc sessionI.SessionService
-
 		hiRezConsts c.HiRezConstants
 
 		target i.GodItemInfo
 	)
 
 	Describe("IntegratedUnitTest", func() {
+		var (
+			authSvc authI.AuthService
+			rqstSvc requestI.RequestService
+			sesnSvc sessionI.SessionService
+		)
+
 		BeforeEach(func() {
 			authSvc = auth.NewAuthService(authM.Auth{
 				ID:  "id",
@@ -104,9 +106,21 @@ var _ = Describe("GodItemInfo", func() {
 				Expect(gods).To(HaveLen(2))
 			})
 		})
+
+		Context("multirequest via GetGodRecItems", func() {
+
+		})
 	})
 
 	Describe("UnitTests", func() {
+		var (
+			ctrl *gomock.Controller
+
+			authSvc *authMock.MockAuthService
+			rqstSvc *requestMock.MockRequestService
+			sesnSvc *sessionMock.MockSessionService
+		)
+
 		BeforeEach(func() {
 			ctrl = gomock.NewController(GinkgoT())
 			authSvc = authMock.NewMockAuthService(ctrl)
@@ -116,6 +130,60 @@ var _ = Describe("GodItemInfo", func() {
 			hiRezConsts = c.NewHiRezConstants()
 
 			target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+		})
+
+		Context("singleRequest via GetItems", func() {
+			It("should pass through an error with the request", func() {
+				s := &sessionM.Session{Key: "key"}
+				var sesnChan chan *sessionM.Session
+				sesnSvc.EXPECT().ReserveSession(1, gomock.AssignableToTypeOf(sesnChan)).Do(
+					func(_ int, c chan *sessionM.Session) {
+						sesnChan = c
+						sesnChan <- s
+					},
+				)
+				sesnSvc.EXPECT().ReleaseSession([]*sessionM.Session{s})
+
+				authSvc.EXPECT().GetID().Return("id")
+
+				rqstSvc.EXPECT().Request(gomock.AssignableToTypeOf(&requestM.Request{})).Return(
+					&requestM.RequestResponse{
+						Err: errors.New("boom"),
+					})
+
+				_, err := target.GetItems()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(And(
+					ContainSubstring("requesting response"),
+					ContainSubstring("boom"),
+				))
+			})
+
+			It("should pass through an error unmarshaling the response", func() {
+				s := &sessionM.Session{Key: "key"}
+				var sesnChan chan *sessionM.Session
+				sesnSvc.EXPECT().ReserveSession(1, gomock.AssignableToTypeOf(sesnChan)).Do(
+					func(_ int, c chan *sessionM.Session) {
+						sesnChan = c
+						sesnChan <- s
+					},
+				)
+				sesnSvc.EXPECT().ReleaseSession([]*sessionM.Session{s})
+
+				authSvc.EXPECT().GetID().Return("id")
+
+				rqstSvc.EXPECT().Request(gomock.AssignableToTypeOf(&requestM.Request{})).Return(
+					&requestM.RequestResponse{
+						Err:  nil,
+						Resp: []byte(""),
+					})
+
+				_, err := target.GetItems()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(And(
+					ContainSubstring("marshaling response"),
+				))
+			})
 		})
 	})
 })
