@@ -126,106 +126,93 @@ var _ = Describe("Service", func() {
 			})
 		})
 	})
-	/*
-		Describe("MakeRequest", func() {
-			var requester *mock.MockRequester
 
-			BeforeEach(func() {
-				requester = mock.NewMockRequester(ctrl)
-				rM = NewTestRequestManager(5, requester)
-				rS = &requestService{requester, rM}
-			})
+	Describe("MakeRequest", func() {
+		var (
+			server  *httptest.Server
+			request *m.Request
+		)
 
-			Context("Is called with a request", func() {
-				request := &m.Request{
-					Id:      &uniqueId,
-					JITArgs: []interface{}{"one", "two"},
-					JITBuild: func([]interface{}) (string, error) {
-						return "", nil
-					},
-				}
-
-				It("should issue the request", func() {
-					response := &m.RequestResponse{
-						Id: &uniqueId,
-					}
-					requester.EXPECT().Request(request).Return(response).Times(1)
-					rS.MakeRequest(request)
-					Eventually(rM.responses, time.Second, time.Millisecond).
-						Should(ContainElement(response))
-				})
-			})
+		BeforeEach(func() {
+			server = httptest.NewServer(http.HandlerFunc(
+				func(rw http.ResponseWriter, r *http.Request) {
+					rw.WriteHeader(http.StatusOK)
+					rw.Write([]byte("hello world"))
+				}))
+			request = &m.Request{
+				Id: &uniqueId,
+				JITBuild: func([]interface{}) (string, error) {
+					return server.URL, nil
+				},
+			}
 		})
 
-		Describe("GetResponse", func() {
-			var requester *mock.MockRequester
+		AfterEach(func() {
+			server.Close()
+		})
 
-			BeforeEach(func() {
-				requester = mock.NewMockRequester(ctrl)
-				rM = NewTestRequestManager(5, requester)
-				rS = &requestService{requester, rM}
+		Context("Is called with a request", func() {
+			It("should issue the request", func() {
+				target.MakeRequest(request)
+				responseChan := make(chan *m.RequestResponse, 1)
+				target.GetResponse(&uniqueId, responseChan)
+				Eventually(responseChan).Should(Receive())
 			})
+		})
+	})
 
-			Context("Is called after a request has been made", func() {
-				request := &m.Request{
-					Id: &uniqueId,
+	Describe("GetResponse", func() {
+		var (
+			server *httptest.Server
+		)
+
+		BeforeEach(func() {
+			server = httptest.NewServer(http.HandlerFunc(
+				func(rw http.ResponseWriter, r *http.Request) {
+					rw.WriteHeader(http.StatusOK)
+					rw.Write([]byte("hello world"))
+				}))
+		})
+
+		AfterEach(func() {
+			server.Close()
+		})
+
+		Context("Can handle multiple listeners", func() {
+
+			numRequests := 5
+			IDs := make([]*uuid.UUID, numRequests)
+			for idx := range IDs {
+				uid := uuid.New()
+				IDs[idx] = &uid
+			}
+
+			It("should return the response", func() {
+				for _, ID := range IDs {
+					target.MakeRequest(&m.Request{
+						Id: ID,
+						JITBuild: func(i []interface{}) (string, error) {
+							return server.URL, nil
+						},
+					})
+				}
+				responseChan := make(chan *m.RequestResponse, numRequests)
+
+				for _, ID := range IDs {
+					target.GetResponse(ID, responseChan)
 				}
 
-				requestResponse := &m.RequestResponse{
-					Id: &uniqueId,
-				}
-
-				It("should return the response", func() {
-					requester.EXPECT().Request(request).Return(requestResponse).Times(1)
-					rS.MakeRequest(request)
-					responseChan := make(chan *m.RequestResponse, 1)
-					rS.GetResponse(&uniqueId, responseChan)
+				responses := make([]*m.RequestResponse, numRequests)
+				expecteds := make([]*m.RequestResponse, numRequests)
+				for idx, ID := range IDs {
+					expected := &m.RequestResponse{Id: ID}
+					expecteds[idx] = expected
 					response := <-responseChan
-					Expect(response).To(Equal(requestResponse))
-				})
-			})
-
-			Context("Can handle multiple listeners", func() {
-
-				numRequests := 5
-				IDs := make([]*uuid.UUID, numRequests)
-				for idx := range IDs {
-					uid := uuid.New()
-					IDs[idx] = &uid
+					responses[idx] = response
 				}
 
-				It("should return the response", func() {
-					for _, ID := range IDs {
-						requester.EXPECT().Request(
-							&m.Request{
-								Id: ID,
-							},
-						).Return(&m.RequestResponse{
-							Id: ID,
-						}).Times(1)
-					}
-
-					for _, ID := range IDs {
-						rS.MakeRequest(&m.Request{Id: ID})
-					}
-					responseChan := make(chan *m.RequestResponse, numRequests)
-
-					for _, ID := range IDs {
-						rS.GetResponse(ID, responseChan)
-					}
-
-					responses := make([]*m.RequestResponse, numRequests)
-					expecteds := make([]*m.RequestResponse, numRequests)
-					for idx, ID := range IDs {
-						expected := &m.RequestResponse{Id: ID}
-						expecteds[idx] = expected
-						response := <-responseChan
-						responses[idx] = response
-					}
-
-					Expect(expecteds).To(ContainElements(responses))
-				})
+				Expect(expecteds).To(ContainElements(responses))
 			})
 		})
-	*/
+	})
 })
