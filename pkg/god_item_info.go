@@ -71,7 +71,7 @@ func (g *godItemInfo) GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []e
 			itemRec := itemRecs[i]
 			err := json.Unmarshal(obj, itemRec)
 			if err != nil {
-				errs[i] = errors.Wrap(err, "marshaling response")
+				errs[i] = errors.Wrap(err, "unmarshaling response")
 			}
 		}
 	}

@@ -13,33 +13,30 @@ import (
 	gorez "github.com/JackStillwell/GoRez/pkg"
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
+	mock "github.com/JackStillwell/GoRez/pkg/mocks"
 
 	auth "github.com/JackStillwell/GoRez/internal/auth_service"
 	authI "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
-	authMock "github.com/JackStillwell/GoRez/internal/auth_service/mocks"
 	authM "github.com/JackStillwell/GoRez/internal/auth_service/models"
 
 	request "github.com/JackStillwell/GoRez/internal/request_service"
 	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	requestMock "github.com/JackStillwell/GoRez/internal/request_service/mocks"
-	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
 
 	session "github.com/JackStillwell/GoRez/internal/session_service"
 	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	sessionMock "github.com/JackStillwell/GoRez/internal/session_service/mocks"
 	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
 )
 
 var _ = Describe("GodItemInfo", func() {
 	var (
 		hiRezConsts c.HiRezConstants
-		util        i.GorezUtil
 
 		target i.GodItemInfo
 	)
 
 	Describe("IntegratedUnitTest", func() {
 		var (
+			util    i.GorezUtil
 			authSvc authI.AuthService
 			rqstSvc requestI.RequestService
 			sesnSvc sessionI.SessionService
@@ -199,72 +196,26 @@ var _ = Describe("GodItemInfo", func() {
 		var (
 			ctrl *gomock.Controller
 
-			authSvc *authMock.MockAuthService
-			rqstSvc *requestMock.MockRequestService
-			sesnSvc *sessionMock.MockSessionService
+			util *mock.MockGorezUtil
 		)
 
 		BeforeEach(func() {
 			ctrl = gomock.NewController(GinkgoT())
-			authSvc = authMock.NewMockAuthService(ctrl)
-			rqstSvc = requestMock.NewMockRequestService(ctrl)
-			sesnSvc = sessionMock.NewMockSessionService(ctrl)
+			util = mock.NewMockGorezUtil(ctrl)
 
-			hiRezConsts = c.NewHiRezConstants()
+			hiRezConsts = c.HiRezConstants{}
 
 			target = gorez.NewGodItemInfo(hiRezConsts, util)
 		})
 
 		Context("singleRequest via GetItems", func() {
 			It("should pass through an error with the request", func() {
-				s := &sessionM.Session{Key: "key"}
-				var sesnChan chan *sessionM.Session
-				sesnSvc.EXPECT().ReserveSession(1, gomock.AssignableToTypeOf(sesnChan)).Do(
-					func(_ int, c chan *sessionM.Session) {
-						sesnChan = c
-						sesnChan <- s
-					},
-				)
-				sesnSvc.EXPECT().ReleaseSession([]*sessionM.Session{s})
-
-				authSvc.EXPECT().GetID().Return("id")
-
-				rqstSvc.EXPECT().Request(gomock.AssignableToTypeOf(&requestM.Request{})).Return(
-					&requestM.RequestResponse{
-						Err: errors.New("boom"),
-					})
+				util.EXPECT().SingleRequest(gomock.Any(), gomock.Any()).Return(errors.New("boom"))
 
 				_, err := target.GetItems()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(And(
-					ContainSubstring("requesting response"),
 					ContainSubstring("boom"),
-				))
-			})
-
-			It("should pass through an error unmarshaling the response", func() {
-				s := &sessionM.Session{Key: "key"}
-				var sesnChan chan *sessionM.Session
-				sesnSvc.EXPECT().ReserveSession(1, gomock.AssignableToTypeOf(sesnChan)).Do(
-					func(_ int, c chan *sessionM.Session) {
-						sesnChan = c
-						sesnChan <- s
-					},
-				)
-				sesnSvc.EXPECT().ReleaseSession([]*sessionM.Session{s})
-
-				authSvc.EXPECT().GetID().Return("id")
-
-				rqstSvc.EXPECT().Request(gomock.AssignableToTypeOf(&requestM.Request{})).Return(
-					&requestM.RequestResponse{
-						Err:  nil,
-						Resp: []byte(""),
-					})
-
-				_, err := target.GetItems()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(And(
-					ContainSubstring("marshaling response"),
 				))
 			})
 		})

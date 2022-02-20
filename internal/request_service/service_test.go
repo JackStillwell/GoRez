@@ -127,8 +127,8 @@ var _ = Describe("Service", func() {
 				Expect(response.Id).To(Equal(request.Id))
 			})
 
-			It("should have a nil Resp", func() {
-				Expect(response.Resp).To(BeNil())
+			It("should have a Resp containing the returned body", func() {
+				Expect(response.Resp).To(Equal([]byte("boom")))
 			})
 		})
 
