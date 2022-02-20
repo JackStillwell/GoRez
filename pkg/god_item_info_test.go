@@ -33,6 +33,7 @@ import (
 var _ = Describe("GodItemInfo", func() {
 	var (
 		hiRezConsts c.HiRezConstants
+		util        i.GorezUtil
 
 		target i.GodItemInfo
 	)
@@ -51,6 +52,8 @@ var _ = Describe("GodItemInfo", func() {
 			})
 			rqstSvc = request.NewRequestService(1)
 			sesnSvc = session.NewSessionService(1, []*sessionM.Session{{}})
+
+			util = gorez.NewGorezUtil(authSvc, rqstSvc, sesnSvc)
 		})
 
 		Context("singleRequest via GetGods", func() {
@@ -63,7 +66,7 @@ var _ = Describe("GodItemInfo", func() {
 
 				hiRezConsts.SmiteURLBase = testServer.URL + "/"
 
-				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
 
 				_, err := target.GetGods()
 				Expect(err).To(HaveOccurred())
@@ -82,7 +85,7 @@ var _ = Describe("GodItemInfo", func() {
 
 				hiRezConsts.SmiteURLBase = testServer.URL + "/"
 
-				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
 
 				_, err := target.GetGods()
 				Expect(err).To(HaveOccurred())
@@ -99,7 +102,7 @@ var _ = Describe("GodItemInfo", func() {
 
 				hiRezConsts.SmiteURLBase = testServer.URL + "/"
 
-				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
 
 				gods, err := target.GetGods()
 				Expect(err).ToNot(HaveOccurred())
@@ -118,7 +121,7 @@ var _ = Describe("GodItemInfo", func() {
 
 				hiRezConsts.SmiteURLBase = testServer.URL + "/"
 
-				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
 
 				_, errs := target.GetGodRecItems([]int{0})
 				Expect(errs).To(HaveLen(1))
@@ -140,7 +143,7 @@ var _ = Describe("GodItemInfo", func() {
 
 				hiRezConsts.SmiteURLBase = testServer.URL + "/"
 
-				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
 
 				_, errs := target.GetGodRecItems([]int{0})
 				Expect(errs).To(HaveLen(1))
@@ -161,7 +164,7 @@ var _ = Describe("GodItemInfo", func() {
 
 				hiRezConsts.SmiteURLBase = testServer.URL + "/"
 
-				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
 
 				_, errs := target.GetGodRecItems([]int{0})
 				Expect(errs).To(HaveLen(1))
@@ -181,7 +184,7 @@ var _ = Describe("GodItemInfo", func() {
 
 				hiRezConsts.SmiteURLBase = testServer.URL + "/"
 
-				target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
 
 				_, errs := target.GetGodRecItems([]int{0})
 				Expect(errs).To(HaveLen(1))
@@ -209,7 +212,7 @@ var _ = Describe("GodItemInfo", func() {
 
 			hiRezConsts = c.NewHiRezConstants()
 
-			target = gorez.NewGodItemInfo(hiRezConsts, rqstSvc, authSvc, sesnSvc)
+			target = gorez.NewGodItemInfo(hiRezConsts, util)
 		})
 
 		Context("singleRequest via GetItems", func() {

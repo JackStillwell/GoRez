@@ -38,8 +38,10 @@ func NewGorez() i.GoRez {
 		sessionSvc: session.NewSessionService(0, nil),
 	}
 
+	util := NewGorezUtil(s.authSvc, s.requestSvc, s.sessionSvc)
+
 	return &g{
-		GodItemInfo: NewGodItemInfo(c.NewHiRezConstants(), s.requestSvc, s.authSvc, s.sessionSvc),
+		GodItemInfo: NewGodItemInfo(c.NewHiRezConstants(), util),
 		PlayerInfo:  NewPlayerInfo(s.requestSvc, s.authSvc, s.sessionSvc),
 		MatchInfo:   NewMatchInfo(s.requestSvc, s.authSvc, s.sessionSvc),
 	}
