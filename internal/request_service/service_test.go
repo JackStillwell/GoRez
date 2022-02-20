@@ -170,7 +170,6 @@ var _ = Describe("Service", func() {
 			server = httptest.NewServer(http.HandlerFunc(
 				func(rw http.ResponseWriter, r *http.Request) {
 					rw.WriteHeader(http.StatusOK)
-					rw.Write([]byte("hello world"))
 				}))
 		})
 
@@ -186,6 +185,10 @@ var _ = Describe("Service", func() {
 				uid := uuid.New()
 				IDs[idx] = &uid
 			}
+
+			BeforeEach(func() {
+				target = request_service.NewRequestService(numRequests)
+			})
 
 			It("should return the response", func() {
 				for _, ID := range IDs {
@@ -205,7 +208,7 @@ var _ = Describe("Service", func() {
 				responses := make([]*m.RequestResponse, numRequests)
 				expecteds := make([]*m.RequestResponse, numRequests)
 				for idx, ID := range IDs {
-					expected := &m.RequestResponse{Id: ID}
+					expected := &m.RequestResponse{Id: ID, Resp: []byte{}}
 					expecteds[idx] = expected
 					response := <-responseChan
 					responses[idx] = response
