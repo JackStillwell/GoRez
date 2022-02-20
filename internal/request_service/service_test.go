@@ -1,6 +1,7 @@
 package request_service_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -75,6 +76,50 @@ var _ = Describe("Service", func() {
 				Expect(response.Err).To(HaveOccurred())
 				Expect(response.Err.Error()).To(
 					ContainSubstring("getting response"),
+				)
+			})
+
+			It("should have the same Id as the request", func() {
+				Expect(response.Id).To(Equal(request.Id))
+			})
+
+			It("should have a nil Resp", func() {
+				Expect(response.Resp).To(BeNil())
+			})
+		})
+
+		Context("Encounters a response code error", func() {
+			var (
+				server   *httptest.Server
+				request  *m.Request
+				response *m.RequestResponse
+			)
+
+			BeforeEach(func() {
+				server = httptest.NewServer(http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusInternalServerError)
+						rw.Write([]byte("boom"))
+					}))
+				request = &m.Request{
+					Id: &uniqueId,
+					JITBuild: func([]interface{}) (string, error) {
+						return server.URL, nil
+					},
+				}
+				response = target.Request(request)
+			})
+
+			AfterEach(func() {
+				server.Close()
+			})
+
+			It("should return an error including status code and body", func() {
+				Expect(response.Err).To(HaveOccurred())
+				Expect(response.Err.Error()).To(
+					ContainSubstring("status code"),
+					ContainSubstring(fmt.Sprint(http.StatusInternalServerError)),
+					ContainSubstring("boom"),
 				)
 			})
 
