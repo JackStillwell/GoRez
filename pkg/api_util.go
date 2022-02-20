@@ -3,29 +3,33 @@ package gorez
 import (
 	"encoding/json"
 
-	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
-	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	rSM "github.com/JackStillwell/GoRez/internal/request_service/models"
-	requestUtils "github.com/JackStillwell/GoRez/internal/request_service/utilities"
-	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	sSM "github.com/JackStillwell/GoRez/internal/session_service/models"
-	hRConst "github.com/JackStillwell/GoRez/pkg/constants"
-	i "github.com/JackStillwell/GoRez/pkg/interfaces"
-	m "github.com/JackStillwell/GoRez/pkg/models"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+
+	c "github.com/JackStillwell/GoRez/pkg/constants"
+	i "github.com/JackStillwell/GoRez/pkg/interfaces"
+	m "github.com/JackStillwell/GoRez/pkg/models"
+
+	authI "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
+
+	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
+	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
+	requestU "github.com/JackStillwell/GoRez/internal/request_service/utilities"
+
+	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
+	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
 )
 
 type apiUtil struct {
-	authSvc authService.AuthService
-	rqstSvc requestService.RequestService
-	sesnSvc sessionService.SessionService
+	authSvc authI.AuthService
+	rqstSvc requestI.RequestService
+	sesnSvc sessionI.SessionService
 }
 
 func NewAPIUtil(
-	rS requestService.RequestService,
-	aS authService.AuthService,
-	sS sessionService.SessionService,
+	rS requestI.RequestService,
+	aS authI.AuthService,
+	sS sessionI.SessionService,
 ) i.APIUtil {
 	return &apiUtil{
 		rqstSvc: rS,
@@ -35,17 +39,17 @@ func NewAPIUtil(
 }
 
 func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
-	r := rSM.Request{
+	r := requestM.Request{
 		JITArgs: []interface{}{
-			hRConst.SmiteURLBase + hRConst.CreateSession + "json",
+			c.SmiteURLBase + c.CreateSession + "json",
 			a.authSvc.GetID(),
-			hRConst.CreateSession,
+			c.CreateSession,
 			"",
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
 			"",
 		},
-		JITBuild: requestUtils.JITBase,
+		JITBuild: requestU.JITBase,
 	}
 
 	uIDs := make([]*uuid.UUID, numSessions)
@@ -56,7 +60,7 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 		uIDs = append(uIDs, &uID)
 	}
 
-	responseChan := make(chan *rSM.RequestResponse, numSessions)
+	responseChan := make(chan *requestM.RequestResponse, numSessions)
 	for i := 0; i < numSessions; i++ {
 		a.rqstSvc.GetResponse(uIDs[i], responseChan)
 	}
@@ -73,7 +77,7 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 		session := &m.Session{}
 		err := json.Unmarshal(resp.Resp, session)
 		if err != nil {
-			errs = append(errs, errors.Wrap(err, "unmarshall response"))
+			errs = append(errs, errors.Wrap(err, "unmarshal response"))
 			continue
 		}
 
@@ -84,17 +88,17 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 }
 
 func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
-	r := rSM.Request{
+	r := requestM.Request{
 		JITArgs: []interface{}{
-			hRConst.SmiteURLBase + hRConst.TestSession + "json",
+			c.SmiteURLBase + c.TestSession + "json",
 			a.authSvc.GetID(),
-			hRConst.TestSession,
+			c.TestSession,
 			"",
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
 			"",
 		},
-		JITBuild: requestUtils.JITBase,
+		JITBuild: requestU.JITBase,
 	}
 
 	uIDs := make([]*uuid.UUID, len(s))
@@ -105,7 +109,7 @@ func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 		uIDs = append(uIDs, &uID)
 	}
 
-	responseChan := make(chan *rSM.RequestResponse, len(s))
+	responseChan := make(chan *requestM.RequestResponse, len(s))
 	for i := 0; i < len(s); i++ {
 		a.rqstSvc.GetResponse(uIDs[i], responseChan)
 	}
@@ -128,26 +132,26 @@ func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 
 // NOTE: can only do one at a time, so no need for bulk concurrency
 func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
-	sesnChan := make(chan *sSM.Session, 1)
+	sesnChan := make(chan *sessionM.Session, 1)
 	a.sesnSvc.ReserveSession(1, sesnChan)
 	s := <-sesnChan
 
-	sessions := []*sSM.Session{s}
+	sessions := []*sessionM.Session{s}
 	defer a.sesnSvc.ReleaseSession(sessions)
 
 	uID := uuid.New()
-	r := rSM.Request{
+	r := requestM.Request{
 		Id: &uID,
 		JITArgs: []interface{}{
-			hRConst.SmiteURLBase + hRConst.GetDataUsed + "json",
+			c.SmiteURLBase + c.GetDataUsed + "json",
 			a.authSvc.GetID(),
-			hRConst.GetDataUsed,
+			c.GetDataUsed,
 			s.Key,
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
 			"",
 		},
-		JITBuild: requestUtils.JITBase,
+		JITBuild: requestU.JITBase,
 	}
 
 	resp := a.rqstSvc.Request(&r)
@@ -158,7 +162,7 @@ func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 	uI := &m.UsageInfo{}
 	err := json.Unmarshal(resp.Resp, uI)
 	if err != nil {
-		return nil, errors.Wrap(err, "unmarshalling response")
+		return nil, errors.Wrap(err, "unmarshaling response")
 	}
 
 	return uI, nil

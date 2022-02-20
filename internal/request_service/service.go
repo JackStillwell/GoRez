@@ -6,24 +6,14 @@ import (
 	"net/http"
 	"sync"
 
-	i "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	m "github.com/JackStillwell/GoRez/internal/request_service/models"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+
+	i "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
+	m "github.com/JackStillwell/GoRez/internal/request_service/models"
 )
 
 type requestService struct {
-	i.Requester
-	i.RequestManager
-}
-
-type requester struct {
-	http i.HTTPGet
-}
-
-type requestManager struct {
-	r i.Requester
-
 	responses     []*m.RequestResponse
 	responsesLock *sync.RWMutex
 
@@ -35,17 +25,7 @@ type requestManager struct {
 	numListenersLock *sync.RWMutex
 }
 
-type httpGetter struct{}
-
-func (*httpGetter) Get(url string) (*http.Response, error) {
-	return http.Get(url)
-}
-
-func NewTestRequester(http i.HTTPGet) i.Requester {
-	return &requester{http}
-}
-
-func NewTestRequestManager(capacity int, r i.Requester) *requestManager {
+func NewRequestService(capacity int) i.RequestService {
 	responses := make([]*m.RequestResponse, capacity)
 
 	freeNotifyChan := make(chan int, capacity)
@@ -55,9 +35,7 @@ func NewTestRequestManager(capacity int, r i.Requester) *requestManager {
 
 	listenerChan := make(chan int)
 
-	rM := &requestManager{
-		r: r,
-
+	return &requestService{
 		responses:     responses,
 		responsesLock: &sync.RWMutex{},
 
@@ -68,18 +46,9 @@ func NewTestRequestManager(capacity int, r i.Requester) *requestManager {
 		listenerCount:    0,
 		numListenersLock: &sync.RWMutex{},
 	}
-
-	return rM
 }
 
-func NewRequestService(capacity int) i.RequestService {
-	return &requestService{
-		Requester:      NewTestRequester(&httpGetter{}),
-		RequestManager: NewTestRequestManager(capacity, NewTestRequester(&httpGetter{})),
-	}
-}
-
-func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {
+func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 	rr = &m.RequestResponse{
 		Id:   rqst.Id,
 		Resp: nil,
@@ -92,7 +61,7 @@ func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {
 		return
 	}
 
-	resp, err := r.http.Get(requestURL)
+	resp, err := http.Get(requestURL)
 	if err != nil {
 		rr.Err = errors.Wrap(err, "getting response")
 		return
@@ -117,61 +86,61 @@ func (r *requester) Request(rqst *m.Request) (rr *m.RequestResponse) {
 	return
 }
 
-func (rM *requestManager) MakeRequest(r *m.Request) {
-	go rM.request(r)
+func (r *requestService) MakeRequest(req *m.Request) {
+	go r.request(req)
 }
 
-func (rM *requestManager) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse) {
-	rM.responsesLock.RLock()
-	for idx, v := range rM.responses {
+func (r *requestService) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse) {
+	r.responsesLock.RLock()
+	for idx, v := range r.responses {
 		if v != nil && v.Id == id {
-			rM.responsesLock.RUnlock()
-			defer freeIdx(rM, idx)
-			retChan <- rM.responses[idx]
+			r.responsesLock.RUnlock()
+			defer freeIdx(r, idx)
+			retChan <- r.responses[idx]
 			return
 		}
 	}
 
-	rM.numListenersLock.Lock()
-	rM.listenerCount++
-	rM.numListenersLock.Unlock()
-	rM.responsesLock.RUnlock()
+	r.numListenersLock.Lock()
+	r.listenerCount++
+	r.numListenersLock.Unlock()
+	r.responsesLock.RUnlock()
 
 	for {
-		idx := <-rM.listenerNotify
-		if rM.responses[idx].Id == id {
-			rM.numListenersLock.Lock()
-			rM.listenerCount--
-			rM.numListenersLock.Unlock()
-			defer freeIdx(rM, idx)
-			retChan <- rM.responses[idx]
+		idx := <-r.listenerNotify
+		if r.responses[idx].Id == id {
+			r.numListenersLock.Lock()
+			r.listenerCount--
+			r.numListenersLock.Unlock()
+			defer freeIdx(r, idx)
+			retChan <- r.responses[idx]
 			return
 		}
 	}
 }
 
-func freeIdx(rM *requestManager, idx int) {
-	rM.updateResponses(idx, nil)
-	rM.freeNotify <- idx
+func freeIdx(r *requestService, idx int) {
+	r.updateResponses(idx, nil)
+	r.freeNotify <- idx
 }
 
-func (rM *requestManager) request(rqst *m.Request) {
-	response := rM.r.Request(rqst)
-	responseIdx := <-rM.freeNotify
-	rM.updateResponses(responseIdx, response)
-	rM.notifyListeners(responseIdx)
+func (r *requestService) request(rqst *m.Request) {
+	response := r.Request(rqst)
+	responseIdx := <-r.freeNotify
+	r.updateResponses(responseIdx, response)
+	r.notifyListeners(responseIdx)
 }
 
-func (rM *requestManager) updateResponses(idx int, v *m.RequestResponse) {
-	rM.responsesLock.Lock()
-	rM.responses[idx] = v
-	rM.responsesLock.Unlock()
+func (r *requestService) updateResponses(idx int, v *m.RequestResponse) {
+	r.responsesLock.Lock()
+	r.responses[idx] = v
+	r.responsesLock.Unlock()
 }
 
-func (rM *requestManager) notifyListeners(idx int) {
-	rM.numListenersLock.RLock()
-	for i := 0; i < rM.listenerCount; i++ {
-		rM.listenerNotify <- idx
+func (r *requestService) notifyListeners(idx int) {
+	r.numListenersLock.RLock()
+	for i := 0; i < r.listenerCount; i++ {
+		r.listenerNotify <- idx
 	}
-	rM.numListenersLock.RUnlock()
+	r.numListenersLock.RUnlock()
 }
