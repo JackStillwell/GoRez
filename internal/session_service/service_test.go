@@ -12,7 +12,9 @@ import (
 var _ = Describe("Service", func() {
 	Context("NewSessionService", func() {
 		It("should fail to create a session with more existing sessions than max sessions", func() {
-			Expect(func() { session_service.NewSessionService(0, []*m.Session{{}}) }).To(PanicWith(
+			Expect(func() {
+				session_service.NewSessionService(0, []*m.Session{{}})
+			}).To(PanicWith(
 				"cannot create a session service with capacity 0 and 1 existing sessions",
 			))
 		})
@@ -29,6 +31,21 @@ var _ = Describe("Service", func() {
 			sessChan := make(chan *m.Session, 10)
 			svc.ReserveSession(1, sessChan)
 			Eventually(sessChan).Should(Receive(Equal(existingSession)))
+		})
+	})
+
+	Context("GetAvailableSessions", func() {
+		It("should return all currently available sessions", func() {
+			numSessions := 5
+			svc := session_service.NewSessionService(numSessions, []*m.Session{
+				{Key: "123"},
+				{Key: "123"},
+				{Key: "123"},
+				{Key: "123"},
+				{Key: "123"},
+			})
+
+			Expect(svc.GetAvailableSessions()).To(HaveLen(numSessions))
 		})
 	})
 
