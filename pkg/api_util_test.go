@@ -3,6 +3,7 @@ package gorez_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
@@ -41,7 +42,7 @@ var _ = Describe("ApiUtil", func() {
 			sesnSvc := session.NewSessionService(3, nil)
 
 			hiRezC := c.NewHiRezConstants()
-			hiRezC.SmiteURLBase = testServer.URL + "/"
+			hiRezC.SmiteURLBase = testServer.URL
 
 			target = gorez.NewAPIUtil(hiRezC, authSvc, rqstSvc, sesnSvc)
 		})
@@ -52,7 +53,39 @@ var _ = Describe("ApiUtil", func() {
 		})
 
 		Context("CreateSession", func() {
+			FIt("should return requested sessions", func() {
+				authSvc.EXPECT().GetID().Return("id").Times(3)
+				authSvc.EXPECT().GetTimestamp(gomock.AssignableToTypeOf(time.Time{})).
+					Return("timestamp").Times(3)
+				authSvc.EXPECT().GetSignature(c.CreateSession, "timestamp").Return("signature").
+					Times(3)
 
+				serverFunc = func(w http.ResponseWriter, r *http.Request) {
+					defer GinkgoRecover()
+
+					Expect(r.URL.Path).To(Equal(""))
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte("body"))
+				}
+
+				done := make(chan bool)
+				go func(done chan bool) {
+					defer GinkgoRecover()
+
+					sessions, errs := target.CreateSession(3)
+					Expect(errs).To(HaveLen(0))
+					Expect(sessions).To(HaveLen(3))
+					Expect(sessions).To(ConsistOf("", "", ""))
+					done <- true
+				}(done)
+
+				select {
+				case <-time.After(time.Second):
+					Fail("timeout")
+				case <-done:
+					// nothing means the test passes
+				}
+			})
 		})
 	})
 })

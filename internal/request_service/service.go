@@ -87,7 +87,10 @@ func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 }
 
 func (r *requestService) MakeRequest(req *m.Request) {
-	go r.request(req)
+	go func(r *requestService, req *m.Request) {
+		// defer ginkgo.GinkgoRecover()
+		r.request(req)
+	}(r, req)
 }
 
 func (r *requestService) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse) {
