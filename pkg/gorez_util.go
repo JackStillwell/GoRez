@@ -134,7 +134,7 @@ func (g *gorezUtil) SingleRequest(r requestM.Request, unmarshalTo interface{}) e
 
 	err := json.Unmarshal(resp.Resp, &unmarshalTo)
 	if err != nil {
-		return errors.Wrap(err, "marshaling response")
+		return errors.Wrap(err, "unmarshaling response")
 	}
 
 	return nil

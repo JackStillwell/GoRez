@@ -21,19 +21,22 @@ import (
 )
 
 type apiUtil struct {
+	hiRezC  c.HiRezConstants
 	authSvc authI.AuthService
 	rqstSvc requestI.RequestService
 	sesnSvc sessionI.SessionService
 }
 
 func NewAPIUtil(
-	rS requestI.RequestService,
+	hrC c.HiRezConstants,
 	aS authI.AuthService,
+	rS requestI.RequestService,
 	sS sessionI.SessionService,
 ) i.APIUtil {
 	return &apiUtil{
-		rqstSvc: rS,
+		hiRezC:  hrC,
 		authSvc: aS,
+		rqstSvc: rS,
 		sesnSvc: sS,
 	}
 }
@@ -41,9 +44,9 @@ func NewAPIUtil(
 func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	r := requestM.Request{
 		JITArgs: []interface{}{
-			c.SmiteURLBase + c.CreateSession + "json",
+			a.hiRezC.SmiteURLBase + a.hiRezC.CreateSession + "json",
 			a.authSvc.GetID(),
-			c.CreateSession,
+			a.hiRezC.CreateSession,
 			"",
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
@@ -90,9 +93,9 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 	r := requestM.Request{
 		JITArgs: []interface{}{
-			c.SmiteURLBase + c.TestSession + "json",
+			a.hiRezC.SmiteURLBase + a.hiRezC.TestSession + "json",
 			a.authSvc.GetID(),
-			c.TestSession,
+			a.hiRezC.TestSession,
 			"",
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
@@ -143,9 +146,9 @@ func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 	r := requestM.Request{
 		Id: &uID,
 		JITArgs: []interface{}{
-			c.SmiteURLBase + c.GetDataUsed + "json",
+			a.hiRezC.SmiteURLBase + a.hiRezC.GetDataUsed + "json",
 			a.authSvc.GetID(),
-			c.GetDataUsed,
+			a.hiRezC.GetDataUsed,
 			s.Key,
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
