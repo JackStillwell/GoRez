@@ -81,7 +81,7 @@ func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 		rr.Err = errors.Wrap(err, "reading body")
 		return
 	}
-	log.Println("response received:", string(body))
+	log.Println("response received:", requestURL)
 
 	if rr.Err != nil {
 		rr.Err = fmt.Errorf("%s: %s", rr.Err.Error(), body)

@@ -26,10 +26,10 @@ type God struct {
 	HealthPerLevel             *int64              `json:"HealthPerLevel,omitempty"`
 	Lore                       *string             `json:"Lore,omitempty"`
 	MP5PerLevel                *float64            `json:"MP5PerLevel,omitempty"`
-	MagicProtection            *int64              `json:"MagicProtection,omitempty"`
+	MagicProtection            *float64            `json:"MagicProtection,omitempty"`
 	MagicProtectionPerLevel    *float64            `json:"MagicProtectionPerLevel,omitempty"`
 	MagicalPower               *int64              `json:"MagicalPower,omitempty"`
-	MagicalPowerPerLevel       *int64              `json:"MagicalPowerPerLevel,omitempty"`
+	MagicalPowerPerLevel       *float64            `json:"MagicalPowerPerLevel,omitempty"`
 	Mana                       *int64              `json:"Mana,omitempty"`
 	ManaPerFive                *float64            `json:"ManaPerFive,omitempty"`
 	ManaPerLevel               *int64              `json:"ManaPerLevel,omitempty"`
@@ -37,9 +37,9 @@ type God struct {
 	OnFreeRotation             *string             `json:"OnFreeRotation,omitempty"`
 	Pantheon                   *string             `json:"Pantheon,omitempty"`
 	PhysicalPower              *int64              `json:"PhysicalPower,omitempty"`
-	PhysicalPowerPerLevel      *int64              `json:"PhysicalPowerPerLevel,omitempty"`
-	PhysicalProtection         *int64              `json:"PhysicalProtection,omitempty"`
-	PhysicalProtectionPerLevel *int64              `json:"PhysicalProtectionPerLevel,omitempty"`
+	PhysicalPowerPerLevel      *float64            `json:"PhysicalPowerPerLevel,omitempty"`
+	PhysicalProtection         *float64            `json:"PhysicalProtection,omitempty"`
+	PhysicalProtectionPerLevel *float64            `json:"PhysicalProtectionPerLevel,omitempty"`
 	Pros                       *string             `json:"Pros,omitempty"`
 	Roles                      *string             `json:"Roles,omitempty"`
 	Speed                      *int64              `json:"Speed,omitempty"`
