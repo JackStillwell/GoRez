@@ -33,7 +33,7 @@ func NewGodItemInfo(
 func (g *godItemInfo) GetGods() ([]*m.God, error) {
 	r := requestM.Request{
 		JITArgs: []interface{}{
-			g.hrC.SmiteURLBase + g.hrC.GetGods + "json", "", g.hrC.GetGods, "", "", "", "",
+			g.hrC.SmiteURLBase + "/" + g.hrC.GetGods + "json", "", g.hrC.GetGods, "", "", "", "1",
 		},
 		JITBuild: requestU.JITBase,
 	}
@@ -46,7 +46,7 @@ func (g *godItemInfo) GetGods() ([]*m.God, error) {
 func (g *godItemInfo) GetItems() ([]*m.Item, error) {
 	r := requestM.Request{
 		JITArgs: []interface{}{
-			g.hrC.SmiteURLBase + g.hrC.GetItems + "json", "", g.hrC.GetItems, "", "", "", "",
+			g.hrC.SmiteURLBase + "/" + g.hrC.GetItems + "json", "", g.hrC.GetItems, "", "", "", "1",
 		},
 		JITBuild: requestU.JITBase,
 	}

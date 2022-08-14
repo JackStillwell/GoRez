@@ -3,6 +3,7 @@ package request_service
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"sync"
 
@@ -49,6 +50,8 @@ func NewRequestService(capacity int) i.RequestService {
 }
 
 func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
+	log.Println("making request")
+
 	rr = &m.RequestResponse{
 		Id:   rqst.Id,
 		Resp: nil,
@@ -60,6 +63,7 @@ func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 		rr.Err = errors.Wrap(err, "building requesturl")
 		return
 	}
+	log.Println("request url:", requestURL)
 
 	resp, err := http.Get(requestURL)
 	if err != nil {
@@ -77,6 +81,7 @@ func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 		rr.Err = errors.Wrap(err, "reading body")
 		return
 	}
+	log.Println("response received:", string(body))
 
 	if rr.Err != nil {
 		rr.Err = fmt.Errorf("%s: %s", rr.Err.Error(), body)
@@ -94,29 +99,45 @@ func (r *requestService) MakeRequest(req *m.Request) {
 }
 
 func (r *requestService) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse) {
+	log.Println("locking request responses")
 	r.responsesLock.RLock()
+	log.Println("request responses locked")
+	log.Println("searching request responses for id:", id.String())
 	for idx, v := range r.responses {
 		if v != nil && v.Id == id {
-			r.responsesLock.RUnlock()
+			log.Println("request response for id:", id.String(), "found")
 			defer freeIdx(r, idx)
 			retChan <- r.responses[idx]
+			log.Println("request response for id:", id.String(), "returned")
+			r.responsesLock.RUnlock()
+			log.Println("request responses unlocked")
 			return
 		}
 	}
+	log.Println("request response for id:", id.String(), "not found")
 
+	log.Println("adding listener for new responses")
 	r.numListenersLock.Lock()
 	r.listenerCount++
 	r.numListenersLock.Unlock()
+	log.Println("listener for new responses added")
 	r.responsesLock.RUnlock()
+	log.Println("request responses unlocked")
 
+	log.Println("listening for new responses")
 	for {
 		idx := <-r.listenerNotify
+		log.Println("notified of new response")
 		if r.responses[idx].Id == id {
+			log.Println("request response for id:", id.String(), "found")
+			log.Println("removing listener for new responses")
 			r.numListenersLock.Lock()
 			r.listenerCount--
 			r.numListenersLock.Unlock()
+			log.Println("listener for new responses removed ")
 			defer freeIdx(r, idx)
 			retChan <- r.responses[idx]
+			log.Println("request response for id:", id.String(), "returned")
 			return
 		}
 	}
@@ -129,9 +150,15 @@ func freeIdx(r *requestService, idx int) {
 
 func (r *requestService) request(rqst *m.Request) {
 	response := r.Request(rqst)
+
+	log.Println("waiting for free slot in response buffer")
 	responseIdx := <-r.freeNotify
+
+	log.Printf("updating free slot %d in response buffer\n", responseIdx)
 	r.updateResponses(responseIdx, response)
+	log.Printf("slot %d in response buffer updated\n", responseIdx)
 	r.notifyListeners(responseIdx)
+	log.Printf("listeners notified for response buffer loc %d \n", responseIdx)
 }
 
 func (r *requestService) updateResponses(idx int, v *m.RequestResponse) {

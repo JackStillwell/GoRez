@@ -2,6 +2,7 @@ package session_service
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"sync"
 
@@ -50,10 +51,12 @@ func (s *sessionService) GetAvailableSessions() []*m.Session {
 }
 
 func (s *sessionService) ReserveSession(numSessions int, retChan chan *m.Session) {
+	log.Printf("reserving %d of %d available sessions", numSessions, len(s.availableSessions))
 	for i := 0; i < numSessions; i++ {
 		toReturn := <-s.availableSessions
 		s.reservedSessions = append(s.reservedSessions, toReturn)
 		retChan <- toReturn
+		log.Printf("%d of %d sessions reserved", i+1, numSessions)
 	}
 }
 

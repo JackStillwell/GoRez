@@ -2,6 +2,7 @@ package gorez
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -44,7 +45,7 @@ func NewAPIUtil(
 func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	r := requestM.Request{
 		JITArgs: []interface{}{
-			a.hiRezC.SmiteURLBase + a.hiRezC.CreateSession + "json",
+			a.hiRezC.SmiteURLBase + "/" + a.hiRezC.CreateSession + "json",
 			a.authSvc.GetID(),
 			a.hiRezC.CreateSession,
 			"",
@@ -55,24 +56,29 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 		JITBuild: requestU.JITBase,
 	}
 
-	uIDs := make([]*uuid.UUID, numSessions)
+	uIDs := make([]*uuid.UUID, 0, numSessions)
 	for i := 0; i < numSessions; i++ {
 		uID := uuid.New()
 		r.Id = &uID
 		a.rqstSvc.MakeRequest(&r)
 		uIDs = append(uIDs, &uID)
 	}
+	log.Println("create session requests made")
+	log.Println("create session request uuids", uIDs)
 
+	log.Println("getting create session responses")
 	responseChan := make(chan *requestM.RequestResponse, numSessions)
 	for i := 0; i < numSessions; i++ {
 		a.rqstSvc.GetResponse(uIDs[i], responseChan)
 	}
+	log.Println("create session responses received")
 
 	sessions := make([]*m.Session, 0, numSessions)
 	errs := make([]error, 0, numSessions)
 	for i := 0; i < numSessions; i++ {
 		resp := <-responseChan
 		if resp.Err != nil {
+			sessions = append(sessions, nil)
 			errs = append(errs, errors.Wrap(resp.Err, "request"))
 			continue
 		}
@@ -80,11 +86,13 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 		session := &m.Session{}
 		err := json.Unmarshal(resp.Resp, session)
 		if err != nil {
+			sessions = append(sessions, nil)
 			errs = append(errs, errors.Wrap(err, "unmarshal response"))
 			continue
 		}
 
 		sessions = append(sessions, session)
+		errs = append(errs, nil)
 	}
 
 	return sessions, errs
@@ -93,7 +101,7 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 	r := requestM.Request{
 		JITArgs: []interface{}{
-			a.hiRezC.SmiteURLBase + a.hiRezC.TestSession + "json",
+			a.hiRezC.SmiteURLBase + "/" + a.hiRezC.TestSession + "json",
 			a.authSvc.GetID(),
 			a.hiRezC.TestSession,
 			"",
@@ -146,7 +154,7 @@ func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 	r := requestM.Request{
 		Id: &uID,
 		JITArgs: []interface{}{
-			a.hiRezC.SmiteURLBase + a.hiRezC.GetDataUsed + "json",
+			a.hiRezC.SmiteURLBase + "/" + a.hiRezC.GetDataUsed + "json",
 			a.authSvc.GetID(),
 			a.hiRezC.GetDataUsed,
 			s.Key,

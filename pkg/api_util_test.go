@@ -26,8 +26,6 @@ var _ = Describe("ApiUtil", func() {
 			ctrl       *gomock.Controller
 			testServer *httptest.Server
 
-			serverFunc func(w http.ResponseWriter, r *http.Request)
-
 			authSvc *authMock.MockAuthService
 
 			target i.APIUtil
@@ -35,14 +33,14 @@ var _ = Describe("ApiUtil", func() {
 
 		BeforeEach(func() {
 			ctrl = gomock.NewController(GinkgoT())
-			testServer := httptest.NewServer(http.HandlerFunc(serverFunc))
+			testServer = httptest.NewServer(nil)
 
 			authSvc = authMock.NewMockAuthService(ctrl)
 			rqstSvc := request.NewRequestService(3)
 			sesnSvc := session.NewSessionService(3, nil)
 
 			hiRezC := c.NewHiRezConstants()
-			hiRezC.SmiteURLBase = testServer.URL
+			hiRezC.SmiteURLBase = testServer.URL + "/"
 
 			target = gorez.NewAPIUtil(hiRezC, authSvc, rqstSvc, sesnSvc)
 		})
@@ -60,13 +58,15 @@ var _ = Describe("ApiUtil", func() {
 				authSvc.EXPECT().GetSignature(c.CreateSession, "timestamp").Return("signature").
 					Times(3)
 
-				serverFunc = func(w http.ResponseWriter, r *http.Request) {
-					defer GinkgoRecover()
+				testServer.Config.Handler = http.HandlerFunc(
+					func(w http.ResponseWriter, r *http.Request) {
+						defer GinkgoRecover()
 
-					Expect(r.URL.Path).To(Equal(""))
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte("body"))
-				}
+						Expect(r.URL.Path).To(Equal("/createsessionjson/id/signature/timestamp"))
+						w.WriteHeader(http.StatusOK)
+						w.Write([]byte("body"))
+					},
+				)
 
 				done := make(chan bool)
 				go func(done chan bool) {

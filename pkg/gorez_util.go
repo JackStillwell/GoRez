@@ -2,6 +2,7 @@ package gorez
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
 
 	"github.com/google/uuid"
@@ -114,9 +115,11 @@ func (g *gorezUtil) MultiRequest(requestArgs []string, baseURL, method string,
 }
 
 func (g *gorezUtil) SingleRequest(r requestM.Request, unmarshalTo interface{}) error {
+	log.Println("reserving session for single request")
 	sesnChan := make(chan *sessionM.Session, 1)
 	g.sesnSvc.ReserveSession(1, sesnChan)
 	s := <-sesnChan
+	log.Println("session reserved for single request")
 
 	sessions := []*sessionM.Session{s}
 	defer g.sesnSvc.ReleaseSession(sessions)
@@ -126,7 +129,9 @@ func (g *gorezUtil) SingleRequest(r requestM.Request, unmarshalTo interface{}) e
 	r.JITArgs[4] = g.authSvc.GetTimestamp
 	r.JITArgs[5] = g.authSvc.GetSignature
 
+	log.Println("making single request")
 	resp := g.rqstSvc.Request(&r)
+	log.Println("single response received")
 
 	if resp.Err != nil {
 		return errors.Wrap(resp.Err, "requesting response")
@@ -136,6 +141,8 @@ func (g *gorezUtil) SingleRequest(r requestM.Request, unmarshalTo interface{}) e
 	if err != nil {
 		return errors.Wrap(err, "unmarshaling response")
 	}
+
+	log.Println("single response unmarshaled")
 
 	return nil
 }
