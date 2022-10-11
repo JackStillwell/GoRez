@@ -6,19 +6,22 @@ import (
 	"time"
 )
 
+type JITFunc func(args []any) (string, error)
+
 // Utilities should have no dependencies in the project, so they can be cross-imported without
 // worrying about dependency cycles.
 
-/* JITBase takes the following args:
-   1) baseURL string
-   2) devID string
-   3) endpoint string
-   4) session string ["" if none]
-   5) timeStamp func(time.Time) string
-   6) signature func(endpoint, timeStamp string) string
-   7) endpointArgs string ["" if none]
+/*
+JITBase takes the following args:
+ 1. baseURL string
+ 2. devID string
+ 3. endpoint string
+ 4. session string ["" if none]
+ 5. timeStamp func(time.Time) string
+ 6. signature func(endpoint, timeStamp string) string
+ 7. endpointArgs string ["" if none]
 */
-func JITBase(args []interface{}) (string, error) {
+func JITBase(args ...any) (string, error) {
 
 	if len(args) != 7 {
 		return "", errors.New("incorrect number of arguments passed")

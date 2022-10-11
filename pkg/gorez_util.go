@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/onsi/ginkgo/v2"
 	"github.com/pkg/errors"
 
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
@@ -45,8 +44,6 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	// NOTE: this is async so the reservation and release of sessions is possible, but the func
 	// return depends upon responses being completed.
 	go func() {
-		// WARN: this is required for testing recovery. Uncomment if debugging test failures.
-		defer ginkgo.GinkgoRecover()
 
 		for _, rB := range requestBuilders {
 			sessChan := make(chan *sessionM.Session, 1)

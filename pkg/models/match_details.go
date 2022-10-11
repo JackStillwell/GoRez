@@ -104,6 +104,7 @@ type MatchDetails struct {
 	RankStatJoust        *int64   `json:"Rank_Stat_Joust,omitempty"`
 	ReferenceName        *string  `json:"Reference_Name,omitempty"`
 	Region               *string  `json:"Region,omitempty"`
+	Role                 *string  `json:"Role,omitempty"`
 	Skin                 *string  `json:"Skin,omitempty"`
 	SkinID               *int64   `json:"SkinId,omitempty"`
 	StructureDamage      *int64   `json:"Structure_Damage,omitempty"`
