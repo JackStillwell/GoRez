@@ -44,7 +44,7 @@ func NewAPIUtil(
 
 func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	r := requestM.Request{
-		JITArgs: []interface{}{
+		JITArgs: []any{
 			a.hiRezC.SmiteURLBase + "/" + a.hiRezC.CreateSession + "json",
 			a.authSvc.GetID(),
 			a.hiRezC.CreateSession,

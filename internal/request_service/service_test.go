@@ -32,7 +32,7 @@ var _ = Describe("Service", func() {
 		Context("Encounters a URL build error", func() {
 			request := &m.Request{
 				Id: &uniqueId,
-				JITBuild: func([]interface{}) (string, error) {
+				JITBuild: func(...any) (string, error) {
 					return "", errors.New("unexpected")
 				},
 			}
@@ -65,7 +65,7 @@ var _ = Describe("Service", func() {
 			BeforeEach(func() {
 				request = &m.Request{
 					Id: &uniqueId,
-					JITBuild: func([]interface{}) (string, error) {
+					JITBuild: func(...any) (string, error) {
 						return "invalidurl", nil
 					},
 				}
@@ -103,7 +103,7 @@ var _ = Describe("Service", func() {
 					}))
 				request = &m.Request{
 					Id: &uniqueId,
-					JITBuild: func([]interface{}) (string, error) {
+					JITBuild: func(...any) (string, error) {
 						return server.URL, nil
 					},
 				}
@@ -147,7 +147,7 @@ var _ = Describe("Service", func() {
 					}))
 				request = &m.Request{
 					Id: &uniqueId,
-					JITBuild: func([]interface{}) (string, error) {
+					JITBuild: func(...any) (string, error) {
 						return server.URL, nil
 					},
 				}
@@ -186,7 +186,7 @@ var _ = Describe("Service", func() {
 				}))
 			request = &m.Request{
 				Id: &uniqueId,
-				JITBuild: func([]interface{}) (string, error) {
+				JITBuild: func(...any) (string, error) {
 					return server.URL, nil
 				},
 			}
@@ -239,7 +239,7 @@ var _ = Describe("Service", func() {
 				for _, ID := range IDs {
 					target.MakeRequest(&m.Request{
 						Id: ID,
-						JITBuild: func(i []interface{}) (string, error) {
+						JITBuild: func(i ...any) (string, error) {
 							return server.URL, nil
 						},
 					})

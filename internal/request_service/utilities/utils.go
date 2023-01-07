@@ -24,7 +24,7 @@ JITBase takes the following args:
 func JITBase(args ...any) (string, error) {
 
 	if len(args) != 7 {
-		return "", errors.New("incorrect number of arguments passed")
+		return "", fmt.Errorf("incorrect number of arguments passed: %v", args)
 	}
 
 	baseURL, ok := args[0].(string)

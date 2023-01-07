@@ -58,7 +58,7 @@ func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 		Err:  nil,
 	}
 
-	requestURL, err := rqst.JITBuild(rqst.JITArgs)
+	requestURL, err := rqst.JITBuild(rqst.JITArgs...)
 	if err != nil {
 		rr.Err = errors.Wrap(err, "building requesturl")
 		return

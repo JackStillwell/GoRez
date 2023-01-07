@@ -9,8 +9,6 @@ import (
 
 	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
 	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
-	requestU "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
 )
 
@@ -42,7 +40,7 @@ func (r *matchInfo) GetMatchDetails(matchID int) (*m.MatchDetails, error) {
 
 func (r *matchInfo) GetMatchDetailsBatch(matchIDs []int) ([]*m.MatchDetails, []error) {
 
-	requests := make([]requestM.Request, 0, (len(matchIDs)/10)+1)
+	/*requests := make([]requestM.Request, 0, (len(matchIDs)/10)+1)
 	for i := len(matchIDs); i > 0; i = i - 10 {
 		builder, err := requestU.JITBase(
 			r.hrC.SmiteURLBase+"/"+r.hrC.GetMatchDetailsBatch+"json",
@@ -54,7 +52,7 @@ func (r *matchInfo) GetMatchDetailsBatch(matchIDs []int) ([]*m.MatchDetails, []e
 			"",
 		)
 		requests = append(requests, builder)
-	}
+	}*/
 
 	return nil, []error{errors.New("unimplemented")}
 }

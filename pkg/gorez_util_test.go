@@ -57,7 +57,7 @@ var _ = Describe("GorezUtil", func() {
 			requestBuilder := func(s *sessionM.Session) *requestM.Request {
 				return &requestM.Request{
 					JITArgs: []interface{}{s},
-					JITBuild: func([]interface{}) (string, error) {
+					JITBuild: func(...any) (string, error) {
 						return "resp", nil
 					},
 				}
