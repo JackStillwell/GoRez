@@ -1,15 +1,22 @@
 package gorez
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/pkg/errors"
 
+	"github.com/JackStillwell/GoRez/internal"
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
 
 	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
 	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
+	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
+	requestU "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
+	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
 )
 
 type matchInfo struct {
@@ -34,33 +41,47 @@ func NewMatchInfo(
 	}
 }
 
+// GetMatchDetails will return data for players in a completed match
 func (r *matchInfo) GetMatchDetails(matchID int) (*m.MatchDetails, error) {
-	return nil, errors.New("unimplemented")
+	mIds, errs := r.GetMatchDetailsBatch(matchID)
+	return mIds[0], errs[0]
 }
 
-func (r *matchInfo) GetMatchDetailsBatch(matchIDs []int) ([]*m.MatchDetails, []error) {
-
-	/*requests := make([]requestM.Request, 0, (len(matchIDs)/10)+1)
+// GetMatchDetails will return data for players in completed matches
+func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*m.MatchDetails, []error) {
+	requests := make([]func(*sessionM.Session) *requestM.Request, 0, (len(matchIDs)/10)+1)
 	for i := len(matchIDs); i > 0; i = i - 10 {
-		builder, err := requestU.JITBase(
-			r.hrC.SmiteURLBase+"/"+r.hrC.GetMatchDetailsBatch+"json",
-			r.authSvc.GetID(),
-			r.hrC.GetMatchDetailsBatch,
-			"",
-			"",
-			"",
-			"",
-		)
-		requests = append(requests, builder)
-	}*/
+		matchIdStrings := make([]string, 0, 10)
+		for _, v := range matchIDs {
+			matchIdStrings = append(matchIdStrings, fmt.Sprintf("%d", v))
+		}
+		requestFunc := func(session *sessionM.Session) *requestM.Request {
+			args := []any{
+				r.hrC.SmiteURLBase + "/" + r.hrC.GetMatchDetailsBatch + "json",
+				r.authSvc.GetID(),
+				r.hrC.GetMatchDetailsBatch,
+				session.Key,
+				r.authSvc.GetTimestamp,
+				r.authSvc.GetSignature,
+				strings.Join(matchIdStrings, ","),
+			}
 
-	return nil, []error{errors.New("unimplemented")}
+			return &requestM.Request{JITArgs: args, JITBuild: requestU.JITBase}
+		}
+
+		requests = append(requests, requestFunc)
+	}
+
+	rawObjs, errs := r.gUtil.BulkAsyncSessionRequest(requests)
+
+	return internal.UnmarshalObjs[m.MatchDetails](rawObjs, errs)
 }
 
 func (r *matchInfo) GetMatchIDsByQueue(queueID []m.QueueID) ([]*m.MatchIDWithQueue, []error) {
 	return nil, []error{errors.New("unimplemented")}
 }
 
-func (r *matchInfo) GetMatchPlayerDetails(matchID []int) ([]*m.MatchDetails, []error) {
-	return nil, []error{errors.New("unimplemented")}
+// GetMatchPlayerDetails will return data for players in a live match
+func (r *matchInfo) GetMatchPlayerDetails(matchID int) (*m.MatchDetails, error) {
+	return r.GetMatchDetails(matchID)
 }

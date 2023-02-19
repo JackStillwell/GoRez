@@ -33,7 +33,7 @@ type PlayerInfo interface {
 
 type MatchInfo interface {
 	GetMatchDetails(matchID int) (*m.MatchDetails, error)
-	GetMatchDetailsBatch(matchIDs []int) ([]*m.MatchDetails, []error)
+	GetMatchDetailsBatch(matchIDs ...int) ([]*m.MatchDetails, []error)
 	GetMatchIDsByQueue(queueID []m.QueueID) ([]*m.MatchIDWithQueue, []error)
-	GetMatchPlayerDetails(matchID []int) ([]*m.MatchDetails, []error)
+	GetMatchPlayerDetails(matchID int) (*m.MatchDetails, error)
 }

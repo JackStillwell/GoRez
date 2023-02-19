@@ -20,9 +20,11 @@ func main() {
 
 	if authPath == "" {
 		log.Fatal("'auth' argument is required")
+		flag.PrintDefaults()
 	}
 	if dataDirPath == "" {
 		log.Fatal("'datadir' argument is required")
+		flag.PrintDefaults()
 	}
 
 	log.Println("instantiating gorez")
