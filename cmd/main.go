@@ -12,9 +12,12 @@ import (
 
 func main() {
 	var authPath, dataDirPath string
+	var getGods, getItems bool
 	flag.StringVar(&authPath, "auth", "", "The file path to the hirez dev auth file")
 	flag.StringVar(&dataDirPath, "datadir", "",
 		"The file path to the directory containing SMITE data")
+	flag.BoolVar(&getGods, "gods", false, "Fetch all gods")
+	flag.BoolVar(&getItems, "items", false, "Fetch all items")
 
 	flag.Parse()
 
@@ -32,6 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to instantiate gorez: ", err)
 	}
+	defer g.Shutdown()
 	log.Println("gorez instantiated")
 
 	log.Println("initing gorez")
@@ -41,35 +45,40 @@ func main() {
 	}
 	log.Println("gorez inited")
 
-	gods, err := g.GetGods()
-	if err != nil {
-		log.Println("error fetching gods: ", err)
-	} else {
-		jString, err := json.Marshal(gods)
+	if getGods {
+		gods, err := g.GetGods()
 		if err != nil {
-			log.Println("error marshaling gods: ", err)
-		}
-		godsPath := path.Join(dataDirPath, "gods.json")
-		err = os.WriteFile(godsPath, []byte(jString),
-			os.FileMode(os.O_CREATE|os.O_TRUNC|os.O_RDWR))
-		if err != nil {
-			log.Println("error writing gods: ", err)
+			log.Println("error fetching gods: ", err)
+		} else {
+			jString, err := json.Marshal(gods)
+			if err != nil {
+				log.Println("error marshaling gods: ", err)
+			}
+			godsPath := path.Join(dataDirPath, "gods.json")
+			err = os.WriteFile(godsPath, []byte(jString),
+				os.FileMode(os.O_CREATE|os.O_TRUNC|os.O_RDWR))
+			if err != nil {
+				log.Println("error writing gods: ", err)
+			}
 		}
 	}
 
-	items, err := g.GetItems()
-	if err != nil {
-		log.Println("error fetching items", err)
-	} else {
-		jString, err := json.Marshal(items)
+	if getItems {
+		items, err := g.GetItems()
 		if err != nil {
-			log.Println("error marshaling items", err)
-		}
-		itemsPath := path.Join(dataDirPath, "items.json")
-		err = os.WriteFile(itemsPath, []byte(jString),
-			os.FileMode(os.O_CREATE|os.O_TRUNC|os.O_RDWR))
-		if err != nil {
-			log.Println("error writing items", err)
+			log.Println("error fetching items", err)
+		} else {
+			jString, err := json.Marshal(items)
+			if err != nil {
+				log.Println("error marshaling items", err)
+			}
+			itemsPath := path.Join(dataDirPath, "items.json")
+			err = os.WriteFile(itemsPath, []byte(jString),
+				os.FileMode(os.O_CREATE|os.O_TRUNC|os.O_RDWR))
+			if err != nil {
+				log.Println("error writing items", err)
+			}
 		}
 	}
+
 }

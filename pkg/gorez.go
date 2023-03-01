@@ -1,6 +1,8 @@
 package gorez
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -70,23 +72,58 @@ func NewGorez(auth_path string) (i.GoRez, error) {
 }
 
 func (gr *g) Init() error {
-	log.Println("creating session")
-	sessions, errs := gr.APIUtil.CreateSession(1)
-	if errs[0] != nil {
-		return errors.Wrap(errs[0], "creating session failed")
-	}
-	log.Println("session created")
+	log.Println("looking for sessions.json")
+	if _, err := os.Stat("sessions.json"); err == nil {
+		log.Println("sessions.json found")
+		contents, err := os.ReadFile("sessions.json")
+		if err != nil {
+			return errors.Wrap(err, "reading sessions.txt")
+		}
 
-	created, err := time.ParseInLocation("1/2/2006 3:04:05 PM", *sessions[0].Timestamp, time.UTC)
-	if err != nil {
-		return errors.Wrap(err, "parsing session timestamp")
-	}
-	internalSession := &sessionM.Session{
-		Key:     *sessions[0].SessionID,
-		Created: &created,
-	}
+		var existingSessions []*sessionM.Session
+		err = json.Unmarshal(contents, &existingSessions)
+		if err != nil {
+			return errors.Wrap(err, "unmarshaling sessions.txt")
+		}
+		gr.SessionSvc.ReleaseSession(existingSessions)
+	} else if errors.Is(err, os.ErrNotExist) {
+		log.Println("sessions.json not found - creating session")
+		sessions, errs := gr.APIUtil.CreateSession(1)
+		if errs[0] != nil {
+			return errors.Wrap(errs[0], "creating session failed")
+		}
+		log.Println("session created")
 
-	gr.SessionSvc.ReleaseSession([]*sessionM.Session{internalSession})
+		created, err := time.ParseInLocation("1/2/2006 3:04:05 PM", *sessions[0].Timestamp, time.UTC)
+		if err != nil {
+			return errors.Wrap(err, "parsing session timestamp")
+		}
+		internalSession := &sessionM.Session{
+			Key:     *sessions[0].SessionID,
+			Created: &created,
+		}
+
+		gr.SessionSvc.ReleaseSession([]*sessionM.Session{internalSession})
+	} else {
+		return fmt.Errorf("stat-ing sessions.json: %w", err)
+	}
 
 	return nil
+}
+
+func (gr *g) Shutdown() {
+	// store the sessions here so they're not lost on each run
+
+	jBytes, err := json.Marshal(gr.SessionSvc.GetAvailableSessions())
+	if err != nil {
+		log.Println("error marshaling items", err)
+	}
+
+	f, err := os.Create("sessions.json")
+	if err != nil {
+		log.Println("error writing sessions", err)
+		return
+	}
+	defer f.Close()
+	f.Write(jBytes)
 }

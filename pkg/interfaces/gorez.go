@@ -6,6 +6,7 @@ import m "github.com/JackStillwell/GoRez/pkg/models"
 
 type GoRez interface {
 	Init() error
+	Shutdown()
 	GodItemInfo
 	PlayerInfo
 	MatchInfo
