@@ -49,8 +49,7 @@ func (r *matchInfo) GetMatchDetails(matchID int) (*m.MatchDetails, error) {
 	return mIds[0], errs[0]
 }
 
-// GetMatchDetails will return data for players in completed matches
-func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*m.MatchDetails, []error) {
+func (r *matchInfo) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error) {
 	requests := make([]func(*sessionM.Session) *requestM.Request, 0, (len(matchIDs)/10)+1)
 	for i := len(matchIDs); i > 0; i = i - 10 {
 		matchIdStrings := make([]string, 0, 10)
@@ -74,7 +73,12 @@ func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*m.MatchDetails, []
 		requests = append(requests, requestFunc)
 	}
 
-	rawObjs, errs := r.gUtil.BulkAsyncSessionRequest(requests)
+	return r.gUtil.BulkAsyncSessionRequest(requests)
+}
+
+// GetMatchDetails will return data for players in completed matches
+func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*m.MatchDetails, []error) {
+	rawObjs, errs := r.GetMatchDetailsBatchRaw(matchIDs...)
 	log.Println(errs)
 	f, err := os.Create("rawobjs.json")
 	if err != nil {
