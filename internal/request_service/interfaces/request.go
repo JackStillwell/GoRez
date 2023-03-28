@@ -21,6 +21,7 @@ type RequestService interface {
 type RequestManager interface {
 	MakeRequest(*models.Request)
 	GetResponse(*uuid.UUID, chan *models.RequestResponse)
+	FreeResponse(*uuid.UUID)
 }
 
 type Requester interface {

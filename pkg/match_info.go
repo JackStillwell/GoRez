@@ -75,14 +75,19 @@ func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*m.MatchDetails, []
 	}
 
 	rawObjs, errs := r.gUtil.BulkAsyncSessionRequest(requests)
-	log.Println("rawObjs retrieved:", rawObjs)
-	fmt.Println(errs)
+	log.Println(errs)
 	f, err := os.Create("rawobjs.json")
 	if err != nil {
 		log.Println("error opening file to write matchdetails", err)
 	}
-	f.Close()
-	f.Write(rawObjs[0])
+	defer f.Close()
+	nBytes, err := f.Write(rawObjs[0])
+	if err != nil {
+		log.Println("error writing rawobj file:", err.Error())
+	}
+	if nBytes == 0 {
+		log.Println("no bytes written to rawobj file")
+	}
 
 	nestedMDs, errs := internal.UnmarshalObjs[[]m.MatchDetails](rawObjs, errs)
 

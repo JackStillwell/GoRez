@@ -100,8 +100,8 @@ type MatchDetails struct {
 	ObjectiveAssists     *int64   `json:"Objective_Assists,omitempty"`
 	PartyID              *int64   `json:"PartyId,omitempty"`
 	RankStatConquest     *float64 `json:"Rank_Stat_Conquest,omitempty"`
-	RankStatDuel         *int64   `json:"Rank_Stat_Duel,omitempty"`
-	RankStatJoust        *int64   `json:"Rank_Stat_Joust,omitempty"`
+	RankStatDuel         *float64 `json:"Rank_Stat_Duel,omitempty"`
+	RankStatJoust        *float64 `json:"Rank_Stat_Joust,omitempty"`
 	ReferenceName        *string  `json:"Reference_Name,omitempty"`
 	Region               *string  `json:"Region,omitempty"`
 	Role                 *string  `json:"Role,omitempty"`

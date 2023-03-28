@@ -7,12 +7,11 @@ import (
 )
 
 func UnmarshalObjs[T any](rawObjs [][]byte, errs []error) ([]*T, []error) {
-	log.Println("received rawobjs:", rawObjs)
 	objs := make([]*T, len(rawObjs))
 	for i, rawObj := range rawObjs {
 		if rawObj != nil {
 			var unmarshaledObj T
-			log.Println("rawobj equals:", string(rawObj))
+			// log.Println("rawobj equals:", string(rawObj))
 			err := json.Unmarshal(rawObj, &unmarshaledObj)
 			if err != nil {
 				log.Println("error unmarshaling:", err)
@@ -22,6 +21,5 @@ func UnmarshalObjs[T any](rawObjs [][]byte, errs []error) ([]*T, []error) {
 			}
 		}
 	}
-	log.Println("processed objs", objs)
 	return objs, errs
 }

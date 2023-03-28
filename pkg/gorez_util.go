@@ -66,26 +66,23 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	responses := make([][]byte, numRequests)
 	errs := make([]error, numRequests)
 	for i := 0; i < numRequests; i++ {
-		resp := <-responseChan
-		log.Println("response received:", resp)
-		if resp.Err != nil {
-			if strings.Contains(resp.Err.Error(), "session") {
-				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
+		resp := <-responseChan                  // get the pointer
+		localResp := *resp                      // deference to force a copy
+		go g.rqstSvc.FreeResponse(localResp.Id) // clean up the response queue
+		if localResp.Err != nil {
+			if strings.Contains(localResp.Err.Error(), "session") {
+				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[localResp.Id]})
 			} else {
-				g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
+				g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[localResp.Id]})
 			}
-			errs[i] = errors.Wrap(resp.Err, "request")
+			errs[i] = errors.Wrap(localResp.Err, "request")
 			continue
 		}
 
-		g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
+		g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[localResp.Id]})
 
-		responses[i] = resp.Resp
-
-		log.Println("responses at", i, "equals", resp.Resp)
+		responses[i] = localResp.Resp
 	}
-
-	log.Println("responses", responses)
 
 	return responses, errs
 }

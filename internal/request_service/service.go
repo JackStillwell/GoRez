@@ -15,8 +15,9 @@ import (
 )
 
 type requestService struct {
-	responses     []*m.RequestResponse
-	responsesLock *sync.RWMutex
+	responses       []*m.RequestResponse
+	responseIdToIdx map[*uuid.UUID]int
+	responsesLock   *sync.RWMutex
 
 	freeNotify chan int
 
@@ -37,8 +38,9 @@ func NewRequestService(capacity int) i.RequestService {
 	listenerChan := make(chan int)
 
 	return &requestService{
-		responses:     responses,
-		responsesLock: &sync.RWMutex{},
+		responses:       responses,
+		responseIdToIdx: make(map[*uuid.UUID]int, capacity),
+		responsesLock:   &sync.RWMutex{},
 
 		freeNotify: freeNotifyChan,
 
@@ -82,7 +84,6 @@ func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 		return
 	}
 	log.Println("response received:", requestURL)
-	log.Println("response body:", string(body))
 
 	if rr.Err != nil {
 		rr.Err = fmt.Errorf("%s: %s", rr.Err.Error(), body)
@@ -107,7 +108,7 @@ func (r *requestService) GetResponse(id *uuid.UUID, retChan chan *m.RequestRespo
 	for idx, v := range r.responses {
 		if v != nil && v.Id == id {
 			log.Println("request response for id:", id.String(), "found")
-			defer freeIdx(r, idx)
+			r.responseIdToIdx[id] = idx
 			retChan <- r.responses[idx]
 			log.Println("request response for id:", id.String(), "returned")
 			r.responsesLock.RUnlock()
@@ -136,15 +137,19 @@ func (r *requestService) GetResponse(id *uuid.UUID, retChan chan *m.RequestRespo
 			r.listenerCount--
 			r.numListenersLock.Unlock()
 			log.Println("listener for new responses removed ")
-			defer freeIdx(r, idx)
+			r.responseIdToIdx[id] = idx
 			retChan <- r.responses[idx]
-			log.Println("request response for id:", id.String(), "returned:", r.responses[idx])
+			log.Println("request response for id:", id.String(), "returned")
 			return
 		}
 	}
 }
 
-func freeIdx(r *requestService, idx int) {
+func (r *requestService) FreeResponse(id *uuid.UUID) {
+	if id == nil {
+		log.Println("cannot free 'nil' id response")
+	}
+	idx := r.responseIdToIdx[id]
 	r.updateResponses(idx, nil)
 	r.freeNotify <- idx
 }
@@ -164,7 +169,6 @@ func (r *requestService) request(rqst *m.Request) {
 
 func (r *requestService) updateResponses(idx int, v *m.RequestResponse) {
 	r.responsesLock.Lock()
-	log.Println("setting value of idx", idx, "to value", v)
 	r.responses[idx] = v
 	r.responsesLock.Unlock()
 }
