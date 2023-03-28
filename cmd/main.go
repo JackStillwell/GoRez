@@ -109,8 +109,14 @@ func main() {
 		if err != nil {
 			log.Println("error opening file to write matchdetails", err)
 		}
-		f.Close()
-		f.Write(jBytes)
+		defer f.Close()
+		nBytes, err := f.Write(jBytes)
+		if err != nil {
+			log.Println("error writing matchdetails file:", err.Error())
+		}
+		if nBytes == 0 {
+			log.Println("no bytes written to matchdetails file")
+		}
 	}
 
 }
