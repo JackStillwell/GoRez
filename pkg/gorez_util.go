@@ -67,6 +67,7 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	errs := make([]error, numRequests)
 	for i := 0; i < numRequests; i++ {
 		resp := <-responseChan
+		log.Println("response received:", resp)
 		if resp.Err != nil {
 			if strings.Contains(resp.Err.Error(), "session") {
 				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
@@ -80,7 +81,11 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 		g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
 
 		responses[i] = resp.Resp
+
+		log.Println("responses at", i, "equals", resp.Resp)
 	}
+
+	log.Println("responses", responses)
 
 	return responses, errs
 }

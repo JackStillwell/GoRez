@@ -82,6 +82,7 @@ func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 		return
 	}
 	log.Println("response received:", requestURL)
+	log.Println("response body:", string(body))
 
 	if rr.Err != nil {
 		rr.Err = fmt.Errorf("%s: %s", rr.Err.Error(), body)
@@ -137,7 +138,7 @@ func (r *requestService) GetResponse(id *uuid.UUID, retChan chan *m.RequestRespo
 			log.Println("listener for new responses removed ")
 			defer freeIdx(r, idx)
 			retChan <- r.responses[idx]
-			log.Println("request response for id:", id.String(), "returned")
+			log.Println("request response for id:", id.String(), "returned:", r.responses[idx])
 			return
 		}
 	}
@@ -163,6 +164,7 @@ func (r *requestService) request(rqst *m.Request) {
 
 func (r *requestService) updateResponses(idx int, v *m.RequestResponse) {
 	r.responsesLock.Lock()
+	log.Println("setting value of idx", idx, "to value", v)
 	r.responses[idx] = v
 	r.responsesLock.Unlock()
 }

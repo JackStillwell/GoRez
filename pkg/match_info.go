@@ -2,6 +2,8 @@ package gorez
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -73,8 +75,25 @@ func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*m.MatchDetails, []
 	}
 
 	rawObjs, errs := r.gUtil.BulkAsyncSessionRequest(requests)
+	log.Println("rawObjs retrieved:", rawObjs)
+	fmt.Println(errs)
+	f, err := os.Create("rawobjs.json")
+	if err != nil {
+		log.Println("error opening file to write matchdetails", err)
+	}
+	f.Close()
+	f.Write(rawObjs[0])
 
-	return internal.UnmarshalObjs[m.MatchDetails](rawObjs, errs)
+	nestedMDs, errs := internal.UnmarshalObjs[[]m.MatchDetails](rawObjs, errs)
+
+	flatMDs := make([]*m.MatchDetails, 0, 10*len(nestedMDs))
+	for _, v := range nestedMDs {
+		for _, w := range *v {
+			flatMDs = append(flatMDs, &w)
+		}
+	}
+
+	return flatMDs, errs
 }
 
 func (r *matchInfo) GetMatchIDsByQueue(queueID []m.QueueID) ([]*m.MatchIDWithQueue, []error) {
