@@ -2,11 +2,7 @@ package gorez
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/JackStillwell/GoRez/internal"
 	c "github.com/JackStillwell/GoRez/pkg/constants"
@@ -44,7 +40,7 @@ func NewMatchInfo(
 }
 
 // GetMatchDetails will return data for players in a completed match
-func (r *matchInfo) GetMatchDetails(matchID int) (*m.MatchDetails, error) {
+func (r *matchInfo) GetMatchDetails(matchID int) (*[]m.MatchDetails, error) {
 	mIds, errs := r.GetMatchDetailsBatch(matchID)
 	return mIds[0], errs[0]
 }
@@ -77,39 +73,42 @@ func (r *matchInfo) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error)
 }
 
 // GetMatchDetails will return data for players in completed matches
-func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*m.MatchDetails, []error) {
+func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*[]m.MatchDetails, []error) {
 	rawObjs, errs := r.GetMatchDetailsBatchRaw(matchIDs...)
-	log.Println(errs)
-	f, err := os.Create("rawobjs.json")
-	if err != nil {
-		log.Println("error opening file to write matchdetails", err)
-	}
-	defer f.Close()
-	nBytes, err := f.Write(rawObjs[0])
-	if err != nil {
-		log.Println("error writing rawobj file:", err.Error())
-	}
-	if nBytes == 0 {
-		log.Println("no bytes written to rawobj file")
-	}
+	return internal.UnmarshalObjs[[]m.MatchDetails](rawObjs, errs)
+}
 
-	nestedMDs, errs := internal.UnmarshalObjs[[]m.MatchDetails](rawObjs, errs)
+func (r *matchInfo) GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []m.QueueID) ([][]byte, []error) {
+	requests := make([]func(*sessionM.Session) *requestM.Request, 0, len(queueIDs)*len(dateStrings))
+	for _, queueID := range queueIDs {
+		for _, dateString := range dateStrings {
+			requestFunc := func(session *sessionM.Session) *requestM.Request {
+				args := []any{
+					r.hrC.SmiteURLBase + "/" + r.hrC.GetMatchIDsByQueue + "json",
+					r.authSvc.GetID(),
+					r.hrC.GetMatchIDsByQueue,
+					session.Key,
+					r.authSvc.GetTimestamp,
+					r.authSvc.GetSignature,
+					fmt.Sprintf("%d", queueID) + "/" + dateString,
+				}
 
-	flatMDs := make([]*m.MatchDetails, 0, 10*len(nestedMDs))
-	for _, v := range nestedMDs {
-		for _, w := range *v {
-			flatMDs = append(flatMDs, &w)
+				return &requestM.Request{JITArgs: args, JITBuild: requestU.JITBase}
+			}
+			requests = append(requests, requestFunc)
 		}
 	}
 
-	return flatMDs, errs
+	return r.gUtil.BulkAsyncSessionRequest(requests)
 }
 
-func (r *matchInfo) GetMatchIDsByQueue(queueID []m.QueueID) ([]*m.MatchIDWithQueue, []error) {
-	return nil, []error{errors.New("unimplemented")}
+// GetMatchDetails will return data for players in completed matches
+func (r *matchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueID) ([]*[]m.MatchIDWithQueue, []error) {
+	rawObjs, errs := r.GetMatchIDsByQueueRaw(dateStrings, queueIDs)
+	return internal.UnmarshalObjs[[]m.MatchIDWithQueue](rawObjs, errs)
 }
 
 // GetMatchPlayerDetails will return data for players in a live match
-func (r *matchInfo) GetMatchPlayerDetails(matchID int) (*m.MatchDetails, error) {
+func (r *matchInfo) GetMatchPlayerDetails(matchID int) (*[]m.MatchDetails, error) {
 	return r.GetMatchDetails(matchID)
 }
