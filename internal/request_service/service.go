@@ -150,6 +150,7 @@ func (r *requestService) FreeResponse(id *uuid.UUID) {
 		log.Println("cannot free 'nil' id response")
 	}
 	idx := r.responseIdToIdx[id]
+	log.Printf("freeing response idx %d\n", idx)
 	r.updateResponses(idx, nil)
 	r.freeNotify <- idx
 }

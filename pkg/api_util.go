@@ -76,15 +76,17 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	sessions := make([]*m.Session, 0, numSessions)
 	errs := make([]error, 0, numSessions)
 	for i := 0; i < numSessions; i++ {
-		resp := <-responseChan
-		if resp.Err != nil {
+		resp := <-responseChan               // get the pointer
+		localResp := *resp                   // deference to force a copy
+		a.rqstSvc.FreeResponse(localResp.Id) // clean up the response queue
+		if localResp.Err != nil {
 			sessions = append(sessions, nil)
-			errs = append(errs, errors.Wrap(resp.Err, "request"))
+			errs = append(errs, errors.Wrap(localResp.Err, "request"))
 			continue
 		}
 
 		session := &m.Session{}
-		err := json.Unmarshal(resp.Resp, session)
+		err := json.Unmarshal(localResp.Resp, session)
 		if err != nil {
 			sessions = append(sessions, nil)
 			errs = append(errs, errors.Wrap(err, "unmarshal response"))
@@ -128,13 +130,15 @@ func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 	responses := make([]*string, 0, len(s))
 	errs := make([]error, 0, len(s))
 	for i := 0; i < len(s); i++ {
-		resp := <-responseChan
-		if resp.Err != nil {
-			errs = append(errs, errors.Wrap(resp.Err, "request"))
+		resp := <-responseChan               // get the pointer
+		localResp := *resp                   // deference to force a copy
+		a.rqstSvc.FreeResponse(localResp.Id) // clean up the response queue
+		if localResp.Err != nil {
+			errs = append(errs, errors.Wrap(localResp.Err, "request"))
 			continue
 		}
 
-		responseString := string(resp.Resp)
+		responseString := string(localResp.Resp)
 		responses = append(responses, &responseString)
 	}
 

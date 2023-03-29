@@ -66,9 +66,9 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	responses := make([][]byte, numRequests)
 	errs := make([]error, numRequests)
 	for i := 0; i < numRequests; i++ {
-		resp := <-responseChan                  // get the pointer
-		localResp := *resp                      // deference to force a copy
-		go g.rqstSvc.FreeResponse(localResp.Id) // clean up the response queue
+		resp := <-responseChan               // get the pointer
+		localResp := *resp                   // deference to force a copy
+		g.rqstSvc.FreeResponse(localResp.Id) // clean up the response queue
 		if localResp.Err != nil {
 			if strings.Contains(localResp.Err.Error(), "session") {
 				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[localResp.Id]})

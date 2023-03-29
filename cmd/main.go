@@ -3,22 +3,28 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	gorez "github.com/JackStillwell/GoRez/pkg"
+	models "github.com/JackStillwell/GoRez/pkg/models"
 )
 
 func main() {
 	var authPath, dataDirPath, matchIds string
+	var numDays int
 	var getGods, getItems bool
 	flag.StringVar(&authPath, "auth", "", "The file path to the hirez dev auth file")
 	flag.StringVar(&dataDirPath, "datadir", "",
 		"The file path to the directory containing SMITE data")
 	flag.StringVar(&matchIds, "matchids", "", "A CSV list of matchids to retrieve")
+	flag.IntVar(&numDays, "numdays", 0,
+		"The number of days into the past to retrieve RankedConquest matches for")
 	flag.BoolVar(&getGods, "gods", false, "Fetch all gods")
 	flag.BoolVar(&getItems, "items", false, "Fetch all items")
 
@@ -99,7 +105,7 @@ func main() {
 		}
 
 		matchDetails, errs := g.GetMatchDetailsBatch(idInts...)
-		log.Println("errors fetching items", errs)
+		log.Println("errors fetching matchdetailsbatch", errs)
 		jBytes, err := json.Marshal(matchDetails)
 		if err != nil {
 			log.Println("error marshaling matchdetails", err)
@@ -116,6 +122,40 @@ func main() {
 		}
 		if nBytes == 0 {
 			log.Println("no bytes written to matchdetails file")
+		}
+	}
+
+	if numDays != 0 {
+		queueIDs := []models.QueueID{models.RankedConquest}
+		dateStrings := make([]string, 0, numDays)
+		currDate := time.Now()
+		for i := 0; i < numDays; i++ {
+			year := currDate.Year()
+			month := currDate.Month()
+			day := currDate.Day()
+
+			dateStrings = append(dateStrings, fmt.Sprintf("%d%02d%02d/0,00", year, month, day))
+			currDate = currDate.Add(-24 * time.Hour)
+		}
+
+		matchIds, errs := g.GetMatchIDsByQueueRaw(dateStrings, queueIDs)
+		log.Println("errors fetching matchidsbyqueue", errs)
+		jBytes, err := json.Marshal(matchIds)
+		if err != nil {
+			log.Println("error marshaling matchids", err)
+		}
+		matchIdsPath := path.Join(dataDirPath, "matchids.json")
+		f, err := os.Create(matchIdsPath)
+		if err != nil {
+			log.Println("error opening file to write matchids", err)
+		}
+		defer f.Close()
+		nBytes, err := f.Write(jBytes)
+		if err != nil {
+			log.Println("error writing matchids file:", err.Error())
+		}
+		if nBytes == 0 {
+			log.Println("no bytes written to matchids file")
 		}
 	}
 

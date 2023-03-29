@@ -36,7 +36,7 @@ type MatchInfo interface {
 	GetMatchDetails(matchID int) (*[]m.MatchDetails, error)
 	GetMatchDetailsBatch(matchIDs ...int) ([]*[]m.MatchDetails, []error)
 	GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error)
-	GetMatchIDsByQueue(dateStrings []string, queueID []m.QueueID) ([]*[]m.MatchIDWithQueue, []error)
-	GetMatchIDsByQueueRaw(dateStrings []string, queueID []m.QueueID) ([][]byte, []error)
+	GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueID) ([]*[]m.MatchIDWithQueue, []error)
+	GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []m.QueueID) ([][]byte, []error)
 	GetMatchPlayerDetails(matchID int) (*[]m.MatchDetails, error)
 }
