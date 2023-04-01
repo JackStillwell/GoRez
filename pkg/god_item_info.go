@@ -9,9 +9,6 @@ import (
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
-
-	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
-	requestU "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 )
 
 type godItemInfo struct {
@@ -31,28 +28,16 @@ func NewGodItemInfo(
 }
 
 func (g *godItemInfo) GetGods() ([]*m.God, error) {
-	r := requestM.Request{
-		JITArgs: []interface{}{
-			g.hrC.SmiteURLBase + "/" + g.hrC.GetGods + "json", "", g.hrC.GetGods, "", "", "", "1",
-		},
-		JITBuild: requestU.JITBase,
-	}
-
 	gods := []*m.God{}
-	err := g.util.SingleRequest(r, &gods)
+	err := g.util.SingleRequest(g.hrC.SmiteURLBase+"/"+g.hrC.GetGods+"json", g.hrC.GetGods, "1",
+		&gods)
 	return gods, err
 }
 
 func (g *godItemInfo) GetItems() ([]*m.Item, error) {
-	r := requestM.Request{
-		JITArgs: []interface{}{
-			g.hrC.SmiteURLBase + "/" + g.hrC.GetItems + "json", "", g.hrC.GetItems, "", "", "", "1",
-		},
-		JITBuild: requestU.JITBase,
-	}
-
 	items := []*m.Item{}
-	err := g.util.SingleRequest(r, &items)
+	err := g.util.SingleRequest(g.hrC.SmiteURLBase+"/"+g.hrC.GetItems+"json", g.hrC.GetItems, "1",
+		&items)
 	return items, err
 }
 

@@ -210,7 +210,8 @@ var _ = Describe("GodItemInfo", func() {
 
 		Context("singleRequest via GetItems", func() {
 			It("should pass through an error with the request", func() {
-				util.EXPECT().SingleRequest(gomock.Any(), gomock.Any()).Return(errors.New("boom"))
+				util.EXPECT().SingleRequest(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(errors.New("boom"))
 
 				_, err := target.GetItems()
 				Expect(err).To(HaveOccurred())

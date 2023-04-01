@@ -14,7 +14,6 @@ import (
 
 	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
-	requestU "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 
 	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
 	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
@@ -94,7 +93,7 @@ func (g *gorezUtil) MultiRequest(requestArgs []string, baseURL, method string,
 	for i, arg := range requestArgs {
 		requestBuilders[i] = func(s *sessionM.Session) *requestM.Request {
 			return &requestM.Request{
-				JITArgs: []interface{}{
+				JITFunc: HiRezJIT(
 					baseURL,
 					g.authSvc.GetID(),
 					method,
@@ -102,8 +101,7 @@ func (g *gorezUtil) MultiRequest(requestArgs []string, baseURL, method string,
 					g.authSvc.GetTimestamp,
 					g.authSvc.GetSignature,
 					arg,
-				},
-				JITBuild: requestU.JITBase,
+				),
 			}
 		}
 	}
@@ -113,7 +111,8 @@ func (g *gorezUtil) MultiRequest(requestArgs []string, baseURL, method string,
 	return rawObjs, errs
 }
 
-func (g *gorezUtil) SingleRequest(r requestM.Request, unmarshalTo interface{}) error {
+func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string, unmarshalTo interface{},
+) error {
 	log.Println("reserving session for single request")
 	sesnChan := make(chan *sessionM.Session, 1)
 	g.sesnSvc.ReserveSession(1, sesnChan)
@@ -123,10 +122,12 @@ func (g *gorezUtil) SingleRequest(r requestM.Request, unmarshalTo interface{}) e
 	sessions := []*sessionM.Session{s}
 	defer g.sesnSvc.ReleaseSession(sessions)
 
-	r.JITArgs[1] = g.authSvc.GetID()
-	r.JITArgs[3] = s.Key
-	r.JITArgs[4] = g.authSvc.GetTimestamp
-	r.JITArgs[5] = g.authSvc.GetSignature
+	r := requestM.Request{
+		JITFunc: HiRezJIT(
+			url, g.authSvc.GetID(), endpoint, s.Key, g.authSvc.GetTimestamp, g.authSvc.GetSignature,
+			endpointArgs,
+		),
+	}
 
 	log.Println("making single request")
 	resp := g.rqstSvc.Request(&r)

@@ -5,51 +5,61 @@
 package mock
 
 import (
-	reflect "reflect"
-
 	models "github.com/JackStillwell/GoRez/pkg/models"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
-// MockGoRez is a mock of GoRez interface.
+// MockGoRez is a mock of GoRez interface
 type MockGoRez struct {
 	ctrl     *gomock.Controller
 	recorder *MockGoRezMockRecorder
 }
 
-// MockGoRezMockRecorder is the mock recorder for MockGoRez.
+// MockGoRezMockRecorder is the mock recorder for MockGoRez
 type MockGoRezMockRecorder struct {
 	mock *MockGoRez
 }
 
-// NewMockGoRez creates a new mock instance.
+// NewMockGoRez creates a new mock instance
 func NewMockGoRez(ctrl *gomock.Controller) *MockGoRez {
 	mock := &MockGoRez{ctrl: ctrl}
 	mock.recorder = &MockGoRezMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockGoRez) EXPECT() *MockGoRezMockRecorder {
 	return m.recorder
 }
 
-// GetGodRecItems mocks base method.
-func (m *MockGoRez) GetGodRecItems(godIDs []int) ([]*models.ItemRecommendation, []error) {
+// Init mocks base method
+func (m *MockGoRez) Init() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGodRecItems", godIDs)
-	ret0, _ := ret[0].([]*models.ItemRecommendation)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Init")
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetGodRecItems indicates an expected call of GetGodRecItems.
-func (mr *MockGoRezMockRecorder) GetGodRecItems(godIDs interface{}) *gomock.Call {
+// Init indicates an expected call of Init
+func (mr *MockGoRezMockRecorder) Init() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGodRecItems", reflect.TypeOf((*MockGoRez)(nil).GetGodRecItems), godIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockGoRez)(nil).Init))
 }
 
-// GetGods mocks base method.
+// Shutdown mocks base method
+func (m *MockGoRez) Shutdown() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Shutdown")
+}
+
+// Shutdown indicates an expected call of Shutdown
+func (mr *MockGoRezMockRecorder) Shutdown() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockGoRez)(nil).Shutdown))
+}
+
+// GetGods mocks base method
 func (m *MockGoRez) GetGods() ([]*models.God, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGods")
@@ -58,13 +68,13 @@ func (m *MockGoRez) GetGods() ([]*models.God, error) {
 	return ret0, ret1
 }
 
-// GetGods indicates an expected call of GetGods.
+// GetGods indicates an expected call of GetGods
 func (mr *MockGoRezMockRecorder) GetGods() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGods", reflect.TypeOf((*MockGoRez)(nil).GetGods))
 }
 
-// GetItems mocks base method.
+// GetItems mocks base method
 func (m *MockGoRez) GetItems() ([]*models.Item, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetItems")
@@ -73,47 +83,137 @@ func (m *MockGoRez) GetItems() ([]*models.Item, error) {
 	return ret0, ret1
 }
 
-// GetItems indicates an expected call of GetItems.
+// GetItems indicates an expected call of GetItems
 func (mr *MockGoRezMockRecorder) GetItems() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItems", reflect.TypeOf((*MockGoRez)(nil).GetItems))
 }
 
-// GetMatchDetails mocks base method.
-func (m *MockGoRez) GetMatchDetails(matchID int) (*models.MatchDetails, error) {
+// GetGodRecItems mocks base method
+func (m *MockGoRez) GetGodRecItems(godIDs []int) ([]*models.ItemRecommendation, []error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
-	ret0, _ := ret[0].(*models.MatchDetails)
+	ret := m.ctrl.Call(m, "GetGodRecItems", godIDs)
+	ret0, _ := ret[0].([]*models.ItemRecommendation)
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
+}
+
+// GetGodRecItems indicates an expected call of GetGodRecItems
+func (mr *MockGoRezMockRecorder) GetGodRecItems(godIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGodRecItems", reflect.TypeOf((*MockGoRez)(nil).GetGodRecItems), godIDs)
+}
+
+// GetPlayerIDByName mocks base method
+func (m *MockGoRez) GetPlayerIDByName(playerName []string) (*models.PlayerIDWithName, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPlayerIDByName", playerName)
+	ret0, _ := ret[0].(*models.PlayerIDWithName)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMatchDetails indicates an expected call of GetMatchDetails.
+// GetPlayerIDByName indicates an expected call of GetPlayerIDByName
+func (mr *MockGoRezMockRecorder) GetPlayerIDByName(playerName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayerIDByName", reflect.TypeOf((*MockGoRez)(nil).GetPlayerIDByName), playerName)
+}
+
+// GetPlayer mocks base method
+func (m *MockGoRez) GetPlayer(playerID int) (*models.Player, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPlayer", playerID)
+	ret0, _ := ret[0].(*models.Player)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPlayer indicates an expected call of GetPlayer
+func (mr *MockGoRezMockRecorder) GetPlayer(playerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayer", reflect.TypeOf((*MockGoRez)(nil).GetPlayer), playerID)
+}
+
+// GetPlayerBatch mocks base method
+func (m *MockGoRez) GetPlayerBatch(playerIDs []int) ([]*models.Player, []error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPlayerBatch", playerIDs)
+	ret0, _ := ret[0].([]*models.Player)
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
+}
+
+// GetPlayerBatch indicates an expected call of GetPlayerBatch
+func (mr *MockGoRezMockRecorder) GetPlayerBatch(playerIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayerBatch", reflect.TypeOf((*MockGoRez)(nil).GetPlayerBatch), playerIDs)
+}
+
+// GetMatchHistory mocks base method
+func (m *MockGoRez) GetMatchHistory(playerID []int) ([]*models.MatchDetails, []error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
+	ret0, _ := ret[0].([]*models.MatchDetails)
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
+}
+
+// GetMatchHistory indicates an expected call of GetMatchHistory
+func (mr *MockGoRezMockRecorder) GetMatchHistory(playerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchHistory", reflect.TypeOf((*MockGoRez)(nil).GetMatchHistory), playerID)
+}
+
+// GetQueueStats mocks base method
+func (m *MockGoRez) GetQueueStats(playerID []int) ([]*models.QueueStat, []error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetQueueStats", playerID)
+	ret0, _ := ret[0].([]*models.QueueStat)
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
+}
+
+// GetQueueStats indicates an expected call of GetQueueStats
+func (mr *MockGoRezMockRecorder) GetQueueStats(playerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQueueStats", reflect.TypeOf((*MockGoRez)(nil).GetQueueStats), playerID)
+}
+
+// GetMatchDetails mocks base method
+func (m *MockGoRez) GetMatchDetails(matchID int) (*[]models.MatchDetails, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
+	ret0, _ := ret[0].(*[]models.MatchDetails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMatchDetails indicates an expected call of GetMatchDetails
 func (mr *MockGoRezMockRecorder) GetMatchDetails(matchID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetails", reflect.TypeOf((*MockGoRez)(nil).GetMatchDetails), matchID)
 }
 
-// GetMatchDetailsBatch mocks base method.
-func (m *MockGoRez) GetMatchDetailsBatch(matchIDs ...int) ([]*models.MatchDetails, []error) {
+// GetMatchDetailsBatch mocks base method
+func (m *MockGoRez) GetMatchDetailsBatch(matchIDs ...int) ([]*[]models.MatchDetails, []error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range matchIDs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetMatchDetailsBatch", varargs...)
-	ret0, _ := ret[0].([]*models.MatchDetails)
+	ret0, _ := ret[0].([]*[]models.MatchDetails)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
 
-// GetMatchDetailsBatch indicates an expected call of GetMatchDetailsBatch.
+// GetMatchDetailsBatch indicates an expected call of GetMatchDetailsBatch
 func (mr *MockGoRezMockRecorder) GetMatchDetailsBatch(matchIDs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetailsBatch", reflect.TypeOf((*MockGoRez)(nil).GetMatchDetailsBatch), matchIDs...)
 }
 
-// GetMatchDetailsBatchRaw mocks base method.
+// GetMatchDetailsBatchRaw mocks base method
 func (m *MockGoRez) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -126,167 +226,81 @@ func (m *MockGoRez) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error)
 	return ret0, ret1
 }
 
-// GetMatchDetailsBatchRaw indicates an expected call of GetMatchDetailsBatchRaw.
+// GetMatchDetailsBatchRaw indicates an expected call of GetMatchDetailsBatchRaw
 func (mr *MockGoRezMockRecorder) GetMatchDetailsBatchRaw(matchIDs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetailsBatchRaw", reflect.TypeOf((*MockGoRez)(nil).GetMatchDetailsBatchRaw), matchIDs...)
 }
 
-// GetMatchHistory mocks base method.
-func (m *MockGoRez) GetMatchHistory(playerID []int) ([]*models.MatchDetails, []error) {
+// GetMatchIDsByQueue mocks base method
+func (m *MockGoRez) GetMatchIDsByQueue(dateStrings []string, queueIDs []models.QueueID) ([]*[]models.MatchIDWithQueue, []error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
-	ret0, _ := ret[0].([]*models.MatchDetails)
+	ret := m.ctrl.Call(m, "GetMatchIDsByQueue", dateStrings, queueIDs)
+	ret0, _ := ret[0].([]*[]models.MatchIDWithQueue)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
 
-// GetMatchHistory indicates an expected call of GetMatchHistory.
-func (mr *MockGoRezMockRecorder) GetMatchHistory(playerID interface{}) *gomock.Call {
+// GetMatchIDsByQueue indicates an expected call of GetMatchIDsByQueue
+func (mr *MockGoRezMockRecorder) GetMatchIDsByQueue(dateStrings, queueIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchHistory", reflect.TypeOf((*MockGoRez)(nil).GetMatchHistory), playerID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueue", reflect.TypeOf((*MockGoRez)(nil).GetMatchIDsByQueue), dateStrings, queueIDs)
 }
 
-// GetMatchIDsByQueue mocks base method.
-func (m *MockGoRez) GetMatchIDsByQueue(queueID []models.QueueID) ([]*models.MatchIDWithQueue, []error) {
+// GetMatchIDsByQueueRaw mocks base method
+func (m *MockGoRez) GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []models.QueueID) ([][]byte, []error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMatchIDsByQueue", queueID)
-	ret0, _ := ret[0].([]*models.MatchIDWithQueue)
+	ret := m.ctrl.Call(m, "GetMatchIDsByQueueRaw", dateStrings, queueIDs)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
 
-// GetMatchIDsByQueue indicates an expected call of GetMatchIDsByQueue.
-func (mr *MockGoRezMockRecorder) GetMatchIDsByQueue(queueID interface{}) *gomock.Call {
+// GetMatchIDsByQueueRaw indicates an expected call of GetMatchIDsByQueueRaw
+func (mr *MockGoRezMockRecorder) GetMatchIDsByQueueRaw(dateStrings, queueIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueue", reflect.TypeOf((*MockGoRez)(nil).GetMatchIDsByQueue), queueID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueueRaw", reflect.TypeOf((*MockGoRez)(nil).GetMatchIDsByQueueRaw), dateStrings, queueIDs)
 }
 
-// GetMatchPlayerDetails mocks base method.
-func (m *MockGoRez) GetMatchPlayerDetails(matchID int) (*models.MatchDetails, error) {
+// GetMatchPlayerDetails mocks base method
+func (m *MockGoRez) GetMatchPlayerDetails(matchID int) (*[]models.MatchDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchPlayerDetails", matchID)
-	ret0, _ := ret[0].(*models.MatchDetails)
+	ret0, _ := ret[0].(*[]models.MatchDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMatchPlayerDetails indicates an expected call of GetMatchPlayerDetails.
+// GetMatchPlayerDetails indicates an expected call of GetMatchPlayerDetails
 func (mr *MockGoRezMockRecorder) GetMatchPlayerDetails(matchID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchPlayerDetails", reflect.TypeOf((*MockGoRez)(nil).GetMatchPlayerDetails), matchID)
 }
 
-// GetPlayer mocks base method.
-func (m *MockGoRez) GetPlayer(playerID int) (*models.Player, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPlayer", playerID)
-	ret0, _ := ret[0].(*models.Player)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPlayer indicates an expected call of GetPlayer.
-func (mr *MockGoRezMockRecorder) GetPlayer(playerID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayer", reflect.TypeOf((*MockGoRez)(nil).GetPlayer), playerID)
-}
-
-// GetPlayerBatch mocks base method.
-func (m *MockGoRez) GetPlayerBatch(playerIDs []int) ([]*models.Player, []error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPlayerBatch", playerIDs)
-	ret0, _ := ret[0].([]*models.Player)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetPlayerBatch indicates an expected call of GetPlayerBatch.
-func (mr *MockGoRezMockRecorder) GetPlayerBatch(playerIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayerBatch", reflect.TypeOf((*MockGoRez)(nil).GetPlayerBatch), playerIDs)
-}
-
-// GetPlayerIDByName mocks base method.
-func (m *MockGoRez) GetPlayerIDByName(playerName []string) (*models.PlayerIDWithName, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPlayerIDByName", playerName)
-	ret0, _ := ret[0].(*models.PlayerIDWithName)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPlayerIDByName indicates an expected call of GetPlayerIDByName.
-func (mr *MockGoRezMockRecorder) GetPlayerIDByName(playerName interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayerIDByName", reflect.TypeOf((*MockGoRez)(nil).GetPlayerIDByName), playerName)
-}
-
-// GetQueueStats mocks base method.
-func (m *MockGoRez) GetQueueStats(playerID []int) ([]*models.QueueStat, []error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetQueueStats", playerID)
-	ret0, _ := ret[0].([]*models.QueueStat)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetQueueStats indicates an expected call of GetQueueStats.
-func (mr *MockGoRezMockRecorder) GetQueueStats(playerID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQueueStats", reflect.TypeOf((*MockGoRez)(nil).GetQueueStats), playerID)
-}
-
-// Init mocks base method.
-func (m *MockGoRez) Init() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Init")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Init indicates an expected call of Init.
-func (mr *MockGoRezMockRecorder) Init() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockGoRez)(nil).Init))
-}
-
-// Shutdown mocks base method.
-func (m *MockGoRez) Shutdown() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Shutdown")
-}
-
-// Shutdown indicates an expected call of Shutdown.
-func (mr *MockGoRezMockRecorder) Shutdown() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockGoRez)(nil).Shutdown))
-}
-
-// MockAPIUtil is a mock of APIUtil interface.
+// MockAPIUtil is a mock of APIUtil interface
 type MockAPIUtil struct {
 	ctrl     *gomock.Controller
 	recorder *MockAPIUtilMockRecorder
 }
 
-// MockAPIUtilMockRecorder is the mock recorder for MockAPIUtil.
+// MockAPIUtilMockRecorder is the mock recorder for MockAPIUtil
 type MockAPIUtilMockRecorder struct {
 	mock *MockAPIUtil
 }
 
-// NewMockAPIUtil creates a new mock instance.
+// NewMockAPIUtil creates a new mock instance
 func NewMockAPIUtil(ctrl *gomock.Controller) *MockAPIUtil {
 	mock := &MockAPIUtil{ctrl: ctrl}
 	mock.recorder = &MockAPIUtilMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockAPIUtil) EXPECT() *MockAPIUtilMockRecorder {
 	return m.recorder
 }
 
-// CreateSession mocks base method.
+// CreateSession mocks base method
 func (m *MockAPIUtil) CreateSession(arg0 int) ([]*models.Session, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSession", arg0)
@@ -295,28 +309,13 @@ func (m *MockAPIUtil) CreateSession(arg0 int) ([]*models.Session, []error) {
 	return ret0, ret1
 }
 
-// CreateSession indicates an expected call of CreateSession.
+// CreateSession indicates an expected call of CreateSession
 func (mr *MockAPIUtilMockRecorder) CreateSession(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSession", reflect.TypeOf((*MockAPIUtil)(nil).CreateSession), arg0)
 }
 
-// GetDataUsed mocks base method.
-func (m *MockAPIUtil) GetDataUsed() (*models.UsageInfo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDataUsed")
-	ret0, _ := ret[0].(*models.UsageInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetDataUsed indicates an expected call of GetDataUsed.
-func (mr *MockAPIUtilMockRecorder) GetDataUsed() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDataUsed", reflect.TypeOf((*MockAPIUtil)(nil).GetDataUsed))
-}
-
-// TestSession mocks base method.
+// TestSession mocks base method
 func (m *MockAPIUtil) TestSession(arg0 []*models.Session) ([]*string, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TestSession", arg0)
@@ -325,51 +324,51 @@ func (m *MockAPIUtil) TestSession(arg0 []*models.Session) ([]*string, []error) {
 	return ret0, ret1
 }
 
-// TestSession indicates an expected call of TestSession.
+// TestSession indicates an expected call of TestSession
 func (mr *MockAPIUtilMockRecorder) TestSession(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestSession", reflect.TypeOf((*MockAPIUtil)(nil).TestSession), arg0)
 }
 
-// MockGodItemInfo is a mock of GodItemInfo interface.
+// GetDataUsed mocks base method
+func (m *MockAPIUtil) GetDataUsed() (*models.UsageInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDataUsed")
+	ret0, _ := ret[0].(*models.UsageInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDataUsed indicates an expected call of GetDataUsed
+func (mr *MockAPIUtilMockRecorder) GetDataUsed() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDataUsed", reflect.TypeOf((*MockAPIUtil)(nil).GetDataUsed))
+}
+
+// MockGodItemInfo is a mock of GodItemInfo interface
 type MockGodItemInfo struct {
 	ctrl     *gomock.Controller
 	recorder *MockGodItemInfoMockRecorder
 }
 
-// MockGodItemInfoMockRecorder is the mock recorder for MockGodItemInfo.
+// MockGodItemInfoMockRecorder is the mock recorder for MockGodItemInfo
 type MockGodItemInfoMockRecorder struct {
 	mock *MockGodItemInfo
 }
 
-// NewMockGodItemInfo creates a new mock instance.
+// NewMockGodItemInfo creates a new mock instance
 func NewMockGodItemInfo(ctrl *gomock.Controller) *MockGodItemInfo {
 	mock := &MockGodItemInfo{ctrl: ctrl}
 	mock.recorder = &MockGodItemInfoMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockGodItemInfo) EXPECT() *MockGodItemInfoMockRecorder {
 	return m.recorder
 }
 
-// GetGodRecItems mocks base method.
-func (m *MockGodItemInfo) GetGodRecItems(godIDs []int) ([]*models.ItemRecommendation, []error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGodRecItems", godIDs)
-	ret0, _ := ret[0].([]*models.ItemRecommendation)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetGodRecItems indicates an expected call of GetGodRecItems.
-func (mr *MockGodItemInfoMockRecorder) GetGodRecItems(godIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGodRecItems", reflect.TypeOf((*MockGodItemInfo)(nil).GetGodRecItems), godIDs)
-}
-
-// GetGods mocks base method.
+// GetGods mocks base method
 func (m *MockGodItemInfo) GetGods() ([]*models.God, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGods")
@@ -378,13 +377,13 @@ func (m *MockGodItemInfo) GetGods() ([]*models.God, error) {
 	return ret0, ret1
 }
 
-// GetGods indicates an expected call of GetGods.
+// GetGods indicates an expected call of GetGods
 func (mr *MockGodItemInfoMockRecorder) GetGods() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGods", reflect.TypeOf((*MockGodItemInfo)(nil).GetGods))
 }
 
-// GetItems mocks base method.
+// GetItems mocks base method
 func (m *MockGodItemInfo) GetItems() ([]*models.Item, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetItems")
@@ -393,81 +392,51 @@ func (m *MockGodItemInfo) GetItems() ([]*models.Item, error) {
 	return ret0, ret1
 }
 
-// GetItems indicates an expected call of GetItems.
+// GetItems indicates an expected call of GetItems
 func (mr *MockGodItemInfoMockRecorder) GetItems() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetItems", reflect.TypeOf((*MockGodItemInfo)(nil).GetItems))
 }
 
-// MockPlayerInfo is a mock of PlayerInfo interface.
+// GetGodRecItems mocks base method
+func (m *MockGodItemInfo) GetGodRecItems(godIDs []int) ([]*models.ItemRecommendation, []error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGodRecItems", godIDs)
+	ret0, _ := ret[0].([]*models.ItemRecommendation)
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
+}
+
+// GetGodRecItems indicates an expected call of GetGodRecItems
+func (mr *MockGodItemInfoMockRecorder) GetGodRecItems(godIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGodRecItems", reflect.TypeOf((*MockGodItemInfo)(nil).GetGodRecItems), godIDs)
+}
+
+// MockPlayerInfo is a mock of PlayerInfo interface
 type MockPlayerInfo struct {
 	ctrl     *gomock.Controller
 	recorder *MockPlayerInfoMockRecorder
 }
 
-// MockPlayerInfoMockRecorder is the mock recorder for MockPlayerInfo.
+// MockPlayerInfoMockRecorder is the mock recorder for MockPlayerInfo
 type MockPlayerInfoMockRecorder struct {
 	mock *MockPlayerInfo
 }
 
-// NewMockPlayerInfo creates a new mock instance.
+// NewMockPlayerInfo creates a new mock instance
 func NewMockPlayerInfo(ctrl *gomock.Controller) *MockPlayerInfo {
 	mock := &MockPlayerInfo{ctrl: ctrl}
 	mock.recorder = &MockPlayerInfoMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockPlayerInfo) EXPECT() *MockPlayerInfoMockRecorder {
 	return m.recorder
 }
 
-// GetMatchHistory mocks base method.
-func (m *MockPlayerInfo) GetMatchHistory(playerID []int) ([]*models.MatchDetails, []error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
-	ret0, _ := ret[0].([]*models.MatchDetails)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetMatchHistory indicates an expected call of GetMatchHistory.
-func (mr *MockPlayerInfoMockRecorder) GetMatchHistory(playerID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchHistory", reflect.TypeOf((*MockPlayerInfo)(nil).GetMatchHistory), playerID)
-}
-
-// GetPlayer mocks base method.
-func (m *MockPlayerInfo) GetPlayer(playerID int) (*models.Player, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPlayer", playerID)
-	ret0, _ := ret[0].(*models.Player)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPlayer indicates an expected call of GetPlayer.
-func (mr *MockPlayerInfoMockRecorder) GetPlayer(playerID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayer", reflect.TypeOf((*MockPlayerInfo)(nil).GetPlayer), playerID)
-}
-
-// GetPlayerBatch mocks base method.
-func (m *MockPlayerInfo) GetPlayerBatch(playerIDs []int) ([]*models.Player, []error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPlayerBatch", playerIDs)
-	ret0, _ := ret[0].([]*models.Player)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetPlayerBatch indicates an expected call of GetPlayerBatch.
-func (mr *MockPlayerInfoMockRecorder) GetPlayerBatch(playerIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayerBatch", reflect.TypeOf((*MockPlayerInfo)(nil).GetPlayerBatch), playerIDs)
-}
-
-// GetPlayerIDByName mocks base method.
+// GetPlayerIDByName mocks base method
 func (m *MockPlayerInfo) GetPlayerIDByName(playerName []string) (*models.PlayerIDWithName, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerIDByName", playerName)
@@ -476,13 +445,58 @@ func (m *MockPlayerInfo) GetPlayerIDByName(playerName []string) (*models.PlayerI
 	return ret0, ret1
 }
 
-// GetPlayerIDByName indicates an expected call of GetPlayerIDByName.
+// GetPlayerIDByName indicates an expected call of GetPlayerIDByName
 func (mr *MockPlayerInfoMockRecorder) GetPlayerIDByName(playerName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayerIDByName", reflect.TypeOf((*MockPlayerInfo)(nil).GetPlayerIDByName), playerName)
 }
 
-// GetQueueStats mocks base method.
+// GetPlayer mocks base method
+func (m *MockPlayerInfo) GetPlayer(playerID int) (*models.Player, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPlayer", playerID)
+	ret0, _ := ret[0].(*models.Player)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPlayer indicates an expected call of GetPlayer
+func (mr *MockPlayerInfoMockRecorder) GetPlayer(playerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayer", reflect.TypeOf((*MockPlayerInfo)(nil).GetPlayer), playerID)
+}
+
+// GetPlayerBatch mocks base method
+func (m *MockPlayerInfo) GetPlayerBatch(playerIDs []int) ([]*models.Player, []error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPlayerBatch", playerIDs)
+	ret0, _ := ret[0].([]*models.Player)
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
+}
+
+// GetPlayerBatch indicates an expected call of GetPlayerBatch
+func (mr *MockPlayerInfoMockRecorder) GetPlayerBatch(playerIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPlayerBatch", reflect.TypeOf((*MockPlayerInfo)(nil).GetPlayerBatch), playerIDs)
+}
+
+// GetMatchHistory mocks base method
+func (m *MockPlayerInfo) GetMatchHistory(playerID []int) ([]*models.MatchDetails, []error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
+	ret0, _ := ret[0].([]*models.MatchDetails)
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
+}
+
+// GetMatchHistory indicates an expected call of GetMatchHistory
+func (mr *MockPlayerInfoMockRecorder) GetMatchHistory(playerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchHistory", reflect.TypeOf((*MockPlayerInfo)(nil).GetMatchHistory), playerID)
+}
+
+// GetQueueStats mocks base method
 func (m *MockPlayerInfo) GetQueueStats(playerID []int) ([]*models.QueueStat, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetQueueStats", playerID)
@@ -491,70 +505,70 @@ func (m *MockPlayerInfo) GetQueueStats(playerID []int) ([]*models.QueueStat, []e
 	return ret0, ret1
 }
 
-// GetQueueStats indicates an expected call of GetQueueStats.
+// GetQueueStats indicates an expected call of GetQueueStats
 func (mr *MockPlayerInfoMockRecorder) GetQueueStats(playerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQueueStats", reflect.TypeOf((*MockPlayerInfo)(nil).GetQueueStats), playerID)
 }
 
-// MockMatchInfo is a mock of MatchInfo interface.
+// MockMatchInfo is a mock of MatchInfo interface
 type MockMatchInfo struct {
 	ctrl     *gomock.Controller
 	recorder *MockMatchInfoMockRecorder
 }
 
-// MockMatchInfoMockRecorder is the mock recorder for MockMatchInfo.
+// MockMatchInfoMockRecorder is the mock recorder for MockMatchInfo
 type MockMatchInfoMockRecorder struct {
 	mock *MockMatchInfo
 }
 
-// NewMockMatchInfo creates a new mock instance.
+// NewMockMatchInfo creates a new mock instance
 func NewMockMatchInfo(ctrl *gomock.Controller) *MockMatchInfo {
 	mock := &MockMatchInfo{ctrl: ctrl}
 	mock.recorder = &MockMatchInfoMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockMatchInfo) EXPECT() *MockMatchInfoMockRecorder {
 	return m.recorder
 }
 
-// GetMatchDetails mocks base method.
-func (m *MockMatchInfo) GetMatchDetails(matchID int) (*models.MatchDetails, error) {
+// GetMatchDetails mocks base method
+func (m *MockMatchInfo) GetMatchDetails(matchID int) (*[]models.MatchDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
-	ret0, _ := ret[0].(*models.MatchDetails)
+	ret0, _ := ret[0].(*[]models.MatchDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMatchDetails indicates an expected call of GetMatchDetails.
+// GetMatchDetails indicates an expected call of GetMatchDetails
 func (mr *MockMatchInfoMockRecorder) GetMatchDetails(matchID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetails", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchDetails), matchID)
 }
 
-// GetMatchDetailsBatch mocks base method.
-func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*models.MatchDetails, []error) {
+// GetMatchDetailsBatch mocks base method
+func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*[]models.MatchDetails, []error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range matchIDs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetMatchDetailsBatch", varargs...)
-	ret0, _ := ret[0].([]*models.MatchDetails)
+	ret0, _ := ret[0].([]*[]models.MatchDetails)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
 
-// GetMatchDetailsBatch indicates an expected call of GetMatchDetailsBatch.
+// GetMatchDetailsBatch indicates an expected call of GetMatchDetailsBatch
 func (mr *MockMatchInfoMockRecorder) GetMatchDetailsBatch(matchIDs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetailsBatch", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchDetailsBatch), matchIDs...)
 }
 
-// GetMatchDetailsBatchRaw mocks base method.
+// GetMatchDetailsBatchRaw mocks base method
 func (m *MockMatchInfo) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -567,37 +581,52 @@ func (m *MockMatchInfo) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []er
 	return ret0, ret1
 }
 
-// GetMatchDetailsBatchRaw indicates an expected call of GetMatchDetailsBatchRaw.
+// GetMatchDetailsBatchRaw indicates an expected call of GetMatchDetailsBatchRaw
 func (mr *MockMatchInfoMockRecorder) GetMatchDetailsBatchRaw(matchIDs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetailsBatchRaw", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchDetailsBatchRaw), matchIDs...)
 }
 
-// GetMatchIDsByQueue mocks base method.
-func (m *MockMatchInfo) GetMatchIDsByQueue(queueID []models.QueueID) ([]*models.MatchIDWithQueue, []error) {
+// GetMatchIDsByQueue mocks base method
+func (m *MockMatchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []models.QueueID) ([]*[]models.MatchIDWithQueue, []error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMatchIDsByQueue", queueID)
-	ret0, _ := ret[0].([]*models.MatchIDWithQueue)
+	ret := m.ctrl.Call(m, "GetMatchIDsByQueue", dateStrings, queueIDs)
+	ret0, _ := ret[0].([]*[]models.MatchIDWithQueue)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
 
-// GetMatchIDsByQueue indicates an expected call of GetMatchIDsByQueue.
-func (mr *MockMatchInfoMockRecorder) GetMatchIDsByQueue(queueID interface{}) *gomock.Call {
+// GetMatchIDsByQueue indicates an expected call of GetMatchIDsByQueue
+func (mr *MockMatchInfoMockRecorder) GetMatchIDsByQueue(dateStrings, queueIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueue", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchIDsByQueue), queueID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueue", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchIDsByQueue), dateStrings, queueIDs)
 }
 
-// GetMatchPlayerDetails mocks base method.
-func (m *MockMatchInfo) GetMatchPlayerDetails(matchID int) (*models.MatchDetails, error) {
+// GetMatchIDsByQueueRaw mocks base method
+func (m *MockMatchInfo) GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []models.QueueID) ([][]byte, []error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMatchIDsByQueueRaw", dateStrings, queueIDs)
+	ret0, _ := ret[0].([][]byte)
+	ret1, _ := ret[1].([]error)
+	return ret0, ret1
+}
+
+// GetMatchIDsByQueueRaw indicates an expected call of GetMatchIDsByQueueRaw
+func (mr *MockMatchInfoMockRecorder) GetMatchIDsByQueueRaw(dateStrings, queueIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueueRaw", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchIDsByQueueRaw), dateStrings, queueIDs)
+}
+
+// GetMatchPlayerDetails mocks base method
+func (m *MockMatchInfo) GetMatchPlayerDetails(matchID int) (*[]models.MatchDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchPlayerDetails", matchID)
-	ret0, _ := ret[0].(*models.MatchDetails)
+	ret0, _ := ret[0].(*[]models.MatchDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMatchPlayerDetails indicates an expected call of GetMatchPlayerDetails.
+// GetMatchPlayerDetails indicates an expected call of GetMatchPlayerDetails
 func (mr *MockMatchInfoMockRecorder) GetMatchPlayerDetails(matchID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchPlayerDetails", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchPlayerDetails), matchID)

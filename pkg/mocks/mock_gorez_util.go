@@ -5,37 +5,36 @@
 package mock
 
 import (
-	reflect "reflect"
-
 	models "github.com/JackStillwell/GoRez/internal/request_service/models"
 	models0 "github.com/JackStillwell/GoRez/internal/session_service/models"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
-// MockGorezUtil is a mock of GorezUtil interface.
+// MockGorezUtil is a mock of GorezUtil interface
 type MockGorezUtil struct {
 	ctrl     *gomock.Controller
 	recorder *MockGorezUtilMockRecorder
 }
 
-// MockGorezUtilMockRecorder is the mock recorder for MockGorezUtil.
+// MockGorezUtilMockRecorder is the mock recorder for MockGorezUtil
 type MockGorezUtilMockRecorder struct {
 	mock *MockGorezUtil
 }
 
-// NewMockGorezUtil creates a new mock instance.
+// NewMockGorezUtil creates a new mock instance
 func NewMockGorezUtil(ctrl *gomock.Controller) *MockGorezUtil {
 	mock := &MockGorezUtil{ctrl: ctrl}
 	mock.recorder = &MockGorezUtilMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockGorezUtil) EXPECT() *MockGorezUtilMockRecorder {
 	return m.recorder
 }
 
-// BulkAsyncSessionRequest mocks base method.
+// BulkAsyncSessionRequest mocks base method
 func (m *MockGorezUtil) BulkAsyncSessionRequest(arg0 []func(*models0.Session) *models.Request) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkAsyncSessionRequest", arg0)
@@ -44,13 +43,13 @@ func (m *MockGorezUtil) BulkAsyncSessionRequest(arg0 []func(*models0.Session) *m
 	return ret0, ret1
 }
 
-// BulkAsyncSessionRequest indicates an expected call of BulkAsyncSessionRequest.
+// BulkAsyncSessionRequest indicates an expected call of BulkAsyncSessionRequest
 func (mr *MockGorezUtilMockRecorder) BulkAsyncSessionRequest(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkAsyncSessionRequest", reflect.TypeOf((*MockGorezUtil)(nil).BulkAsyncSessionRequest), arg0)
 }
 
-// MultiRequest mocks base method.
+// MultiRequest mocks base method
 func (m *MockGorezUtil) MultiRequest(requestArgs []string, endpoint, method string) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MultiRequest", requestArgs, endpoint, method)
@@ -59,22 +58,22 @@ func (m *MockGorezUtil) MultiRequest(requestArgs []string, endpoint, method stri
 	return ret0, ret1
 }
 
-// MultiRequest indicates an expected call of MultiRequest.
+// MultiRequest indicates an expected call of MultiRequest
 func (mr *MockGorezUtilMockRecorder) MultiRequest(requestArgs, endpoint, method interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MultiRequest", reflect.TypeOf((*MockGorezUtil)(nil).MultiRequest), requestArgs, endpoint, method)
 }
 
-// SingleRequest mocks base method.
-func (m *MockGorezUtil) SingleRequest(r models.Request, unmarshalTo interface{}) error {
+// SingleRequest mocks base method
+func (m *MockGorezUtil) SingleRequest(url, endpoint, endpointArgs string, unmarshalTo interface{}) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SingleRequest", r, unmarshalTo)
+	ret := m.ctrl.Call(m, "SingleRequest", url, endpoint, endpointArgs, unmarshalTo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SingleRequest indicates an expected call of SingleRequest.
-func (mr *MockGorezUtilMockRecorder) SingleRequest(r, unmarshalTo interface{}) *gomock.Call {
+// SingleRequest indicates an expected call of SingleRequest
+func (mr *MockGorezUtilMockRecorder) SingleRequest(url, endpoint, endpointArgs, unmarshalTo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SingleRequest", reflect.TypeOf((*MockGorezUtil)(nil).SingleRequest), r, unmarshalTo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SingleRequest", reflect.TypeOf((*MockGorezUtil)(nil).SingleRequest), url, endpoint, endpointArgs, unmarshalTo)
 }

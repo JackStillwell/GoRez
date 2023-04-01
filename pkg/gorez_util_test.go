@@ -56,8 +56,7 @@ var _ = Describe("GorezUtil", func() {
 
 			requestBuilder := func(s *sessionM.Session) *requestM.Request {
 				return &requestM.Request{
-					JITArgs: []interface{}{s},
-					JITBuild: func(...any) (string, error) {
+					JITFunc: func() (string, error) {
 						return "resp", nil
 					},
 				}
@@ -66,8 +65,9 @@ var _ = Describe("GorezUtil", func() {
 			request := requestBuilder(sess)
 			rqstSvc.EXPECT().MakeRequest(gomock.AssignableToTypeOf(request)).Do(func(r *requestM.Request) {
 				request.Id = r.Id
-				Expect(r.JITArgs).To(Equal(request.JITArgs))
-				Expect(r.JITBuild).To(BeAssignableToTypeOf(request.JITBuild))
+				url, err := r.JITFunc()
+				Expect(url).To(Equal("resp"))
+				Expect(err).To(BeNil())
 			})
 
 			respChan := make(chan *requestM.RequestResponse, 1)
@@ -81,6 +81,8 @@ var _ = Describe("GorezUtil", func() {
 					Resp: []byte("stuff"),
 				}
 			})
+
+			rqstSvc.EXPECT().FreeResponse(gomock.AssignableToTypeOf(&uuid.UUID{})).Return()
 
 			sesnSvc.EXPECT().ReleaseSession(gomock.AssignableToTypeOf([]*sessionM.Session{})).Do(
 				func(sessions []*sessionM.Session) {

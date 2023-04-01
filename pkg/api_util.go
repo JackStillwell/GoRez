@@ -15,7 +15,6 @@ import (
 
 	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
-	requestU "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 
 	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
 	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
@@ -44,16 +43,15 @@ func NewAPIUtil(
 
 func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	r := requestM.Request{
-		JITArgs: []any{
-			a.hiRezC.SmiteURLBase + "/" + a.hiRezC.CreateSession + "json",
+		JITFunc: HiRezJIT(
+			a.hiRezC.SmiteURLBase+"/"+a.hiRezC.CreateSession+"json",
 			a.authSvc.GetID(),
 			a.hiRezC.CreateSession,
 			"",
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
 			"",
-		},
-		JITBuild: requestU.JITBase,
+		),
 	}
 
 	uIDs := make([]*uuid.UUID, 0, numSessions)
@@ -102,16 +100,15 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 
 func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 	r := requestM.Request{
-		JITArgs: []interface{}{
-			a.hiRezC.SmiteURLBase + "/" + a.hiRezC.TestSession + "json",
+		JITFunc: HiRezJIT(
+			a.hiRezC.SmiteURLBase+"/"+a.hiRezC.TestSession+"json",
 			a.authSvc.GetID(),
 			a.hiRezC.TestSession,
 			"",
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
 			"",
-		},
-		JITBuild: requestU.JITBase,
+		),
 	}
 
 	uIDs := make([]*uuid.UUID, len(s))
@@ -157,16 +154,15 @@ func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 	uID := uuid.New()
 	r := requestM.Request{
 		Id: &uID,
-		JITArgs: []interface{}{
-			a.hiRezC.SmiteURLBase + "/" + a.hiRezC.GetDataUsed + "json",
+		JITFunc: HiRezJIT(
+			a.hiRezC.SmiteURLBase+"/"+a.hiRezC.GetDataUsed+"json",
 			a.authSvc.GetID(),
 			a.hiRezC.GetDataUsed,
 			s.Key,
 			a.authSvc.GetTimestamp,
 			a.authSvc.GetSignature,
 			"",
-		},
-		JITBuild: requestU.JITBase,
+		),
 	}
 
 	resp := a.rqstSvc.Request(&r)

@@ -5,9 +5,8 @@ import (
 )
 
 type Request struct {
-	Id       *uuid.UUID
-	JITArgs  []any
-	JITBuild func(...any) (string, error)
+	Id      *uuid.UUID
+	JITFunc func() (string, error)
 }
 
 type RequestResponse struct {

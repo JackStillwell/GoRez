@@ -12,7 +12,6 @@ import (
 	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
 	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
 	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
-	requestU "github.com/JackStillwell/GoRez/internal/request_service/utilities"
 	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
 	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
 )
@@ -53,17 +52,17 @@ func (r *matchInfo) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error)
 			matchIdStrings = append(matchIdStrings, fmt.Sprintf("%d", v))
 		}
 		requestFunc := func(session *sessionM.Session) *requestM.Request {
-			args := []any{
-				r.hrC.SmiteURLBase + "/" + r.hrC.GetMatchDetailsBatch + "json",
+			f := HiRezJIT(
+				r.hrC.SmiteURLBase+"/"+r.hrC.GetMatchDetailsBatch+"json",
 				r.authSvc.GetID(),
 				r.hrC.GetMatchDetailsBatch,
 				session.Key,
 				r.authSvc.GetTimestamp,
 				r.authSvc.GetSignature,
 				strings.Join(matchIdStrings, ","),
-			}
+			)
 
-			return &requestM.Request{JITArgs: args, JITBuild: requestU.JITBase}
+			return &requestM.Request{JITFunc: f}
 		}
 
 		requests = append(requests, requestFunc)
@@ -83,17 +82,17 @@ func (r *matchInfo) GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []m.Que
 	for _, queueID := range queueIDs {
 		for _, dateString := range dateStrings {
 			requestFunc := func(session *sessionM.Session) *requestM.Request {
-				args := []any{
-					r.hrC.SmiteURLBase + "/" + r.hrC.GetMatchIDsByQueue + "json",
+				f := HiRezJIT(
+					r.hrC.SmiteURLBase+"/"+r.hrC.GetMatchIDsByQueue+"json",
 					r.authSvc.GetID(),
 					r.hrC.GetMatchIDsByQueue,
 					session.Key,
 					r.authSvc.GetTimestamp,
 					r.authSvc.GetSignature,
-					fmt.Sprintf("%d", queueID) + "/" + dateString,
-				}
+					fmt.Sprintf("%d", queueID)+"/"+dateString,
+				)
 
-				return &requestM.Request{JITArgs: args, JITBuild: requestU.JITBase}
+				return &requestM.Request{JITFunc: f}
 			}
 			requests = append(requests, requestFunc)
 		}

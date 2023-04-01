@@ -10,5 +10,5 @@ import (
 type GorezUtil interface {
 	BulkAsyncSessionRequest([]func(*sessionM.Session) *requestM.Request) ([][]byte, []error)
 	MultiRequest(requestArgs []string, endpoint, method string) ([][]byte, []error)
-	SingleRequest(r requestM.Request, unmarshalTo interface{}) error
+	SingleRequest(url, endpoint, endpointArgs string, unmarshalTo interface{}) error
 }
