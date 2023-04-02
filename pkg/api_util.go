@@ -42,20 +42,19 @@ func NewAPIUtil(
 }
 
 func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
-	r := requestM.Request{
-		JITFunc: HiRezJIT(
-			a.hiRezC.SmiteURLBase+"/"+a.hiRezC.CreateSession+"json",
-			a.authSvc.GetID(),
-			a.hiRezC.CreateSession,
-			"",
-			a.authSvc.GetTimestamp,
-			a.authSvc.GetSignature,
-			"",
-		),
-	}
-
 	uIDs := make([]*uuid.UUID, 0, numSessions)
 	for i := 0; i < numSessions; i++ {
+		r := requestM.Request{
+			JITFunc: HiRezJIT(
+				a.hiRezC.SmiteURLBase+"/"+a.hiRezC.CreateSession+"json",
+				a.authSvc.GetID(),
+				a.hiRezC.CreateSession,
+				"",
+				a.authSvc.GetTimestamp,
+				a.authSvc.GetSignature,
+				"",
+			),
+		}
 		uID := uuid.New()
 		r.Id = &uID
 		a.rqstSvc.MakeRequest(&r)

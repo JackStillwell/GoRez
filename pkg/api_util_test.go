@@ -12,6 +12,7 @@ import (
 	gorez "github.com/JackStillwell/GoRez/pkg"
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
+	m "github.com/JackStillwell/GoRez/pkg/models"
 
 	authMock "github.com/JackStillwell/GoRez/internal/auth/mocks"
 
@@ -51,7 +52,7 @@ var _ = Describe("ApiUtil", func() {
 
 		Context("CreateSession", func() {
 			// FIXME: don't know why this is failing, will need to fix
-			FIt("should return requested sessions", func() {
+			It("should return requested sessions", func() {
 				authSvc.EXPECT().GetID().Return("id").Times(3)
 				authSvc.EXPECT().GetTimestamp(gomock.AssignableToTypeOf(time.Time{})).
 					Return("timestamp").Times(3)
@@ -68,23 +69,14 @@ var _ = Describe("ApiUtil", func() {
 					},
 				)
 
-				done := make(chan bool)
-				go func(done chan bool) {
-					defer GinkgoRecover()
-
-					sessions, errs := target.CreateSession(3)
-					Expect(errs).To(HaveLen(0))
-					Expect(sessions).To(HaveLen(3))
-					Expect(sessions).To(ConsistOf("", "", ""))
-					done <- true
-				}(done)
-
-				select {
-				// case <-time.After(time.Second):
-				// 	Fail("timeout")
-				case <-done:
-					// nothing means the test passes
-				}
+				var sessions []*m.Session
+				var errs []error
+				go func() {
+					sessions, errs = target.CreateSession(3)
+				}()
+				Eventually(errs).Should(HaveLen(0))
+				Eventually(sessions).Should(HaveLen(3))
+				Eventually(sessions).Should(ConsistOf("", "", ""))
 			})
 		})
 	})
