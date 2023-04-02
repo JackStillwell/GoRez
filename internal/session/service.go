@@ -1,4 +1,4 @@
-package session_service
+package session
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"sort"
 	"sync"
 
-	i "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	m "github.com/JackStillwell/GoRez/internal/session_service/models"
+	i "github.com/JackStillwell/GoRez/internal/session/interfaces"
+	m "github.com/JackStillwell/GoRez/internal/session/models"
 )
 
-type sessionService struct {
+type service struct {
 	maxSessions       int
 	availableSessions chan *m.Session
 	reservedSessions  []*m.Session
 	lock              sync.Mutex
 }
 
-func NewSessionService(maxSessions int, existingSessions []*m.Session) i.SessionService {
+func NewService(maxSessions int, existingSessions []*m.Session) i.SessionService {
 	if len(existingSessions) > maxSessions {
 		panic(fmt.Sprintf(
 			"cannot create a session service with capacity %d and %d existing sessions",
@@ -33,7 +33,7 @@ func NewSessionService(maxSessions int, existingSessions []*m.Session) i.Session
 
 	rS := make([]*m.Session, 0, maxSessions)
 
-	return &sessionService{
+	return &service{
 		maxSessions:       maxSessions,
 		availableSessions: aS,
 		reservedSessions:  rS,
@@ -41,7 +41,7 @@ func NewSessionService(maxSessions int, existingSessions []*m.Session) i.Session
 	}
 }
 
-func (s *sessionService) GetAvailableSessions() []*m.Session {
+func (s *service) GetAvailableSessions() []*m.Session {
 	numSessions := len(s.availableSessions)
 	toRet := make([]*m.Session, 0, numSessions)
 	for i := 0; i < numSessions; i++ {
@@ -50,7 +50,7 @@ func (s *sessionService) GetAvailableSessions() []*m.Session {
 	return toRet
 }
 
-func (s *sessionService) ReserveSession(numSessions int, retChan chan *m.Session) {
+func (s *service) ReserveSession(numSessions int, retChan chan *m.Session) {
 	log.Printf("reserving %d of %d available sessions", numSessions, len(s.availableSessions))
 	for i := 0; i < numSessions; i++ {
 		toReturn := <-s.availableSessions
@@ -60,7 +60,7 @@ func (s *sessionService) ReserveSession(numSessions int, retChan chan *m.Session
 	}
 }
 
-func (s *sessionService) ReleaseSession(sessions []*m.Session) {
+func (s *service) ReleaseSession(sessions []*m.Session) {
 	removeFromSlice(&s.reservedSessions, sessions)
 
 	for i := range sessions {
@@ -68,7 +68,7 @@ func (s *sessionService) ReleaseSession(sessions []*m.Session) {
 	}
 }
 
-func (s *sessionService) BadSession(sessions []*m.Session) {
+func (s *service) BadSession(sessions []*m.Session) {
 	removeFromSlice(&s.reservedSessions, sessions)
 }
 

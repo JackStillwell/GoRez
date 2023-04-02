@@ -1,4 +1,4 @@
-package request_service
+package request
 
 import (
 	"fmt"
@@ -10,11 +10,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
-	i "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	m "github.com/JackStillwell/GoRez/internal/request_service/models"
+	i "github.com/JackStillwell/GoRez/internal/request/interfaces"
+	m "github.com/JackStillwell/GoRez/internal/request/models"
 )
 
-type requestService struct {
+type service struct {
 	responses       []*m.RequestResponse
 	responseIdToIdx map[*uuid.UUID]int
 	responsesLock   *sync.RWMutex
@@ -27,7 +27,7 @@ type requestService struct {
 	numListenersLock *sync.RWMutex
 }
 
-func NewRequestService(capacity int) i.RequestService {
+func NewService(capacity int) i.Service {
 	responses := make([]*m.RequestResponse, capacity)
 
 	freeNotifyChan := make(chan int, capacity)
@@ -37,7 +37,7 @@ func NewRequestService(capacity int) i.RequestService {
 
 	listenerChan := make(chan int)
 
-	return &requestService{
+	return &service{
 		responses:       responses,
 		responseIdToIdx: make(map[*uuid.UUID]int, capacity),
 		responsesLock:   &sync.RWMutex{},
@@ -51,7 +51,7 @@ func NewRequestService(capacity int) i.RequestService {
 	}
 }
 
-func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
+func (s *service) Request(rqst *m.Request) (rr *m.RequestResponse) {
 	log.Println("making request")
 
 	rr = &m.RequestResponse{
@@ -93,25 +93,25 @@ func (r *requestService) Request(rqst *m.Request) (rr *m.RequestResponse) {
 	return
 }
 
-func (r *requestService) MakeRequest(req *m.Request) {
-	go func(r *requestService, req *m.Request) {
+func (s *service) MakeRequest(req *m.Request) {
+	go func(r *service, req *m.Request) {
 		// defer ginkgo.GinkgoRecover()
 		r.request(req)
-	}(r, req)
+	}(s, req)
 }
 
-func (r *requestService) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse) {
+func (s *service) GetResponse(id *uuid.UUID, retChan chan *m.RequestResponse) {
 	log.Println("locking request responses")
-	r.responsesLock.RLock()
+	s.responsesLock.RLock()
 	log.Println("request responses locked")
 	log.Println("searching request responses for id:", id.String())
-	for idx, v := range r.responses {
+	for idx, v := range s.responses {
 		if v != nil && v.Id == id {
 			log.Println("request response for id:", id.String(), "found")
-			r.responseIdToIdx[id] = idx
-			retChan <- r.responses[idx]
+			s.responseIdToIdx[id] = idx
+			retChan <- s.responses[idx]
 			log.Println("request response for id:", id.String(), "returned")
-			r.responsesLock.RUnlock()
+			s.responsesLock.RUnlock()
 			log.Println("request responses unlocked")
 			return
 		}
@@ -119,65 +119,65 @@ func (r *requestService) GetResponse(id *uuid.UUID, retChan chan *m.RequestRespo
 	log.Println("request response for id:", id.String(), "not found")
 
 	log.Println("adding listener for new responses")
-	r.numListenersLock.Lock()
-	r.listenerCount++
-	r.numListenersLock.Unlock()
+	s.numListenersLock.Lock()
+	s.listenerCount++
+	s.numListenersLock.Unlock()
 	log.Println("listener for new responses added")
-	r.responsesLock.RUnlock()
+	s.responsesLock.RUnlock()
 	log.Println("request responses unlocked")
 
 	log.Println("listening for new responses")
 	for {
-		idx := <-r.listenerNotify
+		idx := <-s.listenerNotify
 		log.Println("notified of new response")
-		if r.responses[idx].Id == id {
+		if s.responses[idx].Id == id {
 			log.Println("request response for id:", id.String(), "found")
 			log.Println("removing listener for new responses")
-			r.numListenersLock.Lock()
-			r.listenerCount--
-			r.numListenersLock.Unlock()
+			s.numListenersLock.Lock()
+			s.listenerCount--
+			s.numListenersLock.Unlock()
 			log.Println("listener for new responses removed ")
-			r.responseIdToIdx[id] = idx
-			retChan <- r.responses[idx]
+			s.responseIdToIdx[id] = idx
+			retChan <- s.responses[idx]
 			log.Println("request response for id:", id.String(), "returned")
 			return
 		}
 	}
 }
 
-func (r *requestService) FreeResponse(id *uuid.UUID) {
+func (s *service) FreeResponse(id *uuid.UUID) {
 	if id == nil {
 		log.Println("cannot free 'nil' id response")
 	}
-	idx := r.responseIdToIdx[id]
+	idx := s.responseIdToIdx[id]
 	log.Printf("freeing response idx %d\n", idx)
-	r.updateResponses(idx, nil)
-	r.freeNotify <- idx
+	s.updateResponses(idx, nil)
+	s.freeNotify <- idx
 }
 
-func (r *requestService) request(rqst *m.Request) {
-	response := r.Request(rqst)
+func (s *service) request(rqst *m.Request) {
+	response := s.Request(rqst)
 
 	log.Println("waiting for free slot in response buffer")
-	responseIdx := <-r.freeNotify
+	responseIdx := <-s.freeNotify
 
 	log.Printf("updating free slot %d in response buffer\n", responseIdx)
-	r.updateResponses(responseIdx, response)
+	s.updateResponses(responseIdx, response)
 	log.Printf("slot %d in response buffer updated\n", responseIdx)
-	r.notifyListeners(responseIdx)
+	s.notifyListeners(responseIdx)
 	log.Printf("listeners notified for response buffer loc %d \n", responseIdx)
 }
 
-func (r *requestService) updateResponses(idx int, v *m.RequestResponse) {
-	r.responsesLock.Lock()
-	r.responses[idx] = v
-	r.responsesLock.Unlock()
+func (s *service) updateResponses(idx int, v *m.RequestResponse) {
+	s.responsesLock.Lock()
+	s.responses[idx] = v
+	s.responsesLock.Unlock()
 }
 
-func (r *requestService) notifyListeners(idx int) {
-	r.numListenersLock.RLock()
-	for i := 0; i < r.listenerCount; i++ {
-		r.listenerNotify <- idx
+func (s *service) notifyListeners(idx int) {
+	s.numListenersLock.RLock()
+	for i := 0; i < s.listenerCount; i++ {
+		s.listenerNotify <- idx
 	}
-	r.numListenersLock.RUnlock()
+	s.numListenersLock.RUnlock()
 }

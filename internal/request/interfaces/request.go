@@ -3,7 +3,7 @@ package interfaces
 import (
 	"net/http"
 
-	"github.com/JackStillwell/GoRez/internal/request_service/models"
+	"github.com/JackStillwell/GoRez/internal/request/models"
 	"github.com/google/uuid"
 )
 
@@ -13,7 +13,7 @@ type HTTPGet interface {
 	Get(url string) (*http.Response, error)
 }
 
-type RequestService interface {
+type Service interface {
 	RequestManager
 	Requester
 }

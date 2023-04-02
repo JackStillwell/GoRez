@@ -19,24 +19,22 @@ type APIUtil interface {
 }
 
 type GodItemInfo interface {
-	GetGods() ([]*m.God, error)
-	GetItems() ([]*m.Item, error)
-	GetGodRecItems(godIDs []int) ([]*m.ItemRecommendation, []error)
+	GetGods() ([]byte, error)
+	GetItems() ([]byte, error)
+	GetGodRecItems(godIDs []int) ([][]byte, []error)
 }
 
 type PlayerInfo interface {
-	GetPlayerIDByName(playerName []string) (*m.PlayerIDWithName, error)
-	GetPlayer(playerID int) (*m.Player, error)
-	GetPlayerBatch(playerIDs []int) ([]*m.Player, []error)
-	GetMatchHistory(playerID []int) ([]*m.MatchDetails, []error)
+	GetPlayerIDByName(playerName []string) ([]*m.PlayerIDWithName, error)
+	GetPlayer(playerID int) ([]byte, error)
+	GetPlayerBatch(playerIDs []int) ([][]byte, []error)
+	GetMatchHistory(playerID []int) ([]byte, []error)
 	GetQueueStats(playerID []int) ([]*m.QueueStat, []error)
 }
 
 type MatchInfo interface {
-	GetMatchDetails(matchID int) (*[]m.MatchDetails, error)
-	GetMatchDetailsBatch(matchIDs ...int) ([]*[]m.MatchDetails, []error)
-	GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error)
+	GetMatchDetails(matchID int) ([]byte, error)
+	GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error)
 	GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueID) ([]*[]m.MatchIDWithQueue, []error)
-	GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []m.QueueID) ([][]byte, []error)
-	GetMatchPlayerDetails(matchID int) (*[]m.MatchDetails, error)
+	GetMatchPlayerDetails(matchID int) ([]byte, error)
 }

@@ -1,4 +1,4 @@
-package request_service_test
+package request_test
 
 import (
 	"fmt"
@@ -10,22 +10,22 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
-	"github.com/JackStillwell/GoRez/internal/request_service"
-	i "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	m "github.com/JackStillwell/GoRez/internal/request_service/models"
+	"github.com/JackStillwell/GoRez/internal/request"
+	i "github.com/JackStillwell/GoRez/internal/request/interfaces"
+	m "github.com/JackStillwell/GoRez/internal/request/models"
 )
 
 var _ = Describe("Service", func() {
 	var (
 		uniqueId uuid.UUID
 
-		target i.RequestService
+		target i.Service
 	)
 
 	BeforeEach(func() {
 		uniqueId = uuid.New()
 
-		target = request_service.NewRequestService(1)
+		target = request.NewService(1)
 	})
 
 	Describe("Request", func() {
@@ -232,7 +232,7 @@ var _ = Describe("Service", func() {
 			}
 
 			BeforeEach(func() {
-				target = request_service.NewRequestService(numRequests)
+				target = request.NewService(numRequests)
 			})
 
 			It("should return the response", func() {

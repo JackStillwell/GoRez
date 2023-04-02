@@ -2,13 +2,14 @@ package gorez
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
+	m "github.com/JackStillwell/GoRez/pkg/models"
 
 	authI "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
 
@@ -74,7 +75,7 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 			} else {
 				g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[localResp.Id]})
 			}
-			errs[i] = errors.Wrap(localResp.Err, "request")
+			errs[i] = fmt.Errorf("request: %w", localResp.Err)
 			continue
 		}
 
@@ -111,8 +112,7 @@ func (g *gorezUtil) MultiRequest(requestArgs []string, baseURL, method string,
 	return rawObjs, errs
 }
 
-func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string, unmarshalTo interface{},
-) error {
+func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, error) {
 	log.Println("reserving session for single request")
 	sesnChan := make(chan *sessionM.Session, 1)
 	g.sesnSvc.ReserveSession(1, sesnChan)
@@ -134,15 +134,20 @@ func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string, unmarshalT
 	log.Println("single response received")
 
 	if resp.Err != nil {
-		return errors.Wrap(resp.Err, "requesting response")
+		return nil, fmt.Errorf("requesting response: %w", resp.Err)
 	}
 
-	err := json.Unmarshal(resp.Resp, &unmarshalTo)
+	retMsg := m.RetMsg{}
+	err := json.Unmarshal(resp.Resp, &retMsg)
 	if err != nil {
-		return errors.Wrap(err, "unmarshaling response")
+		return nil, fmt.Errorf("unmarshaling response ret msg: %w", err)
 	}
 
 	log.Println("single response unmarshaled")
 
-	return nil
+	if retMsg.Msg != nil {
+		return nil, fmt.Errorf("ret msg: %s", *retMsg.Msg)
+	}
+
+	return resp.Resp, nil
 }

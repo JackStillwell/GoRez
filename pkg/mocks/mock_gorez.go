@@ -60,10 +60,10 @@ func (mr *MockGoRezMockRecorder) Shutdown() *gomock.Call {
 }
 
 // GetGods mocks base method
-func (m *MockGoRez) GetGods() ([]*models.God, error) {
+func (m *MockGoRez) GetGods() ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGods")
-	ret0, _ := ret[0].([]*models.God)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -75,10 +75,10 @@ func (mr *MockGoRezMockRecorder) GetGods() *gomock.Call {
 }
 
 // GetItems mocks base method
-func (m *MockGoRez) GetItems() ([]*models.Item, error) {
+func (m *MockGoRez) GetItems() ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetItems")
-	ret0, _ := ret[0].([]*models.Item)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -90,10 +90,10 @@ func (mr *MockGoRezMockRecorder) GetItems() *gomock.Call {
 }
 
 // GetGodRecItems mocks base method
-func (m *MockGoRez) GetGodRecItems(godIDs []int) ([]*models.ItemRecommendation, []error) {
+func (m *MockGoRez) GetGodRecItems(godIDs []int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGodRecItems", godIDs)
-	ret0, _ := ret[0].([]*models.ItemRecommendation)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -105,10 +105,10 @@ func (mr *MockGoRezMockRecorder) GetGodRecItems(godIDs interface{}) *gomock.Call
 }
 
 // GetPlayerIDByName mocks base method
-func (m *MockGoRez) GetPlayerIDByName(playerName []string) (*models.PlayerIDWithName, error) {
+func (m *MockGoRez) GetPlayerIDByName(playerName []string) ([]*models.PlayerIDWithName, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerIDByName", playerName)
-	ret0, _ := ret[0].(*models.PlayerIDWithName)
+	ret0, _ := ret[0].([]*models.PlayerIDWithName)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -120,10 +120,10 @@ func (mr *MockGoRezMockRecorder) GetPlayerIDByName(playerName interface{}) *gomo
 }
 
 // GetPlayer mocks base method
-func (m *MockGoRez) GetPlayer(playerID int) (*models.Player, error) {
+func (m *MockGoRez) GetPlayer(playerID int) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayer", playerID)
-	ret0, _ := ret[0].(*models.Player)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -135,10 +135,10 @@ func (mr *MockGoRezMockRecorder) GetPlayer(playerID interface{}) *gomock.Call {
 }
 
 // GetPlayerBatch mocks base method
-func (m *MockGoRez) GetPlayerBatch(playerIDs []int) ([]*models.Player, []error) {
+func (m *MockGoRez) GetPlayerBatch(playerIDs []int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerBatch", playerIDs)
-	ret0, _ := ret[0].([]*models.Player)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -150,10 +150,10 @@ func (mr *MockGoRezMockRecorder) GetPlayerBatch(playerIDs interface{}) *gomock.C
 }
 
 // GetMatchHistory mocks base method
-func (m *MockGoRez) GetMatchHistory(playerID []int) ([]*models.MatchDetails, []error) {
+func (m *MockGoRez) GetMatchHistory(playerID []int) ([]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
-	ret0, _ := ret[0].([]*models.MatchDetails)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -180,10 +180,10 @@ func (mr *MockGoRezMockRecorder) GetQueueStats(playerID interface{}) *gomock.Cal
 }
 
 // GetMatchDetails mocks base method
-func (m *MockGoRez) GetMatchDetails(matchID int) (*[]models.MatchDetails, error) {
+func (m *MockGoRez) GetMatchDetails(matchID int) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
-	ret0, _ := ret[0].(*[]models.MatchDetails)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -195,14 +195,14 @@ func (mr *MockGoRezMockRecorder) GetMatchDetails(matchID interface{}) *gomock.Ca
 }
 
 // GetMatchDetailsBatch mocks base method
-func (m *MockGoRez) GetMatchDetailsBatch(matchIDs ...int) ([]*[]models.MatchDetails, []error) {
+func (m *MockGoRez) GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range matchIDs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetMatchDetailsBatch", varargs...)
-	ret0, _ := ret[0].([]*[]models.MatchDetails)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -211,25 +211,6 @@ func (m *MockGoRez) GetMatchDetailsBatch(matchIDs ...int) ([]*[]models.MatchDeta
 func (mr *MockGoRezMockRecorder) GetMatchDetailsBatch(matchIDs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetailsBatch", reflect.TypeOf((*MockGoRez)(nil).GetMatchDetailsBatch), matchIDs...)
-}
-
-// GetMatchDetailsBatchRaw mocks base method
-func (m *MockGoRez) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{}
-	for _, a := range matchIDs {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetMatchDetailsBatchRaw", varargs...)
-	ret0, _ := ret[0].([][]byte)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetMatchDetailsBatchRaw indicates an expected call of GetMatchDetailsBatchRaw
-func (mr *MockGoRezMockRecorder) GetMatchDetailsBatchRaw(matchIDs ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetailsBatchRaw", reflect.TypeOf((*MockGoRez)(nil).GetMatchDetailsBatchRaw), matchIDs...)
 }
 
 // GetMatchIDsByQueue mocks base method
@@ -247,26 +228,11 @@ func (mr *MockGoRezMockRecorder) GetMatchIDsByQueue(dateStrings, queueIDs interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueue", reflect.TypeOf((*MockGoRez)(nil).GetMatchIDsByQueue), dateStrings, queueIDs)
 }
 
-// GetMatchIDsByQueueRaw mocks base method
-func (m *MockGoRez) GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []models.QueueID) ([][]byte, []error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMatchIDsByQueueRaw", dateStrings, queueIDs)
-	ret0, _ := ret[0].([][]byte)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetMatchIDsByQueueRaw indicates an expected call of GetMatchIDsByQueueRaw
-func (mr *MockGoRezMockRecorder) GetMatchIDsByQueueRaw(dateStrings, queueIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueueRaw", reflect.TypeOf((*MockGoRez)(nil).GetMatchIDsByQueueRaw), dateStrings, queueIDs)
-}
-
 // GetMatchPlayerDetails mocks base method
-func (m *MockGoRez) GetMatchPlayerDetails(matchID int) (*[]models.MatchDetails, error) {
+func (m *MockGoRez) GetMatchPlayerDetails(matchID int) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchPlayerDetails", matchID)
-	ret0, _ := ret[0].(*[]models.MatchDetails)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -369,10 +335,10 @@ func (m *MockGodItemInfo) EXPECT() *MockGodItemInfoMockRecorder {
 }
 
 // GetGods mocks base method
-func (m *MockGodItemInfo) GetGods() ([]*models.God, error) {
+func (m *MockGodItemInfo) GetGods() ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGods")
-	ret0, _ := ret[0].([]*models.God)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -384,10 +350,10 @@ func (mr *MockGodItemInfoMockRecorder) GetGods() *gomock.Call {
 }
 
 // GetItems mocks base method
-func (m *MockGodItemInfo) GetItems() ([]*models.Item, error) {
+func (m *MockGodItemInfo) GetItems() ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetItems")
-	ret0, _ := ret[0].([]*models.Item)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -399,10 +365,10 @@ func (mr *MockGodItemInfoMockRecorder) GetItems() *gomock.Call {
 }
 
 // GetGodRecItems mocks base method
-func (m *MockGodItemInfo) GetGodRecItems(godIDs []int) ([]*models.ItemRecommendation, []error) {
+func (m *MockGodItemInfo) GetGodRecItems(godIDs []int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGodRecItems", godIDs)
-	ret0, _ := ret[0].([]*models.ItemRecommendation)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -437,10 +403,10 @@ func (m *MockPlayerInfo) EXPECT() *MockPlayerInfoMockRecorder {
 }
 
 // GetPlayerIDByName mocks base method
-func (m *MockPlayerInfo) GetPlayerIDByName(playerName []string) (*models.PlayerIDWithName, error) {
+func (m *MockPlayerInfo) GetPlayerIDByName(playerName []string) ([]*models.PlayerIDWithName, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerIDByName", playerName)
-	ret0, _ := ret[0].(*models.PlayerIDWithName)
+	ret0, _ := ret[0].([]*models.PlayerIDWithName)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -452,10 +418,10 @@ func (mr *MockPlayerInfoMockRecorder) GetPlayerIDByName(playerName interface{}) 
 }
 
 // GetPlayer mocks base method
-func (m *MockPlayerInfo) GetPlayer(playerID int) (*models.Player, error) {
+func (m *MockPlayerInfo) GetPlayer(playerID int) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayer", playerID)
-	ret0, _ := ret[0].(*models.Player)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -467,10 +433,10 @@ func (mr *MockPlayerInfoMockRecorder) GetPlayer(playerID interface{}) *gomock.Ca
 }
 
 // GetPlayerBatch mocks base method
-func (m *MockPlayerInfo) GetPlayerBatch(playerIDs []int) ([]*models.Player, []error) {
+func (m *MockPlayerInfo) GetPlayerBatch(playerIDs []int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlayerBatch", playerIDs)
-	ret0, _ := ret[0].([]*models.Player)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -482,10 +448,10 @@ func (mr *MockPlayerInfoMockRecorder) GetPlayerBatch(playerIDs interface{}) *gom
 }
 
 // GetMatchHistory mocks base method
-func (m *MockPlayerInfo) GetMatchHistory(playerID []int) ([]*models.MatchDetails, []error) {
+func (m *MockPlayerInfo) GetMatchHistory(playerID []int) ([]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
-	ret0, _ := ret[0].([]*models.MatchDetails)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -535,10 +501,10 @@ func (m *MockMatchInfo) EXPECT() *MockMatchInfoMockRecorder {
 }
 
 // GetMatchDetails mocks base method
-func (m *MockMatchInfo) GetMatchDetails(matchID int) (*[]models.MatchDetails, error) {
+func (m *MockMatchInfo) GetMatchDetails(matchID int) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
-	ret0, _ := ret[0].(*[]models.MatchDetails)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -550,14 +516,14 @@ func (mr *MockMatchInfoMockRecorder) GetMatchDetails(matchID interface{}) *gomoc
 }
 
 // GetMatchDetailsBatch mocks base method
-func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*[]models.MatchDetails, []error) {
+func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range matchIDs {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetMatchDetailsBatch", varargs...)
-	ret0, _ := ret[0].([]*[]models.MatchDetails)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -566,25 +532,6 @@ func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*[]models.Match
 func (mr *MockMatchInfoMockRecorder) GetMatchDetailsBatch(matchIDs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetailsBatch", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchDetailsBatch), matchIDs...)
-}
-
-// GetMatchDetailsBatchRaw mocks base method
-func (m *MockMatchInfo) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{}
-	for _, a := range matchIDs {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetMatchDetailsBatchRaw", varargs...)
-	ret0, _ := ret[0].([][]byte)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetMatchDetailsBatchRaw indicates an expected call of GetMatchDetailsBatchRaw
-func (mr *MockMatchInfoMockRecorder) GetMatchDetailsBatchRaw(matchIDs ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchDetailsBatchRaw", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchDetailsBatchRaw), matchIDs...)
 }
 
 // GetMatchIDsByQueue mocks base method
@@ -602,26 +549,11 @@ func (mr *MockMatchInfoMockRecorder) GetMatchIDsByQueue(dateStrings, queueIDs in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueue", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchIDsByQueue), dateStrings, queueIDs)
 }
 
-// GetMatchIDsByQueueRaw mocks base method
-func (m *MockMatchInfo) GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []models.QueueID) ([][]byte, []error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMatchIDsByQueueRaw", dateStrings, queueIDs)
-	ret0, _ := ret[0].([][]byte)
-	ret1, _ := ret[1].([]error)
-	return ret0, ret1
-}
-
-// GetMatchIDsByQueueRaw indicates an expected call of GetMatchIDsByQueueRaw
-func (mr *MockMatchInfoMockRecorder) GetMatchIDsByQueueRaw(dateStrings, queueIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchIDsByQueueRaw", reflect.TypeOf((*MockMatchInfo)(nil).GetMatchIDsByQueueRaw), dateStrings, queueIDs)
-}
-
 // GetMatchPlayerDetails mocks base method
-func (m *MockMatchInfo) GetMatchPlayerDetails(matchID int) (*[]models.MatchDetails, error) {
+func (m *MockMatchInfo) GetMatchPlayerDetails(matchID int) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchPlayerDetails", matchID)
-	ret0, _ := ret[0].(*[]models.MatchDetails)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

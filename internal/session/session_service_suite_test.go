@@ -1,4 +1,4 @@
-package request_service_test
+package session_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestRequestService(t *testing.T) {
+func TestSessionService(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "RequestService Suite")
+	RunSpecs(t, "SessionService Suite")
 }

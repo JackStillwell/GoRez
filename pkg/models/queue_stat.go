@@ -12,7 +12,7 @@ type QueueStat struct {
 	Matches    *int64  `json:"Matches,omitempty"`
 	Minutes    *int64  `json:"Minutes,omitempty"`
 	Queue      *string `json:"Queue,omitempty"`
-	WINS       *int64  `json:"Wins,omitempty"`
+	Wins       *int64  `json:"Wins,omitempty"`
 	PlayerID   *string `json:"player_id,omitempty"`
 	RetMsg     *string `json:"ret_msg,omitempty"`
 }

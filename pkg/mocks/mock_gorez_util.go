@@ -65,15 +65,16 @@ func (mr *MockGorezUtilMockRecorder) MultiRequest(requestArgs, endpoint, method 
 }
 
 // SingleRequest mocks base method
-func (m *MockGorezUtil) SingleRequest(url, endpoint, endpointArgs string, unmarshalTo interface{}) error {
+func (m *MockGorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SingleRequest", url, endpoint, endpointArgs, unmarshalTo)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "SingleRequest", url, endpoint, endpointArgs)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SingleRequest indicates an expected call of SingleRequest
-func (mr *MockGorezUtilMockRecorder) SingleRequest(url, endpoint, endpointArgs, unmarshalTo interface{}) *gomock.Call {
+func (mr *MockGorezUtilMockRecorder) SingleRequest(url, endpoint, endpointArgs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SingleRequest", reflect.TypeOf((*MockGorezUtil)(nil).SingleRequest), url, endpoint, endpointArgs, unmarshalTo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SingleRequest", reflect.TypeOf((*MockGorezUtil)(nil).SingleRequest), url, endpoint, endpointArgs)
 }
