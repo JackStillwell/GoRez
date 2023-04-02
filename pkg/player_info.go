@@ -6,21 +6,21 @@ import (
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
 
-	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
-	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
+	authI "github.com/JackStillwell/GoRez/internal/auth/interfaces"
+	requestI "github.com/JackStillwell/GoRez/internal/request/interfaces"
+	sessionI "github.com/JackStillwell/GoRez/internal/session/interfaces"
 )
 
 type playerInfo struct {
-	authSvc authService.AuthService
-	rqstSvc requestService.RequestService
-	sesnSvc sessionService.SessionService
+	authSvc authI.Service
+	rqstSvc requestI.Service
+	sesnSvc sessionI.Service
 }
 
 func NewPlayerInfo(
-	rS requestService.RequestService,
-	aS authService.AuthService,
-	sS sessionService.SessionService,
+	rS requestI.Service,
+	aS authI.Service,
+	sS sessionI.Service,
 ) i.PlayerInfo {
 	return &playerInfo{
 		rqstSvc: rS,
@@ -29,19 +29,19 @@ func NewPlayerInfo(
 	}
 }
 
-func (r *playerInfo) GetPlayerIDByName(playerName []string) (*m.PlayerIDWithName, error) {
+func (r *playerInfo) GetPlayerIDByName(playerName []string) ([]*m.PlayerIDWithName, error) {
 	return nil, errors.New("unimplemented")
 }
 
-func (r *playerInfo) GetPlayer(playerID int) (*m.Player, error) {
+func (r *playerInfo) GetPlayer(playerID int) ([]byte, error) {
 	return nil, errors.New("unimplemented")
 }
 
-func (r *playerInfo) GetPlayerBatch(playerIDs []int) ([]*m.Player, []error) {
+func (r *playerInfo) GetPlayerBatch(playerIDs []int) ([][]byte, []error) {
 	return nil, []error{errors.New("unimplemented")}
 }
 
-func (r *playerInfo) GetMatchHistory(playerID []int) ([]*m.MatchDetails, []error) {
+func (r *playerInfo) GetMatchHistory(playerID []int) ([][]byte, []error) {
 	return nil, []error{errors.New("unimplemented")}
 }
 

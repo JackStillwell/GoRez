@@ -41,12 +41,12 @@ func NewMatchInfo(
 }
 
 // GetMatchDetails will return data for players in a completed match
-func (r *matchInfo) GetMatchDetails(matchID int) (*[]m.MatchDetails, error) {
+func (r *matchInfo) GetMatchDetails(matchID int) ([]byte, error) {
 	mIds, errs := r.GetMatchDetailsBatch(matchID)
 	return mIds[0], errs[0]
 }
 
-func (r *matchInfo) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error) {
+func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error) {
 	requests := make([]func(*sessionM.Session) *requestM.Request, 0, (len(matchIDs)/10)+1)
 	for i := len(matchIDs); i > 0; i = i - 10 {
 		matchIdStrings := make([]string, 0, 10)
@@ -70,16 +70,13 @@ func (r *matchInfo) GetMatchDetailsBatchRaw(matchIDs ...int) ([][]byte, []error)
 		requests = append(requests, requestFunc)
 	}
 
+	// FIXME: need to check ret_msgs and assign errs accordingly
+
 	return r.gUtil.BulkAsyncSessionRequest(requests)
 }
 
 // GetMatchDetails will return data for players in completed matches
-func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([]*[]m.MatchDetails, []error) {
-	rawObjs, errs := r.GetMatchDetailsBatchRaw(matchIDs...)
-	return internal.UnmarshalObjs[[]m.MatchDetails](rawObjs, errs)
-}
-
-func (r *matchInfo) GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []m.QueueID) ([][]byte, []error) {
+func (r *matchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueID) ([]*[]m.MatchIDWithQueue, []error) {
 	requests := make([]func(*sessionM.Session) *requestM.Request, 0, len(queueIDs)*len(dateStrings))
 	for _, queueID := range queueIDs {
 		for _, dateString := range dateStrings {
@@ -100,16 +97,11 @@ func (r *matchInfo) GetMatchIDsByQueueRaw(dateStrings []string, queueIDs []m.Que
 		}
 	}
 
-	return r.gUtil.BulkAsyncSessionRequest(requests)
-}
-
-// GetMatchDetails will return data for players in completed matches
-func (r *matchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueID) ([]*[]m.MatchIDWithQueue, []error) {
-	rawObjs, errs := r.GetMatchIDsByQueueRaw(dateStrings, queueIDs)
+	rawObjs, errs := r.gUtil.BulkAsyncSessionRequest(requests)
 	return internal.UnmarshalObjs[[]m.MatchIDWithQueue](rawObjs, errs)
 }
 
 // GetMatchPlayerDetails will return data for players in a live match
-func (r *matchInfo) GetMatchPlayerDetails(matchID int) (*[]m.MatchDetails, error) {
+func (r *matchInfo) GetMatchPlayerDetails(matchID int) ([]byte, error) {
 	return r.GetMatchDetails(matchID)
 }
