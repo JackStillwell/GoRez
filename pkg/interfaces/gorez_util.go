@@ -1,9 +1,9 @@
 package interfaces
 
 import (
-	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
+	sessionM "github.com/JackStillwell/GoRez/internal/session/models"
 
-	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
+	requestM "github.com/JackStillwell/GoRez/internal/request/models"
 )
 
 //go:generate mockgen --source=./gorez_util.go --destination=../mocks/mock_gorez_util.go --package=mock

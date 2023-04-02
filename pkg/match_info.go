@@ -9,25 +9,27 @@ import (
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
 
-	authService "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
-	requestService "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
-	sessionService "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
+	authI "github.com/JackStillwell/GoRez/internal/auth/interfaces"
+
+	requestI "github.com/JackStillwell/GoRez/internal/request/interfaces"
+	requestM "github.com/JackStillwell/GoRez/internal/request/models"
+
+	sessionI "github.com/JackStillwell/GoRez/internal/session/interfaces"
+	sessionM "github.com/JackStillwell/GoRez/internal/session/models"
 )
 
 type matchInfo struct {
-	authSvc authService.AuthService
-	rqstSvc requestService.RequestService
-	sesnSvc sessionService.SessionService
+	authSvc authI.Service
+	rqstSvc requestI.Service
+	sesnSvc sessionI.Service
 	gUtil   i.GorezUtil
 	hrC     c.HiRezConstants
 }
 
 func NewMatchInfo(
-	rS requestService.RequestService,
-	aS authService.AuthService,
-	sS sessionService.SessionService,
+	rS requestI.Service,
+	aS authI.Service,
+	sS sessionI.Service,
 ) i.MatchInfo {
 	return &matchInfo{
 		rqstSvc: rS,

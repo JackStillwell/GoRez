@@ -15,16 +15,16 @@ import (
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	mock "github.com/JackStillwell/GoRez/pkg/mocks"
 
-	auth "github.com/JackStillwell/GoRez/internal/auth_service"
-	authI "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
-	authM "github.com/JackStillwell/GoRez/internal/auth_service/models"
+	"github.com/JackStillwell/GoRez/internal/auth"
+	authI "github.com/JackStillwell/GoRez/internal/auth/interfaces"
+	authM "github.com/JackStillwell/GoRez/internal/auth/models"
 
-	request "github.com/JackStillwell/GoRez/internal/request_service"
-	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
+	"github.com/JackStillwell/GoRez/internal/request"
+	requestI "github.com/JackStillwell/GoRez/internal/request/interfaces"
 
-	session "github.com/JackStillwell/GoRez/internal/session_service"
-	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
+	"github.com/JackStillwell/GoRez/internal/session"
+	sessionI "github.com/JackStillwell/GoRez/internal/session/interfaces"
+	sessionM "github.com/JackStillwell/GoRez/internal/session/models"
 )
 
 var _ = Describe("GodItemInfo", func() {
@@ -37,18 +37,18 @@ var _ = Describe("GodItemInfo", func() {
 	Describe("IntegratedUnitTest", func() {
 		var (
 			util    i.GorezUtil
-			authSvc authI.AuthService
-			rqstSvc requestI.RequestService
-			sesnSvc sessionI.SessionService
+			authSvc authI.Service
+			rqstSvc requestI.Service
+			sesnSvc sessionI.Service
 		)
 
 		BeforeEach(func() {
-			authSvc = auth.NewAuthService(authM.Auth{
+			authSvc = auth.NewService(authM.Auth{
 				ID:  "id",
 				Key: "key",
 			})
-			rqstSvc = request.NewRequestService(1)
-			sesnSvc = session.NewSessionService(1, []*sessionM.Session{{}})
+			rqstSvc = request.NewService(1)
+			sesnSvc = session.NewService(1, []*sessionM.Session{{}})
 
 			util = gorez.NewGorezUtil(authSvc, rqstSvc, sesnSvc)
 		})
@@ -210,7 +210,7 @@ var _ = Describe("GodItemInfo", func() {
 
 		Context("singleRequest via GetItems", func() {
 			It("should pass through an error with the request", func() {
-				util.EXPECT().SingleRequest(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				util.EXPECT().SingleRequest(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(errors.New("boom"))
 
 				_, err := target.GetItems()

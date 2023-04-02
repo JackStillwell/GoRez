@@ -23,7 +23,7 @@ var _ = Describe("Service", func() {
 			existingSession := &m.Session{
 				Key: "123",
 			}
-			var svc i.SessionService
+			var svc i.Service
 			Expect(func() {
 				svc = session.NewService(10, []*m.Session{existingSession})
 			}).ToNot(Panic())

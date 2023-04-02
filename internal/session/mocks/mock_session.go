@@ -5,36 +5,36 @@
 package mock
 
 import (
-	models "github.com/JackStillwell/GoRez/internal/session_service/models"
+	models "github.com/JackStillwell/GoRez/internal/session/models"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
 
-// MockSessionService is a mock of SessionService interface
-type MockSessionService struct {
+// MockService is a mock of Service interface
+type MockService struct {
 	ctrl     *gomock.Controller
-	recorder *MockSessionServiceMockRecorder
+	recorder *MockServiceMockRecorder
 }
 
-// MockSessionServiceMockRecorder is the mock recorder for MockSessionService
-type MockSessionServiceMockRecorder struct {
-	mock *MockSessionService
+// MockServiceMockRecorder is the mock recorder for MockService
+type MockServiceMockRecorder struct {
+	mock *MockService
 }
 
-// NewMockSessionService creates a new mock instance
-func NewMockSessionService(ctrl *gomock.Controller) *MockSessionService {
-	mock := &MockSessionService{ctrl: ctrl}
-	mock.recorder = &MockSessionServiceMockRecorder{mock}
+// NewMockService creates a new mock instance
+func NewMockService(ctrl *gomock.Controller) *MockService {
+	mock := &MockService{ctrl: ctrl}
+	mock.recorder = &MockServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockSessionService) EXPECT() *MockSessionServiceMockRecorder {
+func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
 // GetAvailableSessions mocks base method
-func (m *MockSessionService) GetAvailableSessions() []*models.Session {
+func (m *MockService) GetAvailableSessions() []*models.Session {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAvailableSessions")
 	ret0, _ := ret[0].([]*models.Session)
@@ -42,43 +42,43 @@ func (m *MockSessionService) GetAvailableSessions() []*models.Session {
 }
 
 // GetAvailableSessions indicates an expected call of GetAvailableSessions
-func (mr *MockSessionServiceMockRecorder) GetAvailableSessions() *gomock.Call {
+func (mr *MockServiceMockRecorder) GetAvailableSessions() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAvailableSessions", reflect.TypeOf((*MockSessionService)(nil).GetAvailableSessions))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAvailableSessions", reflect.TypeOf((*MockService)(nil).GetAvailableSessions))
 }
 
 // ReserveSession mocks base method
-func (m *MockSessionService) ReserveSession(arg0 int, arg1 chan *models.Session) {
+func (m *MockService) ReserveSession(arg0 int, arg1 chan *models.Session) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ReserveSession", arg0, arg1)
 }
 
 // ReserveSession indicates an expected call of ReserveSession
-func (mr *MockSessionServiceMockRecorder) ReserveSession(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) ReserveSession(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReserveSession", reflect.TypeOf((*MockSessionService)(nil).ReserveSession), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReserveSession", reflect.TypeOf((*MockService)(nil).ReserveSession), arg0, arg1)
 }
 
 // ReleaseSession mocks base method
-func (m *MockSessionService) ReleaseSession(arg0 []*models.Session) {
+func (m *MockService) ReleaseSession(arg0 []*models.Session) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ReleaseSession", arg0)
 }
 
 // ReleaseSession indicates an expected call of ReleaseSession
-func (mr *MockSessionServiceMockRecorder) ReleaseSession(arg0 interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) ReleaseSession(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseSession", reflect.TypeOf((*MockSessionService)(nil).ReleaseSession), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseSession", reflect.TypeOf((*MockService)(nil).ReleaseSession), arg0)
 }
 
 // BadSession mocks base method
-func (m *MockSessionService) BadSession(arg0 []*models.Session) {
+func (m *MockService) BadSession(arg0 []*models.Session) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "BadSession", arg0)
 }
 
 // BadSession indicates an expected call of BadSession
-func (mr *MockSessionServiceMockRecorder) BadSession(arg0 interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) BadSession(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BadSession", reflect.TypeOf((*MockSessionService)(nil).BadSession), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BadSession", reflect.TypeOf((*MockService)(nil).BadSession), arg0)
 }

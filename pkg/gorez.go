@@ -13,16 +13,16 @@ import (
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 
-	auth "github.com/JackStillwell/GoRez/internal/auth_service"
-	authI "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
-	authM "github.com/JackStillwell/GoRez/internal/auth_service/models"
+	auth "github.com/JackStillwell/GoRez/internal/auth"
+	authI "github.com/JackStillwell/GoRez/internal/auth/interfaces"
+	authM "github.com/JackStillwell/GoRez/internal/auth/models"
 
-	request "github.com/JackStillwell/GoRez/internal/request_service"
-	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
+	request "github.com/JackStillwell/GoRez/internal/request"
+	requestI "github.com/JackStillwell/GoRez/internal/request/interfaces"
 
-	session "github.com/JackStillwell/GoRez/internal/session_service"
-	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
+	session "github.com/JackStillwell/GoRez/internal/session"
+	sessionI "github.com/JackStillwell/GoRez/internal/session/interfaces"
+	sessionM "github.com/JackStillwell/GoRez/internal/session/models"
 )
 
 // has a struct that contains the other services
@@ -30,9 +30,9 @@ import (
 // is the recommended way for people to interact with the package
 
 type svc struct {
-	AuthSvc    authI.AuthService
-	RequestSvc requestI.RequestService
-	SessionSvc sessionI.SessionService
+	AuthSvc    authI.Service
+	RequestSvc requestI.Service
+	SessionSvc sessionI.Service
 }
 
 type g struct {
@@ -55,9 +55,9 @@ func NewGorez(auth_path string) (i.GoRez, error) {
 	}
 
 	s := &svc{
-		AuthSvc:    auth.NewAuthService(authM.Auth{ID: lines[0], Key: lines[1]}),
-		RequestSvc: request.NewRequestService(1),
-		SessionSvc: session.NewSessionService(1, nil),
+		AuthSvc:    auth.NewService(authM.Auth{ID: lines[0], Key: lines[1]}),
+		RequestSvc: request.NewService(1),
+		SessionSvc: session.NewService(1, nil),
 	}
 
 	util := NewGorezUtil(s.AuthSvc, s.RequestSvc, s.SessionSvc)

@@ -9,22 +9,22 @@ import (
 	gorez "github.com/JackStillwell/GoRez/pkg"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 
-	requestMocks "github.com/JackStillwell/GoRez/internal/request_service/mocks"
-	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
+	requestMocks "github.com/JackStillwell/GoRez/internal/request/mocks"
+	requestM "github.com/JackStillwell/GoRez/internal/request/models"
 
-	sessionMocks "github.com/JackStillwell/GoRez/internal/session_service/mocks"
-	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
+	sessionMocks "github.com/JackStillwell/GoRez/internal/session/mocks"
+	sessionM "github.com/JackStillwell/GoRez/internal/session/models"
 
-	authMocks "github.com/JackStillwell/GoRez/internal/auth_service/mocks"
+	authMocks "github.com/JackStillwell/GoRez/internal/auth/mocks"
 )
 
 var _ = Describe("GorezUtil", func() {
 	var (
 		ctrl *gomock.Controller
 
-		rqstSvc *requestMocks.MockRequestService
-		sesnSvc *sessionMocks.MockSessionService
-		authSvc *authMocks.MockAuthService
+		rqstSvc *requestMocks.MockService
+		sesnSvc *sessionMocks.MockService
+		authSvc *authMocks.MockService
 
 		target i.GorezUtil
 	)
@@ -32,9 +32,9 @@ var _ = Describe("GorezUtil", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 
-		rqstSvc = requestMocks.NewMockRequestService(ctrl)
-		sesnSvc = sessionMocks.NewMockSessionService(ctrl)
-		authSvc = authMocks.NewMockAuthService(ctrl)
+		rqstSvc = requestMocks.NewMockService(ctrl)
+		sesnSvc = sessionMocks.NewMockService(ctrl)
+		authSvc = authMocks.NewMockService(ctrl)
 
 		target = gorez.NewGorezUtil(authSvc, rqstSvc, sesnSvc)
 	})

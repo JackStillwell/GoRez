@@ -5,8 +5,8 @@
 package mock
 
 import (
-	models "github.com/JackStillwell/GoRez/internal/request_service/models"
-	models0 "github.com/JackStillwell/GoRez/internal/session_service/models"
+	models "github.com/JackStillwell/GoRez/internal/request/models"
+	models0 "github.com/JackStillwell/GoRez/internal/session/models"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

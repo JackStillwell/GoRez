@@ -17,7 +17,7 @@ type service struct {
 	lock              sync.Mutex
 }
 
-func NewService(maxSessions int, existingSessions []*m.Session) i.SessionService {
+func NewService(maxSessions int, existingSessions []*m.Session) i.Service {
 	if len(existingSessions) > maxSessions {
 		panic(fmt.Sprintf(
 			"cannot create a session service with capacity %d and %d existing sessions",

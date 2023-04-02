@@ -11,23 +11,23 @@ import (
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
 
-	authI "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
+	authI "github.com/JackStillwell/GoRez/internal/auth/interfaces"
 
-	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
+	requestI "github.com/JackStillwell/GoRez/internal/request/interfaces"
+	requestM "github.com/JackStillwell/GoRez/internal/request/models"
 
-	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
+	sessionI "github.com/JackStillwell/GoRez/internal/session/interfaces"
+	sessionM "github.com/JackStillwell/GoRez/internal/session/models"
 )
 
 type gorezUtil struct {
-	authSvc authI.AuthService
-	rqstSvc requestI.RequestService
-	sesnSvc sessionI.SessionService
+	authSvc authI.Service
+	rqstSvc requestI.Service
+	sesnSvc sessionI.Service
 }
 
-func NewGorezUtil(aS authI.AuthService, rS requestI.RequestService,
-	sS sessionI.SessionService) i.GorezUtil {
+func NewGorezUtil(aS authI.Service, rS requestI.Service,
+	sS sessionI.Service) i.GorezUtil {
 	return &gorezUtil{
 		authSvc: aS,
 		rqstSvc: rS,

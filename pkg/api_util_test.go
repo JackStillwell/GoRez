@@ -13,11 +13,10 @@ import (
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 
-	authMock "github.com/JackStillwell/GoRez/internal/auth_service/mocks"
+	authMock "github.com/JackStillwell/GoRez/internal/auth/mocks"
 
-	request "github.com/JackStillwell/GoRez/internal/request_service"
-
-	session "github.com/JackStillwell/GoRez/internal/session_service"
+	"github.com/JackStillwell/GoRez/internal/request"
+	"github.com/JackStillwell/GoRez/internal/session"
 )
 
 var _ = Describe("ApiUtil", func() {
@@ -26,7 +25,7 @@ var _ = Describe("ApiUtil", func() {
 			ctrl       *gomock.Controller
 			testServer *httptest.Server
 
-			authSvc *authMock.MockAuthService
+			authSvc *authMock.MockService
 
 			target i.APIUtil
 		)
@@ -35,9 +34,9 @@ var _ = Describe("ApiUtil", func() {
 			ctrl = gomock.NewController(GinkgoT())
 			testServer = httptest.NewServer(nil)
 
-			authSvc = authMock.NewMockAuthService(ctrl)
-			rqstSvc := request.NewRequestService(3)
-			sesnSvc := session.NewSessionService(3, nil)
+			authSvc = authMock.NewMockService(ctrl)
+			rqstSvc := request.NewService(3)
+			sesnSvc := session.NewService(3, nil)
 
 			hiRezC := c.NewHiRezConstants()
 			hiRezC.SmiteURLBase = testServer.URL

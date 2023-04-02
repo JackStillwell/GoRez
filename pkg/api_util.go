@@ -11,27 +11,27 @@ import (
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
 
-	authI "github.com/JackStillwell/GoRez/internal/auth_service/interfaces"
+	authI "github.com/JackStillwell/GoRez/internal/auth/interfaces"
 
-	requestI "github.com/JackStillwell/GoRez/internal/request_service/interfaces"
-	requestM "github.com/JackStillwell/GoRez/internal/request_service/models"
+	requestI "github.com/JackStillwell/GoRez/internal/request/interfaces"
+	requestM "github.com/JackStillwell/GoRez/internal/request/models"
 
-	sessionI "github.com/JackStillwell/GoRez/internal/session_service/interfaces"
-	sessionM "github.com/JackStillwell/GoRez/internal/session_service/models"
+	sessionI "github.com/JackStillwell/GoRez/internal/session/interfaces"
+	sessionM "github.com/JackStillwell/GoRez/internal/session/models"
 )
 
 type apiUtil struct {
 	hiRezC  c.HiRezConstants
-	authSvc authI.AuthService
-	rqstSvc requestI.RequestService
-	sesnSvc sessionI.SessionService
+	authSvc authI.Service
+	rqstSvc requestI.Service
+	sesnSvc sessionI.Service
 }
 
 func NewAPIUtil(
 	hrC c.HiRezConstants,
-	aS authI.AuthService,
-	rS requestI.RequestService,
-	sS sessionI.SessionService,
+	aS authI.Service,
+	rS requestI.Service,
+	sS sessionI.Service,
 ) i.APIUtil {
 	return &apiUtil{
 		hiRezC:  hrC,
