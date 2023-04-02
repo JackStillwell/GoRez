@@ -70,10 +70,8 @@ var _ = Describe("GorezUtil", func() {
 				Expect(err).To(BeNil())
 			})
 
-			respChan := make(chan *requestM.RequestResponse, 1)
 			rqstSvc.EXPECT().GetResponse(
 				gomock.AssignableToTypeOf(&uuid.UUID{}),
-				gomock.AssignableToTypeOf(respChan),
 			).Do(func(uID *uuid.UUID, respChan chan *requestM.RequestResponse) {
 				respChan <- &requestM.RequestResponse{
 					Id:   uID,
@@ -81,8 +79,6 @@ var _ = Describe("GorezUtil", func() {
 					Resp: []byte("stuff"),
 				}
 			})
-
-			rqstSvc.EXPECT().FreeResponse(gomock.AssignableToTypeOf(&uuid.UUID{})).Return()
 
 			sesnSvc.EXPECT().ReleaseSession(gomock.AssignableToTypeOf([]*sessionM.Session{})).Do(
 				func(sessions []*sessionM.Session) {

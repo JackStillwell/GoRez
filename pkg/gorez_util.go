@@ -38,14 +38,14 @@ func NewGorezUtil(aS authI.Service, rS requestI.Service,
 func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Session) *requestM.Request,
 ) ([][]byte, []error) {
 	numRequests := len(requestBuilders)
-	responseChan := make(chan *requestM.RequestResponse, numRequests)
+	uIDs := make([]*uuid.UUID, numRequests)
 	uIDSessionMap := make(map[*uuid.UUID]*sessionM.Session, numRequests)
 
 	// NOTE: this is async so the reservation and release of sessions is possible, but the func
 	// return depends upon responses being completed.
 	go func() {
 
-		for _, rB := range requestBuilders {
+		for i, rB := range requestBuilders {
 			sessChan := make(chan *sessionM.Session, 1)
 			g.sesnSvc.ReserveSession(1, sessChan)
 
@@ -59,29 +59,27 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 			uIDSessionMap[&uID] = s
 
 			g.rqstSvc.MakeRequest(r)
-			g.rqstSvc.GetResponse(&uID, responseChan)
+			uIDs[i] = &uID
 		}
 	}()
 
 	responses := make([][]byte, numRequests)
 	errs := make([]error, numRequests)
 	for i := 0; i < numRequests; i++ {
-		resp := <-responseChan               // get the pointer
-		localResp := *resp                   // deference to force a copy
-		g.rqstSvc.FreeResponse(localResp.Id) // clean up the response queue
-		if localResp.Err != nil {
-			if strings.Contains(localResp.Err.Error(), "session") {
-				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[localResp.Id]})
+		resp := g.rqstSvc.GetResponse(uIDs[i])
+		if resp.Err != nil {
+			if strings.Contains(resp.Err.Error(), "session") {
+				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
 			} else {
-				g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[localResp.Id]})
+				g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
 			}
-			errs[i] = fmt.Errorf("request: %w", localResp.Err)
+			errs[i] = fmt.Errorf("request: %w", resp.Err)
 			continue
 		}
 
-		g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[localResp.Id]})
+		g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
 
-		responses[i] = localResp.Resp
+		responses[i] = resp.Resp
 	}
 
 	return responses, errs

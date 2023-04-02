@@ -141,38 +141,21 @@ func main() {
 			currDate = currDate.Add(-24 * time.Hour)
 		}
 
-		matchIdJsonByteArrays, errs := g.GetMatchIDsByQueueRaw(dateStrings, queueIDs)
-		log.Println("errors fetching matchidsbyqueue", errs)
-		// jBytes, err := json.Marshal(matchIds)
-		// if err != nil {
-		// 	log.Println("error marshaling matchids", err)
-		// }
 		matchIdsPath := path.Join(dataDirPath, "matchids.json")
 		f, err := os.Create(matchIdsPath)
 		if err != nil {
 			log.Println("error opening file to write matchids", err)
 		}
 		defer f.Close()
-		nBytes, err := f.Write([]byte("["))
+
+		matchIds, errs := g.GetMatchIDsByQueue(dateStrings, queueIDs)
+		log.Println("errors fetching matchidsbyqueue", errs)
+		jBytes, err := json.Marshal(matchIds)
 		if err != nil {
-			log.Println("error writing matchids file:", err.Error())
+			log.Println("error marshaling matchids", err)
 		}
-		if nBytes == 0 {
-			log.Println("no bytes written to matchids file")
-		}
-		for idx, bytes := range matchIdJsonByteArrays {
-			if idx != len(matchIdJsonByteArrays)-1 {
-				bytes = append(bytes, []byte(",")...)
-			}
-			nBytes, err := f.Write(bytes)
-			if err != nil {
-				log.Println("error writing matchids file:", err.Error())
-			}
-			if nBytes == 0 {
-				log.Println("no bytes written to matchids file")
-			}
-		}
-		nBytes, err = f.Write([]byte("]"))
+
+		nBytes, err := f.Write(jBytes)
 		if err != nil {
 			log.Println("error writing matchids file:", err.Error())
 		}

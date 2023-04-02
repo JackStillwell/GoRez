@@ -64,27 +64,18 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	log.Println("create session requests made")
 	log.Println("create session request uuids", uIDs)
 
-	log.Println("getting create session responses")
-	responseChan := make(chan *requestM.RequestResponse, numSessions)
-	for i := 0; i < numSessions; i++ {
-		go a.rqstSvc.GetResponse(uIDs[i], responseChan)
-	}
-	log.Println("create session responses received")
-
 	sessions := make([]*m.Session, 0, numSessions)
 	errs := make([]error, 0, numSessions)
 	for i := 0; i < numSessions; i++ {
-		resp := <-responseChan               // get the pointer
-		localResp := *resp                   // deference to force a copy
-		a.rqstSvc.FreeResponse(localResp.Id) // clean up the response queue
-		if localResp.Err != nil {
+		resp := a.rqstSvc.GetResponse(uIDs[i])
+		if resp.Err != nil {
 			sessions = append(sessions, nil)
-			errs = append(errs, errors.Wrap(localResp.Err, "request"))
+			errs = append(errs, errors.Wrap(resp.Err, "request"))
 			continue
 		}
 
 		session := &m.Session{}
-		err := json.Unmarshal(localResp.Resp, session)
+		err := json.Unmarshal(resp.Resp, session)
 		if err != nil {
 			sessions = append(sessions, nil)
 			errs = append(errs, errors.Wrap(err, "unmarshal response"))
@@ -119,23 +110,16 @@ func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
 		uIDs = append(uIDs, &uID)
 	}
 
-	responseChan := make(chan *requestM.RequestResponse, len(s))
-	for i := 0; i < len(s); i++ {
-		a.rqstSvc.GetResponse(uIDs[i], responseChan)
-	}
-
 	responses := make([]*string, 0, len(s))
 	errs := make([]error, 0, len(s))
 	for i := 0; i < len(s); i++ {
-		resp := <-responseChan               // get the pointer
-		localResp := *resp                   // deference to force a copy
-		a.rqstSvc.FreeResponse(localResp.Id) // clean up the response queue
-		if localResp.Err != nil {
-			errs = append(errs, errors.Wrap(localResp.Err, "request"))
+		resp := a.rqstSvc.GetResponse(uIDs[i])
+		if resp.Err != nil {
+			errs = append(errs, errors.Wrap(resp.Err, "request"))
 			continue
 		}
 
-		responseString := string(localResp.Resp)
+		responseString := string(resp.Resp)
 		responses = append(responses, &responseString)
 	}
 
