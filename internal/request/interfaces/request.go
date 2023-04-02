@@ -20,8 +20,7 @@ type Service interface {
 
 type RequestManager interface {
 	MakeRequest(*models.Request)
-	GetResponse(*uuid.UUID, chan *models.RequestResponse)
-	FreeResponse(*uuid.UUID)
+	GetResponse(*uuid.UUID) *models.RequestResponse
 }
 
 type Requester interface {

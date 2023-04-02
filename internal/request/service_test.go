@@ -200,7 +200,9 @@ var _ = Describe("Service", func() {
 			It("should issue the request", func() {
 				target.MakeRequest(request)
 				responseChan := make(chan *m.RequestResponse, 1)
-				target.GetResponse(&uniqueId, responseChan)
+				go func() {
+					responseChan <- target.GetResponse(&uniqueId)
+				}()
 				Eventually(responseChan).Should(Receive())
 			})
 		})
@@ -244,22 +246,16 @@ var _ = Describe("Service", func() {
 						},
 					})
 				}
-				responseChan := make(chan *m.RequestResponse, numRequests)
-
-				for _, ID := range IDs {
-					target.GetResponse(ID, responseChan)
-				}
 
 				responses := make([]*m.RequestResponse, numRequests)
 				expecteds := make([]*m.RequestResponse, numRequests)
 				for idx, ID := range IDs {
 					expected := &m.RequestResponse{Id: ID, Resp: []byte{}}
 					expecteds[idx] = expected
-					response := <-responseChan
-					responses[idx] = response
+					responses[idx] = target.GetResponse(ID)
 				}
 
-				Expect(expecteds).To(ContainElements(responses))
+				Expect(responses).To(ContainElements(expecteds))
 			})
 		})
 	})

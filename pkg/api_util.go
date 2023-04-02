@@ -67,7 +67,7 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	log.Println("getting create session responses")
 	responseChan := make(chan *requestM.RequestResponse, numSessions)
 	for i := 0; i < numSessions; i++ {
-		a.rqstSvc.GetResponse(uIDs[i], responseChan)
+		go a.rqstSvc.GetResponse(uIDs[i], responseChan)
 	}
 	log.Println("create session responses received")
 

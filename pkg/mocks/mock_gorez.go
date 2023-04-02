@@ -150,10 +150,10 @@ func (mr *MockGoRezMockRecorder) GetPlayerBatch(playerIDs interface{}) *gomock.C
 }
 
 // GetMatchHistory mocks base method
-func (m *MockGoRez) GetMatchHistory(playerID []int) ([]byte, []error) {
+func (m *MockGoRez) GetMatchHistory(playerID []int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
-	ret0, _ := ret[0].([]byte)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
@@ -448,10 +448,10 @@ func (mr *MockPlayerInfoMockRecorder) GetPlayerBatch(playerIDs interface{}) *gom
 }
 
 // GetMatchHistory mocks base method
-func (m *MockPlayerInfo) GetMatchHistory(playerID []int) ([]byte, []error) {
+func (m *MockPlayerInfo) GetMatchHistory(playerID []int) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchHistory", playerID)
-	ret0, _ := ret[0].([]byte)
+	ret0, _ := ret[0].([][]byte)
 	ret1, _ := ret[1].([]error)
 	return ret0, ret1
 }
