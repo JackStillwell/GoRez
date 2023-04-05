@@ -6,7 +6,6 @@ type PlayerIDWithName struct {
 }
 
 type MatchIDWithQueue struct {
-	MatchID   `json:",inline"`
-	QueueID   int    `json:"QueueID"`
-	QueueName string `json:"QueueName"`
+	MatchID `json:",inline"`
+	QueueID int `json:"QueueID"`
 }
