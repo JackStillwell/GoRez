@@ -76,9 +76,15 @@ func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error) {
 }
 
 // GetMatchDetails will return data for players in completed matches
-func (r *matchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueID) ([]*[]m.MatchIDWithQueue, []error) {
-	requests := make([]func(*sessionM.Session) *requestM.Request, 0, len(queueIDs)*len(dateStrings))
+func (r *matchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueID) (
+	[]*[]m.MatchIDWithQueue, []error,
+) {
+	retObjs := []*[]m.MatchIDWithQueue{}
+	errs := []error{}
 	for _, queueID := range queueIDs {
+		requests := make([]func(*sessionM.Session) *requestM.Request, 0,
+			len(queueIDs)*len(dateStrings),
+		)
 		for _, dateString := range dateStrings {
 			requestFunc := func(session *sessionM.Session) *requestM.Request {
 				f := HiRezJIT(
@@ -95,10 +101,25 @@ func (r *matchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueI
 			}
 			requests = append(requests, requestFunc)
 		}
+		rawObjs, requestErrs := r.gUtil.BulkAsyncSessionRequest(requests)
+		unmarshaledObjs, unmarshalErrs := internal.UnmarshalObjs[[]m.MatchIDWithQueue](
+			rawObjs, requestErrs,
+		)
+		for i := range unmarshaledObjs {
+			matchIdsPtr := unmarshaledObjs[i]
+			if matchIdsPtr == nil {
+				continue
+			}
+			matchIds := *matchIdsPtr
+			for j := range matchIds {
+				matchIds[j].QueueID = int(queueID)
+			}
+		}
+		retObjs = append(retObjs, unmarshaledObjs...)
+		errs = append(errs, unmarshalErrs...)
 	}
 
-	rawObjs, errs := r.gUtil.BulkAsyncSessionRequest(requests)
-	return internal.UnmarshalObjs[[]m.MatchIDWithQueue](rawObjs, errs)
+	return retObjs, errs
 }
 
 // GetMatchPlayerDetails will return data for players in a live match
