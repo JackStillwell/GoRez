@@ -89,6 +89,43 @@ var _ = Describe("GodItemInfo", func() {
 				Expect(err.Error()).To(ContainSubstring("marshaling response"))
 			})
 
+			It("should return an error from single response ret_msg", func() {
+				testServer := httptest.NewServer(http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusOK)
+						rw.Write([]byte("{\"ret_msg\": \"issue\"}"))
+					}))
+				defer testServer.Close()
+
+				hiRezConsts.SmiteURLBase = testServer.URL + "/"
+
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
+
+				_, err := target.GetGods()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("ret_msg: issue"))
+			})
+
+			It("should return an error from array response ret_msg", func() {
+				testServer := httptest.NewServer(http.HandlerFunc(
+					func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusOK)
+						rw.Write([]byte("["))
+						rw.Write([]byte("{\"ret_msg\": \"\"},"))
+						rw.Write([]byte("{\"ret_msg\": \"issue\"}"))
+						rw.Write([]byte("]"))
+					}))
+				defer testServer.Close()
+
+				hiRezConsts.SmiteURLBase = testServer.URL + "/"
+
+				target = gorez.NewGodItemInfo(hiRezConsts, util)
+
+				_, err := target.GetGods()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("ret_msg 1: issue"))
+			})
+
 			It("should return success if no errors occur", func() {
 				testServer := httptest.NewServer(http.HandlerFunc(
 					func(rw http.ResponseWriter, r *http.Request) {
@@ -103,7 +140,7 @@ var _ = Describe("GodItemInfo", func() {
 
 				gods, err := target.GetGods()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(gods).To(HaveLen(2))
+				Expect(gods).To(Equal([]byte("[{},{}]")))
 			})
 		})
 
@@ -171,7 +208,7 @@ var _ = Describe("GodItemInfo", func() {
 				))
 			})
 
-			It("should return an error from marshaling a response", func() {
+			FIt("should return an error from marshaling a response", func() {
 				testServer := httptest.NewServer(http.HandlerFunc(
 					func(rw http.ResponseWriter, r *http.Request) {
 						rw.WriteHeader(http.StatusOK)
@@ -211,7 +248,7 @@ var _ = Describe("GodItemInfo", func() {
 		Context("singleRequest via GetItems", func() {
 			It("should pass through an error with the request", func() {
 				util.EXPECT().SingleRequest(gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(errors.New("boom"))
+					Return(nil, errors.New("boom"))
 
 				_, err := target.GetItems()
 				Expect(err).To(HaveOccurred())

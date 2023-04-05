@@ -38,8 +38,9 @@ func NewGorezUtil(aS authI.Service, rS requestI.Service,
 func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Session) *requestM.Request,
 ) ([][]byte, []error) {
 	numRequests := len(requestBuilders)
-	uIDs := make([]*uuid.UUID, numRequests)
+	uIDs := make(chan *uuid.UUID, numRequests)
 	uIDSessionMap := make(map[*uuid.UUID]*sessionM.Session, numRequests)
+	uIDResponseIdxMap := make(map[*uuid.UUID]int, numRequests)
 
 	// NOTE: this is async so the reservation and release of sessions is possible, but the func
 	// return depends upon responses being completed.
@@ -57,29 +58,32 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 			uID := uuid.New()
 			r.Id = &uID
 			uIDSessionMap[&uID] = s
+			uIDResponseIdxMap[&uID] = i
 
 			g.rqstSvc.MakeRequest(r)
-			uIDs[i] = &uID
+			uIDs <- &uID
 		}
 	}()
 
 	responses := make([][]byte, numRequests)
 	errs := make([]error, numRequests)
 	for i := 0; i < numRequests; i++ {
-		resp := g.rqstSvc.GetResponse(uIDs[i])
+		uID := <-uIDs
+		idx := uIDResponseIdxMap[uID]
+		resp := g.rqstSvc.GetResponse(uID)
 		if resp.Err != nil {
 			if strings.Contains(resp.Err.Error(), "session") {
 				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
 			} else {
 				g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
 			}
-			errs[i] = fmt.Errorf("request: %w", resp.Err)
+			errs[idx] = fmt.Errorf("request: %w", resp.Err)
 			continue
 		}
 
 		g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
 
-		responses[i] = resp.Resp
+		responses[idx] = resp.Resp
 	}
 
 	return responses, errs
@@ -105,9 +109,7 @@ func (g *gorezUtil) MultiRequest(requestArgs []string, baseURL, method string,
 		}
 	}
 
-	rawObjs, errs := g.BulkAsyncSessionRequest(requestBuilders)
-
-	return rawObjs, errs
+	return g.BulkAsyncSessionRequest(requestBuilders)
 }
 
 func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, error) {
@@ -135,16 +137,33 @@ func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, e
 		return nil, fmt.Errorf("requesting response: %w", resp.Err)
 	}
 
-	retMsg := m.RetMsg{}
-	err := json.Unmarshal(resp.Resp, &retMsg)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshaling response ret msg: %w", err)
-	}
+	if resp.Resp[0] == byte('[') {
+		retMsgs := []m.RetMsg{}
+		err := json.Unmarshal(resp.Resp, &retMsgs)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshaling response ret msg: %w", err)
+		}
 
-	log.Println("single response unmarshaled")
+		log.Println("single response unmarshaled")
 
-	if retMsg.Msg != nil {
-		return nil, fmt.Errorf("ret msg: %s", *retMsg.Msg)
+		for i, retMsg := range retMsgs {
+			if retMsg.Msg != nil && *retMsg.Msg != "" {
+				return nil, fmt.Errorf("ret_msg %d: %s", i, *retMsg.Msg)
+			}
+		}
+
+	} else {
+		retMsg := m.RetMsg{}
+		err := json.Unmarshal(resp.Resp, &retMsg)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshaling response ret msg: %w", err)
+		}
+
+		log.Println("single response unmarshaled")
+
+		if retMsg.Msg != nil && *retMsg.Msg != "" {
+			return nil, fmt.Errorf("ret_msg: %s", *retMsg.Msg)
+		}
 	}
 
 	return resp.Resp, nil

@@ -72,8 +72,8 @@ var _ = Describe("GorezUtil", func() {
 
 			rqstSvc.EXPECT().GetResponse(
 				gomock.AssignableToTypeOf(&uuid.UUID{}),
-			).Do(func(uID *uuid.UUID, respChan chan *requestM.RequestResponse) {
-				respChan <- &requestM.RequestResponse{
+			).DoAndReturn(func(uID *uuid.UUID) *requestM.RequestResponse {
+				return &requestM.RequestResponse{
 					Id:   uID,
 					Err:  nil,
 					Resp: []byte("stuff"),
@@ -86,20 +86,12 @@ var _ = Describe("GorezUtil", func() {
 				},
 			)
 
-			responsesChan := make(chan [][]byte, 1)
-			errorsChan := make(chan []error, 1)
-			go func() {
-				defer GinkgoRecover()
+			r, e := target.BulkAsyncSessionRequest(
+				[]func(*sessionM.Session) *requestM.Request{requestBuilder},
+			)
 
-				r, e := target.BulkAsyncSessionRequest(
-					[]func(*sessionM.Session) *requestM.Request{requestBuilder},
-				)
-				responsesChan <- r
-				errorsChan <- e
-			}()
-
-			Eventually(responsesChan).Should(Receive(ConsistOf([][]byte{[]byte("stuff")})))
-			Eventually(errorsChan).Should(Receive(&[]error{nil}))
+			Expect(r).To(ConsistOf([][]byte{[]byte("stuff")}))
+			Expect(e).To(ConsistOf(BeNil()))
 		})
 	})
 })
