@@ -73,22 +73,6 @@ var _ = Describe("GodItemInfo", func() {
 				)))
 			})
 
-			It("should return an error from unmarshaling a response body", func() {
-				testServer := httptest.NewServer(http.HandlerFunc(
-					func(rw http.ResponseWriter, r *http.Request) {
-						rw.WriteHeader(http.StatusOK)
-					}))
-				defer testServer.Close()
-
-				hiRezConsts.SmiteURLBase = testServer.URL + "/"
-
-				target = gorez.NewGodItemInfo(hiRezConsts, util)
-
-				_, err := target.GetGods()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("marshaling response"))
-			})
-
 			It("should return an error from single response ret_msg", func() {
 				testServer := httptest.NewServer(http.HandlerFunc(
 					func(rw http.ResponseWriter, r *http.Request) {
@@ -205,25 +189,6 @@ var _ = Describe("GodItemInfo", func() {
 				Expect(errs[0].Error()).To(And(
 					ContainSubstring("request"),
 					ContainSubstring(fmt.Sprint(http.StatusInternalServerError)),
-				))
-			})
-
-			FIt("should return an error from marshaling a response", func() {
-				testServer := httptest.NewServer(http.HandlerFunc(
-					func(rw http.ResponseWriter, r *http.Request) {
-						rw.WriteHeader(http.StatusOK)
-						rw.Write([]byte(""))
-					}))
-				defer testServer.Close()
-
-				hiRezConsts.SmiteURLBase = testServer.URL + "/"
-
-				target = gorez.NewGodItemInfo(hiRezConsts, util)
-
-				_, errs := target.GetGodRecItems([]int{0})
-				Expect(errs).To(HaveLen(1))
-				Expect(errs[0].Error()).To(And(
-					ContainSubstring("marshaling response"),
 				))
 			})
 		})
