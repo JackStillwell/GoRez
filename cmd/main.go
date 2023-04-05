@@ -30,9 +30,6 @@ func main() {
 
 	flag.Parse()
 
-	// FIXME: REMOVE THIS LINE IT IS FOR TESTING ONLY
-	fmt.Scanln()
-
 	if authPath == "" {
 		log.Fatal("'auth' argument is required")
 		flag.PrintDefaults()
