@@ -42,7 +42,7 @@ func NewAPIUtil(
 }
 
 func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
-	uIDs := make([]*uuid.UUID, 0, numSessions)
+	uIDs := make([]uuid.UUID, 0, numSessions)
 	for i := 0; i < numSessions; i++ {
 		r := requestM.Request{
 			JITFunc: HiRezJIT(
@@ -58,7 +58,7 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 		uID := uuid.New()
 		r.Id = &uID
 		a.rqstSvc.MakeRequest(&r)
-		uIDs = append(uIDs, &uID)
+		uIDs = append(uIDs, uID)
 	}
 	log.Println("create session requests made")
 	log.Println("create session request uuids", uIDs)
@@ -66,7 +66,7 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	sessions := make([]*m.Session, 0, numSessions)
 	errs := make([]error, 0, numSessions)
 	for i := 0; i < numSessions; i++ {
-		resp := a.rqstSvc.GetResponse(uIDs[i])
+		resp := a.rqstSvc.GetResponse(&uIDs[i])
 		if resp.Err != nil {
 			sessions = append(sessions, nil)
 			errs = append(errs, errors.Wrap(resp.Err, "request"))
@@ -89,7 +89,7 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 }
 
 func (a *apiUtil) TestSession(sessionKeys []string) ([]*string, []error) {
-	uIDs := make([]uuid.UUID, len(sessionKeys))
+	uIDs := make([]uuid.UUID, 0, len(sessionKeys))
 	for i := 0; i < len(sessionKeys); i++ {
 		r := requestM.Request{
 			JITFunc: HiRezJIT(

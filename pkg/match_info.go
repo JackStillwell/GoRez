@@ -2,6 +2,7 @@ package gorez
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"strings"
 
@@ -50,6 +51,8 @@ func (r *matchInfo) GetMatchDetails(matchID string) ([]byte, error) {
 func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...string) ([][]byte, []error) {
 	requests := make([]func(*sessionM.Session) *requestM.Request, 0, (len(matchIDs)/10)+1)
 	for i := len(matchIDs); i > 0; i = i - 10 {
+		matchIdString := strings.Join(matchIDs[int(math.Max(0, float64(i-10))):i], ",")
+		log.Println("matchIdString:", matchIdString)
 		requestFunc := func(session *sessionM.Session) *requestM.Request {
 			f := HiRezJIT(
 				r.hrC.SmiteURLBase+"/"+r.hrC.GetMatchDetailsBatch+"json",
@@ -58,7 +61,7 @@ func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...string) ([][]byte, []error)
 				session.Key,
 				r.authSvc.GetTimestamp,
 				r.authSvc.GetSignature,
-				strings.Join(matchIDs[int(math.Max(0, float64(i-10))):i], ","),
+				matchIdString,
 			)
 
 			return &requestM.Request{JITFunc: f}

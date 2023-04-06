@@ -57,7 +57,7 @@ func (s *service) Request(rqst *m.Request) (rr *m.RequestResponse) {
 	}
 
 	if rr.Err != nil {
-		rr.Err = fmt.Errorf("%s: %s", rr.Err.Error(), body)
+		rr.Err = fmt.Errorf("%s: %s : %s", rr.Err.Error(), requestURL, body)
 	}
 
 	rr.Resp = body

@@ -161,6 +161,7 @@ func main() {
 			}
 		}
 
+		log.Println("toRetrieve: ", strings.Join(toRetrieve, ","))
 		bytesList, errs := g.GetMatchDetailsBatch(toRetrieve...)
 		log.Println("errors fetching matchdetailsbatch:", errs)
 

@@ -45,7 +45,6 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	// NOTE: this is async so the reservation and release of sessions is possible, but the func
 	// return depends upon responses being completed.
 	go func() {
-
 		for i, rB := range requestBuilders {
 			sessChan := make(chan *sessionM.Session, 1)
 			g.sesnSvc.ReserveSession(1, sessChan)
