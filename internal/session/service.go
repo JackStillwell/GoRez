@@ -3,7 +3,6 @@ package session
 import (
 	"fmt"
 	"log"
-	"sort"
 	"sync"
 
 	i "github.com/JackStillwell/GoRez/internal/session/interfaces"
@@ -13,7 +12,7 @@ import (
 type service struct {
 	maxSessions       int
 	availableSessions chan *m.Session
-	reservedSessions  []*m.Session
+	reservedSessions  map[*m.Session]struct{}
 	lock              sync.Mutex
 }
 
@@ -31,7 +30,7 @@ func NewService(maxSessions int, existingSessions []*m.Session) i.Service {
 		aS <- existingSessions[i]
 	}
 
-	rS := make([]*m.Session, 0, maxSessions)
+	rS := make(map[*m.Session]struct{}, maxSessions)
 
 	return &service{
 		maxSessions:       maxSessions,
@@ -54,7 +53,7 @@ func (s *service) ReserveSession(numSessions int, retChan chan *m.Session) {
 	log.Printf("reserving %d of %d available sessions", numSessions, len(s.availableSessions))
 	for i := 0; i < numSessions; i++ {
 		toReturn := <-s.availableSessions
-		s.reservedSessions = append(s.reservedSessions, toReturn)
+		s.reservedSessions[toReturn] = struct{}{}
 		retChan <- toReturn
 		log.Printf("%d of %d sessions reserved", i+1, numSessions)
 	}
@@ -62,7 +61,9 @@ func (s *service) ReserveSession(numSessions int, retChan chan *m.Session) {
 
 func (s *service) ReleaseSession(sessions []*m.Session) {
 	s.lock.Lock()
-	removeFromSlice(&s.reservedSessions, sessions)
+	for _, session := range sessions {
+		delete(s.reservedSessions, session)
+	}
 	s.lock.Unlock()
 
 	for i := range sessions {
@@ -72,32 +73,8 @@ func (s *service) ReleaseSession(sessions []*m.Session) {
 
 func (s *service) BadSession(sessions []*m.Session) {
 	s.lock.Lock()
-	removeFromSlice(&s.reservedSessions, sessions)
+	for _, session := range sessions {
+		delete(s.reservedSessions, session)
+	}
 	s.lock.Unlock()
-}
-
-func removeFromSlice(toModify *[]*m.Session, toRemove []*m.Session) {
-	idxsToRemove := make([]int, 0, len(toRemove))
-	for idxRs, rS := range *toModify {
-		for _, bS := range toRemove {
-			if rS.Key == bS.Key {
-				idxsToRemove = append(idxsToRemove, idxRs)
-			}
-		}
-	}
-
-	// None of the sessions to be removed were present in the slice to be modified
-	if len(idxsToRemove) == 0 {
-		return
-	}
-
-	sort.Ints(idxsToRemove)
-	if idxsToRemove[len(idxsToRemove)-1] == len(*toModify)-1 {
-		*toModify = (*toModify)[:len(idxsToRemove)-1]
-		idxsToRemove = idxsToRemove[:len(idxsToRemove)-1]
-	}
-	for idx := len(idxsToRemove) - 1; idx >= 0; idx-- {
-		iTR := idxsToRemove[idx]
-		*toModify = append((*toModify)[:iTR], (*toModify)[iTR:]...)
-	}
 }
