@@ -14,7 +14,7 @@ type GoRez interface {
 
 type APIUtil interface {
 	CreateSession(int) ([]*m.Session, []error)
-	TestSession([]*m.Session) ([]*string, []error)
+	TestSession([]string) ([]*string, []error)
 	GetDataUsed() (*m.UsageInfo, error)
 }
 

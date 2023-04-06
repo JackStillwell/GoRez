@@ -2,13 +2,12 @@ package gorez
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
@@ -29,6 +28,8 @@ import (
 // manages limits and sessions
 // is the recommended way for people to interact with the package
 
+const NUM_SESSIONS = 40
+
 type svc struct {
 	AuthSvc    authI.Service
 	RequestSvc requestI.Service
@@ -46,18 +47,18 @@ type g struct {
 func NewGorez(auth_path string) (i.GoRez, error) {
 	contents, err := os.ReadFile(auth_path)
 	if err != nil {
-		return nil, errors.Wrap(err, "reading file")
+		return nil, fmt.Errorf("reading file: %w", err)
 	}
 	lines := strings.Split(string(contents), "\n")
 	if len(lines) < 2 || len(lines) > 3 {
-		return nil, errors.New("auth file must contain two lines, the first being your dev id and " +
+		return nil, fmt.Errorf("auth file must contain two lines, the first being your dev id and " +
 			"the second being your dev key")
 	}
 
 	s := &svc{
 		AuthSvc:    auth.NewService(authM.Auth{ID: lines[0], Key: lines[1]}),
-		RequestSvc: request.NewService(1),
-		SessionSvc: session.NewService(1, nil),
+		RequestSvc: request.NewService(NUM_SESSIONS),
+		SessionSvc: session.NewService(NUM_SESSIONS, nil),
 	}
 
 	util := NewGorezUtil(s.AuthSvc, s.RequestSvc, s.SessionSvc)
@@ -71,39 +72,79 @@ func NewGorez(auth_path string) (i.GoRez, error) {
 	}, nil
 }
 
+func (gr *g) createSessions(numSessions int) error {
+	log.Printf("creating %d sessions\n", numSessions)
+	sessions, errs := gr.APIUtil.CreateSession(numSessions)
+	errCount := 0
+	for i, e := range errs {
+		if e != nil {
+			log.Printf("error creating session %d: %s\n", i, e.Error())
+			errCount++
+		}
+	}
+	if errCount == numSessions {
+		return fmt.Errorf("all session creations errored")
+	}
+	log.Println("sessions created")
+
+	sessionObjs := make([]*sessionM.Session, 0, numSessions)
+	for i, session := range sessions {
+		if session != nil {
+			created, err := time.ParseInLocation("1/2/2006 3:04:05 PM", *session.Timestamp, time.UTC)
+			if err != nil {
+				log.Printf("parsing session timestamp for session %d: %s\n", i, err.Error())
+				continue
+			}
+			sessionObjs = append(sessionObjs, &sessionM.Session{
+				Key:     *session.SessionID,
+				Created: &created,
+			})
+		}
+	}
+
+	gr.SessionSvc.ReleaseSession(sessionObjs)
+	return nil
+}
+
 func (gr *g) Init() error {
 	log.Println("looking for sessions.json")
 	if _, err := os.Stat("sessions.json"); err == nil {
 		log.Println("sessions.json found")
 		contents, err := os.ReadFile("sessions.json")
 		if err != nil {
-			return errors.Wrap(err, "reading sessions.txt")
+			return fmt.Errorf("reading sessions.txt: %w", err)
 		}
 
 		var existingSessions []*sessionM.Session
 		err = json.Unmarshal(contents, &existingSessions)
 		if err != nil {
-			return errors.Wrap(err, "unmarshaling sessions.txt")
+			return fmt.Errorf("unmarshaling sessions.txt: %w", err)
 		}
-		gr.SessionSvc.ReleaseSession(existingSessions)
+
+		sessionKeys := make([]string, 0, len(existingSessions))
+		for _, eS := range existingSessions {
+			sessionKeys = append(sessionKeys, eS.Key)
+		}
+
+		validSessions := make([]*sessionM.Session, 0, len(existingSessions))
+		responses, errs := gr.APIUtil.TestSession(sessionKeys)
+		for i, resp := range responses {
+			if resp != nil {
+				if !strings.Contains(*resp, "Invalid session id") {
+					validSessions = append(validSessions, existingSessions[i])
+				}
+			} else {
+				log.Printf("error testing session %s: %s", existingSessions[i].Key, errs[i].Error())
+			}
+		}
+
+		gr.SessionSvc.ReleaseSession(validSessions)
+		gr.createSessions(40 - len(validSessions))
 	} else if errors.Is(err, os.ErrNotExist) {
-		log.Println("sessions.json not found - creating session")
-		sessions, errs := gr.APIUtil.CreateSession(1)
-		if errs[0] != nil {
-			return errors.Wrap(errs[0], "creating session failed")
+		log.Println("sessions.json not found - creating sessions")
+		if err := gr.createSessions(NUM_SESSIONS); err != nil {
+			return err
 		}
-		log.Println("session created")
-
-		created, err := time.ParseInLocation("1/2/2006 3:04:05 PM", *sessions[0].Timestamp, time.UTC)
-		if err != nil {
-			return errors.Wrap(err, "parsing session timestamp")
-		}
-		internalSession := &sessionM.Session{
-			Key:     *sessions[0].SessionID,
-			Created: &created,
-		}
-
-		gr.SessionSvc.ReleaseSession([]*sessionM.Session{internalSession})
 	} else {
 		return fmt.Errorf("stat-ing sessions.json: %w", err)
 	}

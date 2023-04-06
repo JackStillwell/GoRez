@@ -88,31 +88,30 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 	return sessions, errs
 }
 
-func (a *apiUtil) TestSession(s []*m.Session) ([]*string, []error) {
-	r := requestM.Request{
-		JITFunc: HiRezJIT(
-			a.hiRezC.SmiteURLBase+"/"+a.hiRezC.TestSession+"json",
-			a.authSvc.GetID(),
-			a.hiRezC.TestSession,
-			"",
-			a.authSvc.GetTimestamp,
-			a.authSvc.GetSignature,
-			"",
-		),
-	}
-
-	uIDs := make([]*uuid.UUID, len(s))
-	for i := 0; i < len(s); i++ {
+func (a *apiUtil) TestSession(sessionKeys []string) ([]*string, []error) {
+	uIDs := make([]uuid.UUID, len(sessionKeys))
+	for i := 0; i < len(sessionKeys); i++ {
+		r := requestM.Request{
+			JITFunc: HiRezJIT(
+				a.hiRezC.SmiteURLBase+"/"+a.hiRezC.TestSession+"json",
+				a.authSvc.GetID(),
+				a.hiRezC.TestSession,
+				sessionKeys[i],
+				a.authSvc.GetTimestamp,
+				a.authSvc.GetSignature,
+				"",
+			),
+		}
 		uID := uuid.New()
 		r.Id = &uID
 		a.rqstSvc.MakeRequest(&r)
-		uIDs = append(uIDs, &uID)
+		uIDs = append(uIDs, uID)
 	}
 
-	responses := make([]*string, 0, len(s))
-	errs := make([]error, 0, len(s))
-	for i := 0; i < len(s); i++ {
-		resp := a.rqstSvc.GetResponse(uIDs[i])
+	responses := make([]*string, 0, len(sessionKeys))
+	errs := make([]error, 0, len(sessionKeys))
+	for i := 0; i < len(sessionKeys); i++ {
+		resp := a.rqstSvc.GetResponse(&uIDs[i])
 		if resp.Err != nil {
 			errs = append(errs, errors.Wrap(resp.Err, "request"))
 			continue
