@@ -61,7 +61,9 @@ func (s *service) ReserveSession(numSessions int, retChan chan *m.Session) {
 }
 
 func (s *service) ReleaseSession(sessions []*m.Session) {
+	s.lock.Lock()
 	removeFromSlice(&s.reservedSessions, sessions)
+	s.lock.Unlock()
 
 	for i := range sessions {
 		s.availableSessions <- sessions[i]
@@ -69,7 +71,9 @@ func (s *service) ReleaseSession(sessions []*m.Session) {
 }
 
 func (s *service) BadSession(sessions []*m.Session) {
+	s.lock.Lock()
 	removeFromSlice(&s.reservedSessions, sessions)
+	s.lock.Unlock()
 }
 
 func removeFromSlice(toModify *[]*m.Session, toRemove []*m.Session) {
