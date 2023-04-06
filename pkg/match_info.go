@@ -2,6 +2,7 @@ package gorez
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/JackStillwell/GoRez/internal"
@@ -41,18 +42,14 @@ func NewMatchInfo(
 }
 
 // GetMatchDetails will return data for players in a completed match
-func (r *matchInfo) GetMatchDetails(matchID int) ([]byte, error) {
+func (r *matchInfo) GetMatchDetails(matchID string) ([]byte, error) {
 	mIds, errs := r.GetMatchDetailsBatch(matchID)
 	return mIds[0], errs[0]
 }
 
-func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error) {
+func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...string) ([][]byte, []error) {
 	requests := make([]func(*sessionM.Session) *requestM.Request, 0, (len(matchIDs)/10)+1)
 	for i := len(matchIDs); i > 0; i = i - 10 {
-		matchIdStrings := make([]string, 0, 10)
-		for _, v := range matchIDs {
-			matchIdStrings = append(matchIdStrings, fmt.Sprintf("%d", v))
-		}
 		requestFunc := func(session *sessionM.Session) *requestM.Request {
 			f := HiRezJIT(
 				r.hrC.SmiteURLBase+"/"+r.hrC.GetMatchDetailsBatch+"json",
@@ -61,7 +58,7 @@ func (r *matchInfo) GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error) {
 				session.Key,
 				r.authSvc.GetTimestamp,
 				r.authSvc.GetSignature,
-				strings.Join(matchIdStrings, ","),
+				strings.Join(matchIDs[int(math.Max(0, float64(i-10))):i], ","),
 			)
 
 			return &requestM.Request{JITFunc: f}
@@ -123,6 +120,6 @@ func (r *matchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueI
 }
 
 // GetMatchPlayerDetails will return data for players in a live match
-func (r *matchInfo) GetMatchPlayerDetails(matchID int) ([]byte, error) {
+func (r *matchInfo) GetMatchPlayerDetails(matchID string) ([]byte, error) {
 	return r.GetMatchDetails(matchID)
 }

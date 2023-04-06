@@ -80,7 +80,7 @@ func (mr *MockGoRezMockRecorder) GetItems() *gomock.Call {
 }
 
 // GetMatchDetails mocks base method.
-func (m *MockGoRez) GetMatchDetails(matchID int) ([]byte, error) {
+func (m *MockGoRez) GetMatchDetails(matchID string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
 	ret0, _ := ret[0].([]byte)
@@ -95,7 +95,7 @@ func (mr *MockGoRezMockRecorder) GetMatchDetails(matchID interface{}) *gomock.Ca
 }
 
 // GetMatchDetailsBatch mocks base method.
-func (m *MockGoRez) GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error) {
+func (m *MockGoRez) GetMatchDetailsBatch(matchIDs ...string) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range matchIDs {
@@ -144,7 +144,7 @@ func (mr *MockGoRezMockRecorder) GetMatchIDsByQueue(dateStrings, queueIDs interf
 }
 
 // GetMatchPlayerDetails mocks base method.
-func (m *MockGoRez) GetMatchPlayerDetails(matchID int) ([]byte, error) {
+func (m *MockGoRez) GetMatchPlayerDetails(matchID string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchPlayerDetails", matchID)
 	ret0, _ := ret[0].([]byte)
@@ -502,7 +502,7 @@ func (m *MockMatchInfo) EXPECT() *MockMatchInfoMockRecorder {
 }
 
 // GetMatchDetails mocks base method.
-func (m *MockMatchInfo) GetMatchDetails(matchID int) ([]byte, error) {
+func (m *MockMatchInfo) GetMatchDetails(matchID string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchDetails", matchID)
 	ret0, _ := ret[0].([]byte)
@@ -517,7 +517,7 @@ func (mr *MockMatchInfoMockRecorder) GetMatchDetails(matchID interface{}) *gomoc
 }
 
 // GetMatchDetailsBatch mocks base method.
-func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error) {
+func (m *MockMatchInfo) GetMatchDetailsBatch(matchIDs ...string) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range matchIDs {
@@ -551,7 +551,7 @@ func (mr *MockMatchInfoMockRecorder) GetMatchIDsByQueue(dateStrings, queueIDs in
 }
 
 // GetMatchPlayerDetails mocks base method.
-func (m *MockMatchInfo) GetMatchPlayerDetails(matchID int) ([]byte, error) {
+func (m *MockMatchInfo) GetMatchPlayerDetails(matchID string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMatchPlayerDetails", matchID)
 	ret0, _ := ret[0].([]byte)

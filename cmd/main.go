@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 
@@ -94,17 +93,7 @@ func main() {
 
 	if matchIds != "" {
 		idStrings := strings.Split(matchIds, ",")
-		idInts := make([]int, 0, len(idStrings))
-		for _, s := range idStrings {
-			intId, err := strconv.ParseInt(s, 10, 64)
-			if err != nil {
-				log.Println("error parsing matchid", s, "to int")
-				continue
-			}
-			idInts = append(idInts, int(intId))
-		}
-
-		matchDetails, errs := g.GetMatchDetailsBatch(idInts...)
+		matchDetails, errs := g.GetMatchDetailsBatch(idStrings...)
 		log.Println("errors fetching matchdetailsbatch", errs)
 		jBytes, err := json.Marshal(matchDetails)
 		if err != nil {
@@ -159,5 +148,37 @@ func main() {
 		if nBytes == 0 {
 			log.Println("no bytes written to matchids file")
 		}
+
+		toRetrieve := []string{}
+		for _, matchIdList := range matchIds {
+			if matchIdList == nil {
+				continue
+			}
+			for _, matchId := range *matchIdList {
+				if matchId.Match != nil {
+					toRetrieve = append(toRetrieve, *matchId.Match)
+				}
+			}
+		}
+
+		bytesList, errs := g.GetMatchDetailsBatch(toRetrieve...)
+		log.Println("errors fetching matchdetailsbatch:", errs)
+
+		for i, bytes := range bytesList {
+			matchIdsPath := path.Join(dataDirPath, fmt.Sprintf("matchdetails-%d.json", i))
+			f, err := os.Create(matchIdsPath)
+			if err != nil {
+				log.Printf("error opening file to write matchdetails-%d: %s\n", i, err.Error())
+			}
+			defer f.Close()
+			nBytes, err := f.Write(bytes)
+			if err != nil {
+				log.Printf("error writing matchdetails-%d file: %s\n", i, err.Error())
+			}
+			if nBytes == 0 {
+				log.Printf("no bytes written to matchdetails-%d file\n", i)
+			}
+		}
+
 	}
 }

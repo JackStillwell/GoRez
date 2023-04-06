@@ -33,8 +33,8 @@ type PlayerInfo interface {
 }
 
 type MatchInfo interface {
-	GetMatchDetails(matchID int) ([]byte, error)
-	GetMatchDetailsBatch(matchIDs ...int) ([][]byte, []error)
+	GetMatchDetails(matchID string) ([]byte, error)
+	GetMatchDetailsBatch(matchIDs ...string) ([][]byte, []error)
 	GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueID) ([]*[]m.MatchIDWithQueue, []error)
-	GetMatchPlayerDetails(matchID int) ([]byte, error)
+	GetMatchPlayerDetails(matchID string) ([]byte, error)
 }
