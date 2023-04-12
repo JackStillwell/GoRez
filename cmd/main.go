@@ -165,8 +165,9 @@ func main() {
 		bytesList, errs := g.GetMatchDetailsBatch(toRetrieve...)
 		log.Println("errors fetching matchdetailsbatch:", errs)
 
+		dateString := time.Now().UTC().Format("2006-Jan-02")
 		for i, bytes := range bytesList {
-			matchIdsPath := path.Join(dataDirPath, fmt.Sprintf("matchdetails-%d.json", i))
+			matchIdsPath := path.Join(dataDirPath, fmt.Sprintf("matchdetails-%s_%d.json", dateString, i))
 			f, err := os.Create(matchIdsPath)
 			if err != nil {
 				log.Printf("error opening file to write matchdetails-%d: %s\n", i, err.Error())
@@ -180,6 +181,5 @@ func main() {
 				log.Printf("no bytes written to matchdetails-%d file\n", i)
 			}
 		}
-
 	}
 }
