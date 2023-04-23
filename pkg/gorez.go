@@ -42,9 +42,53 @@ type g struct {
 	i.GodItemInfo
 	i.PlayerInfo
 	i.MatchInfo
+	sessionCache i.SessionCache
 }
 
-func NewGorez(auth_path string) (i.GoRez, error) {
+type localSessionCache struct{}
+
+func (localSessionCache) ReadSessions() ([]*sessionM.Session, error) {
+	log.Println("looking for sessions.json")
+	if _, err := os.Stat("sessions.json"); err == nil {
+		log.Println("sessions.json found")
+		contents, err := os.ReadFile("sessions.json")
+		if err != nil {
+			return nil, fmt.Errorf("reading sessions.txt: %w", err)
+		}
+
+		var existingSessions []*sessionM.Session
+		err = json.Unmarshal(contents, &existingSessions)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshaling sessions.txt: %w", err)
+		}
+
+		return existingSessions, nil
+	} else if errors.Is(err, os.ErrNotExist) {
+		return []*sessionM.Session{}, nil
+	} else {
+		return nil, fmt.Errorf("stat-ing sessions.json: %w", err)
+	}
+}
+
+func (localSessionCache) SaveSessions(sessions []*sessionM.Session) error {
+	jBytes, err := json.Marshal(sessions)
+	if err != nil {
+		return fmt.Errorf("marshaling items: %w", err)
+	}
+
+	f, err := os.Create("sessions.json")
+	if err != nil {
+		return fmt.Errorf("creating session file: %w", err)
+	}
+	defer f.Close()
+	if _, err := f.Write(jBytes); err != nil {
+		return fmt.Errorf("writing sessions: %w", err)
+	}
+
+	return nil
+}
+
+func NewGorez(auth_path string, sessionCache i.SessionCache) (i.GoRez, error) {
 	contents, err := os.ReadFile(auth_path)
 	if err != nil {
 		return nil, fmt.Errorf("reading file: %w", err)
@@ -63,12 +107,17 @@ func NewGorez(auth_path string) (i.GoRez, error) {
 
 	util := NewGorezUtil(s.AuthSvc, s.RequestSvc, s.SessionSvc)
 
+	if sessionCache == nil {
+		sessionCache = localSessionCache{}
+	}
+
 	return &g{
-		svc:         s,
-		APIUtil:     NewAPIUtil(c.NewHiRezConstants(), s.AuthSvc, s.RequestSvc, s.SessionSvc),
-		GodItemInfo: NewGodItemInfo(c.NewHiRezConstants(), util),
-		PlayerInfo:  NewPlayerInfo(s.RequestSvc, s.AuthSvc, s.SessionSvc),
-		MatchInfo:   NewMatchInfo(s.RequestSvc, s.AuthSvc, s.SessionSvc),
+		svc:          s,
+		APIUtil:      NewAPIUtil(c.NewHiRezConstants(), s.AuthSvc, s.RequestSvc, s.SessionSvc),
+		GodItemInfo:  NewGodItemInfo(c.NewHiRezConstants(), util),
+		PlayerInfo:   NewPlayerInfo(s.RequestSvc, s.AuthSvc, s.SessionSvc),
+		MatchInfo:    NewMatchInfo(s.RequestSvc, s.AuthSvc, s.SessionSvc),
+		sessionCache: sessionCache,
 	}, nil
 }
 
@@ -107,46 +156,34 @@ func (gr *g) createSessions(numSessions int) error {
 }
 
 func (gr *g) Init() error {
-	log.Println("looking for sessions.json")
-	if _, err := os.Stat("sessions.json"); err == nil {
-		log.Println("sessions.json found")
-		contents, err := os.ReadFile("sessions.json")
-		if err != nil {
-			return fmt.Errorf("reading sessions.txt: %w", err)
-		}
 
-		var existingSessions []*sessionM.Session
-		err = json.Unmarshal(contents, &existingSessions)
-		if err != nil {
-			return fmt.Errorf("unmarshaling sessions.txt: %w", err)
-		}
+	// get stored sessions
+	existingSessions, err := gr.sessionCache.ReadSessions()
+	if err != nil {
+		log.Printf("error reading sessions: %s", err.Error())
+	}
 
-		sessionKeys := make([]string, 0, len(existingSessions))
-		for _, eS := range existingSessions {
-			sessionKeys = append(sessionKeys, eS.Key)
-		}
+	// test sessions
+	sessionKeys := make([]string, 0, len(existingSessions))
+	for _, eS := range existingSessions {
+		sessionKeys = append(sessionKeys, eS.Key)
+	}
 
-		validSessions := make([]*sessionM.Session, 0, len(existingSessions))
-		responses, errs := gr.APIUtil.TestSession(sessionKeys)
-		for i, resp := range responses {
-			if resp != nil {
-				if !strings.Contains(*resp, "Invalid session id") {
-					validSessions = append(validSessions, existingSessions[i])
-				}
-			} else {
-				log.Printf("error testing session %s: %s", existingSessions[i].Key, errs[i].Error())
+	validSessions := make([]*sessionM.Session, 0, len(existingSessions))
+	responses, errs := gr.APIUtil.TestSession(sessionKeys)
+	for i, resp := range responses {
+		if resp != nil {
+			if !strings.Contains(*resp, "Invalid session id") {
+				validSessions = append(validSessions, existingSessions[i])
 			}
+		} else {
+			log.Printf("error testing session %s: %s", existingSessions[i].Key, errs[i].Error())
 		}
+	}
 
-		gr.SessionSvc.ReleaseSession(validSessions)
-		gr.createSessions(40 - len(validSessions))
-	} else if errors.Is(err, os.ErrNotExist) {
-		log.Println("sessions.json not found - creating sessions")
-		if err := gr.createSessions(NUM_SESSIONS); err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("stat-ing sessions.json: %w", err)
+	gr.SessionSvc.ReleaseSession(validSessions)
+	if err := gr.createSessions(NUM_SESSIONS - len(validSessions)); err != nil {
+		return fmt.Errorf("creating sessions: %w", err)
 	}
 
 	return nil
@@ -155,16 +192,7 @@ func (gr *g) Init() error {
 func (gr *g) Shutdown() {
 	// store the sessions here so they're not lost on each run
 
-	jBytes, err := json.Marshal(gr.SessionSvc.GetAvailableSessions())
-	if err != nil {
-		log.Println("error marshaling items", err)
+	if err := gr.sessionCache.SaveSessions(gr.SessionSvc.GetAvailableSessions()); err != nil {
+		log.Printf("saving sessions: %s", err.Error())
 	}
-
-	f, err := os.Create("sessions.json")
-	if err != nil {
-		log.Println("error writing sessions", err)
-		return
-	}
-	defer f.Close()
-	f.Write(jBytes)
 }

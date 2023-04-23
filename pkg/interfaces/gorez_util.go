@@ -12,3 +12,8 @@ type GorezUtil interface {
 	MultiRequest(requestArgs []string, endpoint, method string) ([][]byte, []error)
 	SingleRequest(url, endpoint, endpointArgs string) ([]byte, error)
 }
+
+type SessionCache interface {
+	ReadSessions() ([]*sessionM.Session, error)
+	SaveSessions([]*sessionM.Session) error
+}
