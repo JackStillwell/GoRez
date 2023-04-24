@@ -4,6 +4,8 @@ import (
 	sessionM "github.com/JackStillwell/GoRez/internal/session/models"
 
 	requestM "github.com/JackStillwell/GoRez/internal/request/models"
+
+	m "github.com/JackStillwell/GoRez/pkg/models"
 )
 
 //go:generate mockgen --source=./gorez_util.go --destination=../mocks/mock_gorez_util.go --package=mock
@@ -14,6 +16,6 @@ type GorezUtil interface {
 }
 
 type SessionCache interface {
-	ReadSessions() ([]*sessionM.Session, error)
-	SaveSessions([]*sessionM.Session) error
+	ReadSessions() ([]*m.Session, error)
+	SaveSessions([]*m.Session) error
 }

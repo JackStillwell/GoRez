@@ -39,7 +39,7 @@ func main() {
 	}
 
 	log.Println("instantiating gorez")
-	g, err := gorez.NewGorez(authPath)
+	g, err := gorez.NewGorez(authPath, nil)
 	if err != nil {
 		log.Fatal("failed to instantiate gorez: ", err)
 	}
