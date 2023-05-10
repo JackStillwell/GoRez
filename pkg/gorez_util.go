@@ -43,9 +43,43 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 
 	sessionMapLock := sync.Mutex{}
 	uIDSessionMap := make(map[*uuid.UUID]*sessionM.Session, numRequests)
+	getSession := func(uID *uuid.UUID) *sessionM.Session {
+		log.Println("waiting for session map lock")
+		sessionMapLock.Lock()
+		log.Println("session map lock acquired")
+		retVal := uIDSessionMap[uID]
+		log.Println("releasing session map lock")
+		sessionMapLock.Unlock()
+		return retVal
+	}
+	setSession := func(uID *uuid.UUID, sess *sessionM.Session) {
+		log.Println("waiting for session map lock")
+		sessionMapLock.Lock()
+		log.Println("session map lock acquired")
+		uIDSessionMap[uID] = sess
+		log.Println("releasing session map lock")
+		sessionMapLock.Unlock()
+	}
 
-	responseMapLock := sync.Mutex{}
+	responseMapLock := sync.RWMutex{}
 	uIDResponseIdxMap := make(map[*uuid.UUID]int, numRequests)
+	getResponseIdx := func(uID *uuid.UUID) int {
+		log.Println("waiting for responseIdx map lock")
+		responseMapLock.RLock()
+		log.Println("responseIdx map lock acquired")
+		retVal := uIDResponseIdxMap[uID]
+		log.Println("releasing responseIdx map lock")
+		responseMapLock.RUnlock()
+		return retVal
+	}
+	setResponseIdx := func(uID *uuid.UUID, idx int) {
+		log.Println("waiting for responseIdx map lock")
+		responseMapLock.Lock()
+		log.Println("responseIdx map lock acquired")
+		uIDResponseIdxMap[uID] = idx
+		log.Println("releasing responseIdx map lock")
+		responseMapLock.Unlock()
+	}
 
 	// NOTE: this is async so the reservation and release of sessions is possible, but the func
 	// return depends upon responses being completed.
@@ -62,13 +96,8 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 			uID := uuid.New()
 			r.Id = &uID
 
-			sessionMapLock.Lock()
-			uIDSessionMap[&uID] = s
-			sessionMapLock.Unlock()
-
-			responseMapLock.Lock()
-			uIDResponseIdxMap[&uID] = i
-			responseMapLock.Unlock()
+			setSession(&uID, s)
+			setResponseIdx(&uID, i)
 
 			g.rqstSvc.MakeRequest(r)
 			uIDs <- &uID
@@ -80,28 +109,21 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	for i := 0; i < numRequests; i++ {
 		uID := <-uIDs
 
-		responseMapLock.Lock()
-		idx := uIDResponseIdxMap[uID]
-		responseMapLock.Unlock()
+		idx := getResponseIdx(uID)
 
 		resp := g.rqstSvc.GetResponse(uID)
+		sess := getSession(resp.Id)
 		if resp.Err != nil {
 			if strings.Contains(resp.Err.Error(), "session") {
-				sessionMapLock.Lock()
-				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
-				sessionMapLock.Unlock()
+				g.sesnSvc.BadSession([]*sessionM.Session{sess})
 			} else {
-				sessionMapLock.Lock()
-				g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
-				sessionMapLock.Unlock()
+				g.sesnSvc.ReleaseSession([]*sessionM.Session{sess})
 			}
 			errs[idx] = fmt.Errorf("request: %w", resp.Err)
 			continue
 		}
 
-		sessionMapLock.Lock()
-		g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
-		sessionMapLock.Unlock()
+		g.sesnSvc.ReleaseSession([]*sessionM.Session{sess})
 
 		responses[idx] = resp.Resp
 	}

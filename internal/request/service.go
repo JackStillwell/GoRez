@@ -20,17 +20,24 @@ type service struct {
 }
 
 func (s *service) setResponseChan(id uuid.UUID, respChan chan *m.RequestResponse) {
+	log.Println("waiting for response chan lock")
 	s.lock.Lock()
+	log.Println("response chan lock acquired")
 	if respChan == nil {
 		delete(s.responseChans, id)
+	} else {
+		s.responseChans[id] = respChan
 	}
-	s.responseChans[id] = respChan
+	log.Println("releasing response chan lock")
 	s.lock.Unlock()
 }
 
 func (s *service) getResponseChan(id uuid.UUID) (chan *m.RequestResponse, bool) {
+	log.Println("waiting for response chan lock")
 	s.lock.RLock()
+	log.Println("response chan lock acquired")
 	retVal, ok := s.responseChans[id]
+	log.Println("releasing response chan lock")
 	s.lock.RUnlock()
 	return retVal, ok
 }
