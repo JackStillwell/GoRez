@@ -5,64 +5,35 @@
 package mocks
 
 import (
+	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
-
-	gomock "github.com/golang/mock/gomock"
 )
 
-// MockService is a mock of Service interface.
+// MockService is a mock of Service interface
 type MockService struct {
 	ctrl     *gomock.Controller
 	recorder *MockServiceMockRecorder
 }
 
-// MockServiceMockRecorder is the mock recorder for MockService.
+// MockServiceMockRecorder is the mock recorder for MockService
 type MockServiceMockRecorder struct {
 	mock *MockService
 }
 
-// NewMockService creates a new mock instance.
+// NewMockService creates a new mock instance
 func NewMockService(ctrl *gomock.Controller) *MockService {
 	mock := &MockService{ctrl: ctrl}
 	mock.recorder = &MockServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
-// GetID mocks base method.
-func (m *MockService) GetID() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetID")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// GetID indicates an expected call of GetID.
-func (mr *MockServiceMockRecorder) GetID() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockService)(nil).GetID))
-}
-
-// GetSignature mocks base method.
-func (m *MockService) GetSignature(endpoint, timestamp string) string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSignature", endpoint, timestamp)
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// GetSignature indicates an expected call of GetSignature.
-func (mr *MockServiceMockRecorder) GetSignature(endpoint, timestamp interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSignature", reflect.TypeOf((*MockService)(nil).GetSignature), endpoint, timestamp)
-}
-
-// GetTimestamp mocks base method.
+// GetTimestamp mocks base method
 func (m *MockService) GetTimestamp(t time.Time) string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTimestamp", t)
@@ -70,8 +41,36 @@ func (m *MockService) GetTimestamp(t time.Time) string {
 	return ret0
 }
 
-// GetTimestamp indicates an expected call of GetTimestamp.
+// GetTimestamp indicates an expected call of GetTimestamp
 func (mr *MockServiceMockRecorder) GetTimestamp(t interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTimestamp", reflect.TypeOf((*MockService)(nil).GetTimestamp), t)
+}
+
+// GetSignature mocks base method
+func (m *MockService) GetSignature(endpoint, timestamp string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSignature", endpoint, timestamp)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetSignature indicates an expected call of GetSignature
+func (mr *MockServiceMockRecorder) GetSignature(endpoint, timestamp interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSignature", reflect.TypeOf((*MockService)(nil).GetSignature), endpoint, timestamp)
+}
+
+// GetID mocks base method
+func (m *MockService) GetID() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetID")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetID indicates an expected call of GetID
+func (mr *MockServiceMockRecorder) GetID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockService)(nil).GetID))
 }

@@ -116,11 +116,11 @@ var _ = Describe("Service", func() {
 
 			It("should return an error including status code and body", func() {
 				Expect(response.Err).To(HaveOccurred())
-				Expect(response.Err.Error()).To(
+				Expect(response.Err.Error()).To(And(
 					ContainSubstring("status code"),
 					ContainSubstring(fmt.Sprint(http.StatusInternalServerError)),
 					ContainSubstring("boom"),
-				)
+				))
 			})
 
 			It("should have the same Id as the request", func() {

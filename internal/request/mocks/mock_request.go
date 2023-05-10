@@ -5,38 +5,37 @@
 package mock
 
 import (
-	http "net/http"
-	reflect "reflect"
-
 	models "github.com/JackStillwell/GoRez/internal/request/models"
 	gomock "github.com/golang/mock/gomock"
 	uuid "github.com/google/uuid"
+	http "net/http"
+	reflect "reflect"
 )
 
-// MockHTTPGet is a mock of HTTPGet interface.
+// MockHTTPGet is a mock of HTTPGet interface
 type MockHTTPGet struct {
 	ctrl     *gomock.Controller
 	recorder *MockHTTPGetMockRecorder
 }
 
-// MockHTTPGetMockRecorder is the mock recorder for MockHTTPGet.
+// MockHTTPGetMockRecorder is the mock recorder for MockHTTPGet
 type MockHTTPGetMockRecorder struct {
 	mock *MockHTTPGet
 }
 
-// NewMockHTTPGet creates a new mock instance.
+// NewMockHTTPGet creates a new mock instance
 func NewMockHTTPGet(ctrl *gomock.Controller) *MockHTTPGet {
 	mock := &MockHTTPGet{ctrl: ctrl}
 	mock.recorder = &MockHTTPGetMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockHTTPGet) EXPECT() *MockHTTPGetMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method.
+// Get mocks base method
 func (m *MockHTTPGet) Get(url string) (*http.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", url)
@@ -45,36 +44,48 @@ func (m *MockHTTPGet) Get(url string) (*http.Response, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
+// Get indicates an expected call of Get
 func (mr *MockHTTPGetMockRecorder) Get(url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockHTTPGet)(nil).Get), url)
 }
 
-// MockService is a mock of Service interface.
+// MockService is a mock of Service interface
 type MockService struct {
 	ctrl     *gomock.Controller
 	recorder *MockServiceMockRecorder
 }
 
-// MockServiceMockRecorder is the mock recorder for MockService.
+// MockServiceMockRecorder is the mock recorder for MockService
 type MockServiceMockRecorder struct {
 	mock *MockService
 }
 
-// NewMockService creates a new mock instance.
+// NewMockService creates a new mock instance
 func NewMockService(ctrl *gomock.Controller) *MockService {
 	mock := &MockService{ctrl: ctrl}
 	mock.recorder = &MockServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
-// GetResponse mocks base method.
+// MakeRequest mocks base method
+func (m *MockService) MakeRequest(arg0 *models.Request) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "MakeRequest", arg0)
+}
+
+// MakeRequest indicates an expected call of MakeRequest
+func (mr *MockServiceMockRecorder) MakeRequest(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRequest", reflect.TypeOf((*MockService)(nil).MakeRequest), arg0)
+}
+
+// GetResponse mocks base method
 func (m *MockService) GetResponse(arg0 *uuid.UUID) *models.RequestResponse {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetResponse", arg0)
@@ -82,25 +93,13 @@ func (m *MockService) GetResponse(arg0 *uuid.UUID) *models.RequestResponse {
 	return ret0
 }
 
-// GetResponse indicates an expected call of GetResponse.
+// GetResponse indicates an expected call of GetResponse
 func (mr *MockServiceMockRecorder) GetResponse(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponse", reflect.TypeOf((*MockService)(nil).GetResponse), arg0)
 }
 
-// MakeRequest mocks base method.
-func (m *MockService) MakeRequest(arg0 *models.Request) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "MakeRequest", arg0)
-}
-
-// MakeRequest indicates an expected call of MakeRequest.
-func (mr *MockServiceMockRecorder) MakeRequest(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRequest", reflect.TypeOf((*MockService)(nil).MakeRequest), arg0)
-}
-
-// Request mocks base method.
+// Request mocks base method
 func (m *MockService) Request(arg0 *models.Request) *models.RequestResponse {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Request", arg0)
@@ -108,36 +107,48 @@ func (m *MockService) Request(arg0 *models.Request) *models.RequestResponse {
 	return ret0
 }
 
-// Request indicates an expected call of Request.
+// Request indicates an expected call of Request
 func (mr *MockServiceMockRecorder) Request(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Request", reflect.TypeOf((*MockService)(nil).Request), arg0)
 }
 
-// MockRequestManager is a mock of RequestManager interface.
+// MockRequestManager is a mock of RequestManager interface
 type MockRequestManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockRequestManagerMockRecorder
 }
 
-// MockRequestManagerMockRecorder is the mock recorder for MockRequestManager.
+// MockRequestManagerMockRecorder is the mock recorder for MockRequestManager
 type MockRequestManagerMockRecorder struct {
 	mock *MockRequestManager
 }
 
-// NewMockRequestManager creates a new mock instance.
+// NewMockRequestManager creates a new mock instance
 func NewMockRequestManager(ctrl *gomock.Controller) *MockRequestManager {
 	mock := &MockRequestManager{ctrl: ctrl}
 	mock.recorder = &MockRequestManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockRequestManager) EXPECT() *MockRequestManagerMockRecorder {
 	return m.recorder
 }
 
-// GetResponse mocks base method.
+// MakeRequest mocks base method
+func (m *MockRequestManager) MakeRequest(arg0 *models.Request) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "MakeRequest", arg0)
+}
+
+// MakeRequest indicates an expected call of MakeRequest
+func (mr *MockRequestManagerMockRecorder) MakeRequest(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRequest", reflect.TypeOf((*MockRequestManager)(nil).MakeRequest), arg0)
+}
+
+// GetResponse mocks base method
 func (m *MockRequestManager) GetResponse(arg0 *uuid.UUID) *models.RequestResponse {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetResponse", arg0)
@@ -145,48 +156,36 @@ func (m *MockRequestManager) GetResponse(arg0 *uuid.UUID) *models.RequestRespons
 	return ret0
 }
 
-// GetResponse indicates an expected call of GetResponse.
+// GetResponse indicates an expected call of GetResponse
 func (mr *MockRequestManagerMockRecorder) GetResponse(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponse", reflect.TypeOf((*MockRequestManager)(nil).GetResponse), arg0)
 }
 
-// MakeRequest mocks base method.
-func (m *MockRequestManager) MakeRequest(arg0 *models.Request) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "MakeRequest", arg0)
-}
-
-// MakeRequest indicates an expected call of MakeRequest.
-func (mr *MockRequestManagerMockRecorder) MakeRequest(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRequest", reflect.TypeOf((*MockRequestManager)(nil).MakeRequest), arg0)
-}
-
-// MockRequester is a mock of Requester interface.
+// MockRequester is a mock of Requester interface
 type MockRequester struct {
 	ctrl     *gomock.Controller
 	recorder *MockRequesterMockRecorder
 }
 
-// MockRequesterMockRecorder is the mock recorder for MockRequester.
+// MockRequesterMockRecorder is the mock recorder for MockRequester
 type MockRequesterMockRecorder struct {
 	mock *MockRequester
 }
 
-// NewMockRequester creates a new mock instance.
+// NewMockRequester creates a new mock instance
 func NewMockRequester(ctrl *gomock.Controller) *MockRequester {
 	mock := &MockRequester{ctrl: ctrl}
 	mock.recorder = &MockRequesterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockRequester) EXPECT() *MockRequesterMockRecorder {
 	return m.recorder
 }
 
-// Request mocks base method.
+// Request mocks base method
 func (m *MockRequester) Request(arg0 *models.Request) *models.RequestResponse {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Request", arg0)
@@ -194,7 +193,7 @@ func (m *MockRequester) Request(arg0 *models.Request) *models.RequestResponse {
 	return ret0
 }
 
-// Request indicates an expected call of Request.
+// Request indicates an expected call of Request
 func (mr *MockRequesterMockRecorder) Request(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Request", reflect.TypeOf((*MockRequester)(nil).Request), arg0)
