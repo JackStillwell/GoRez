@@ -19,6 +19,22 @@ type service struct {
 	lock          *sync.RWMutex
 }
 
+func (s *service) setResponseChan(id uuid.UUID, respChan chan *m.RequestResponse) {
+	s.lock.Lock()
+	if respChan == nil {
+		delete(s.responseChans, id)
+	}
+	s.responseChans[id] = respChan
+	s.lock.Unlock()
+}
+
+func (s *service) getResponseChan(id uuid.UUID) (chan *m.RequestResponse, bool) {
+	s.lock.RLock()
+	retVal, ok := s.responseChans[id]
+	s.lock.RUnlock()
+	return retVal, ok
+}
+
 func NewService(capacity int) i.Service {
 	return &service{
 		responseChans: make(map[uuid.UUID]chan *m.RequestResponse, capacity),
@@ -68,33 +84,27 @@ func (s *service) MakeRequest(req *m.Request) {
 	go func(s *service, req *m.Request) {
 		log.Printf("making request %s\n", req.Id.String())
 		s.ensureResponseChan(*req.Id)
-		s.lock.Lock()
-		s.responseChans[*req.Id] <- s.Request(req)
-		s.lock.Unlock()
+		respChan, _ := s.getResponseChan(*req.Id)
+		respChan <- s.Request(req)
 		log.Printf("response stored %s\n", req.Id.String())
 	}(s, req)
 }
 
 func (s *service) GetResponse(id *uuid.UUID) *m.RequestResponse {
 	defer func() {
-		s.lock.Lock()
-		delete(s.responseChans, *id)
-		s.lock.Unlock()
+		s.setResponseChan(*id, nil)
 	}()
 	defer log.Printf("response returned %s\n", id.String())
 	s.ensureResponseChan(*id)
 	log.Printf("returning response %s\n", id.String())
 
-	s.lock.Lock()
-	retVal := <-s.responseChans[*id]
-	s.lock.Unlock()
-	return retVal
+	respChan, _ := s.getResponseChan(*id)
+	return <-respChan
 }
 
 func (s *service) ensureResponseChan(id uuid.UUID) {
-	s.lock.Lock()
-	if _, ok := s.responseChans[id]; !ok {
-		s.responseChans[id] = make(chan *m.RequestResponse, 1)
+	_, ok := s.getResponseChan(id)
+	if !ok {
+		s.setResponseChan(id, make(chan *m.RequestResponse, 1))
 	}
-	s.lock.Unlock()
 }
