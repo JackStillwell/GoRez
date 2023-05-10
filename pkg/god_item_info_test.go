@@ -130,7 +130,7 @@ var _ = Describe("GodItemInfo", func() {
 		})
 
 		Context("multirequest via GetGodRecItems", func() {
-			FIt("should remove a bad session", func(ctx SpecContext) {
+			It("should remove a bad session", func(ctx SpecContext) {
 				testServer := httptest.NewServer(http.HandlerFunc(
 					func(rw http.ResponseWriter, r *http.Request) {
 						rw.WriteHeader(http.StatusInternalServerError)
