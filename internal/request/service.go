@@ -103,9 +103,10 @@ func (s *service) GetResponse(id *uuid.UUID) *m.RequestResponse {
 	}()
 	defer log.Printf("response returned %s\n", id.String())
 	s.ensureResponseChan(*id)
-	log.Printf("returning response %s\n", id.String())
+	log.Printf("retrieving response %s\n", id.String())
 
 	respChan, _ := s.getResponseChan(*id)
+	log.Printf("waiting for response %s\n", id.String())
 	return <-respChan
 }
 
