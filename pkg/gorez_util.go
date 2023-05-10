@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 
@@ -39,7 +40,11 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 ) ([][]byte, []error) {
 	numRequests := len(requestBuilders)
 	uIDs := make(chan *uuid.UUID, numRequests)
+
+	sessionMapLock := sync.Mutex{}
 	uIDSessionMap := make(map[*uuid.UUID]*sessionM.Session, numRequests)
+
+	responseMapLock := sync.Mutex{}
 	uIDResponseIdxMap := make(map[*uuid.UUID]int, numRequests)
 
 	// NOTE: this is async so the reservation and release of sessions is possible, but the func
@@ -56,8 +61,14 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 
 			uID := uuid.New()
 			r.Id = &uID
+
+			sessionMapLock.Lock()
 			uIDSessionMap[&uID] = s
+			sessionMapLock.Unlock()
+
+			responseMapLock.Lock()
 			uIDResponseIdxMap[&uID] = i
+			responseMapLock.Unlock()
 
 			g.rqstSvc.MakeRequest(r)
 			uIDs <- &uID
@@ -68,19 +79,29 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	errs := make([]error, numRequests)
 	for i := 0; i < numRequests; i++ {
 		uID := <-uIDs
+
+		responseMapLock.Lock()
 		idx := uIDResponseIdxMap[uID]
+		responseMapLock.Unlock()
+
 		resp := g.rqstSvc.GetResponse(uID)
 		if resp.Err != nil {
 			if strings.Contains(resp.Err.Error(), "session") {
+				sessionMapLock.Lock()
 				g.sesnSvc.BadSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
+				sessionMapLock.Unlock()
 			} else {
+				sessionMapLock.Lock()
 				g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
+				sessionMapLock.Unlock()
 			}
 			errs[idx] = fmt.Errorf("request: %w", resp.Err)
 			continue
 		}
 
+		sessionMapLock.Lock()
 		g.sesnSvc.ReleaseSession([]*sessionM.Session{uIDSessionMap[resp.Id]})
+		sessionMapLock.Unlock()
 
 		responses[idx] = resp.Resp
 	}
