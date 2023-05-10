@@ -68,13 +68,19 @@ func (s *service) MakeRequest(req *m.Request) {
 	go func(s *service, req *m.Request) {
 		log.Printf("making request %s\n", req.Id.String())
 		s.ensureResponseChan(*req.Id)
+		s.lock.Lock()
 		s.responseChans[*req.Id] <- s.Request(req)
+		s.lock.Unlock()
 		log.Printf("response stored %s\n", req.Id.String())
 	}(s, req)
 }
 
 func (s *service) GetResponse(id *uuid.UUID) *m.RequestResponse {
-	defer delete(s.responseChans, *id)
+	defer func() {
+		s.lock.Lock()
+		delete(s.responseChans, *id)
+		s.lock.Unlock()
+	}()
 	defer log.Printf("response returned %s\n", id.String())
 	s.ensureResponseChan(*id)
 	log.Printf("returning response %s\n", id.String())
