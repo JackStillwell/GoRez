@@ -155,6 +155,9 @@ func NewGorez(auth_path string, sessionCache i.SessionCache) (i.GoRez, error) {
 }
 
 func (gr *g) createSessions(numSessions int) error {
+	if numSessions <= 0 {
+		return nil
+	}
 	log.Printf("creating %d sessions", numSessions)
 	sessions, errs := gr.APIUtil.CreateSession(numSessions)
 	errCount := 0
