@@ -2,10 +2,10 @@ package gorez
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
@@ -69,7 +69,7 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 		resp := a.rqstSvc.GetResponse(&uIDs[i])
 		if resp.Err != nil {
 			sessions = append(sessions, nil)
-			errs = append(errs, errors.Wrap(resp.Err, "request"))
+			errs = append(errs, fmt.Errorf("request: %w", resp.Err))
 			continue
 		}
 
@@ -77,7 +77,16 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 		err := json.Unmarshal(resp.Resp, session)
 		if err != nil {
 			sessions = append(sessions, nil)
-			errs = append(errs, errors.Wrap(err, "unmarshal response"))
+			errs = append(errs, fmt.Errorf("unmarshal response: %w", err))
+			continue
+		}
+		if session.SessionID == nil || *session.SessionID == "" {
+			retMsg := "empty ret_msg"
+			if session.RetMsg != nil && *session.RetMsg != "" {
+				retMsg = *session.RetMsg
+			}
+			sessions = append(sessions, nil)
+			errs = append(errs, fmt.Errorf("creating session: %s", retMsg))
 			continue
 		}
 
@@ -113,7 +122,7 @@ func (a *apiUtil) TestSession(sessionKeys []string) ([]*string, []error) {
 	for i := 0; i < len(sessionKeys); i++ {
 		resp := a.rqstSvc.GetResponse(&uIDs[i])
 		if resp.Err != nil {
-			errs = append(errs, errors.Wrap(resp.Err, "request"))
+			errs = append(errs, fmt.Errorf("request: %w", resp.Err))
 			continue
 		}
 
@@ -149,13 +158,13 @@ func (a *apiUtil) GetDataUsed() (*m.UsageInfo, error) {
 
 	resp := a.rqstSvc.Request(&r)
 	if resp.Err != nil {
-		return nil, errors.Wrap(resp.Err, "request")
+		return nil, fmt.Errorf("request: %w", resp.Err)
 	}
 
 	uI := &m.UsageInfo{}
 	err := json.Unmarshal(resp.Resp, uI)
 	if err != nil {
-		return nil, errors.Wrap(err, "unmarshaling response")
+		return nil, fmt.Errorf("unmarshaling response: %w", err)
 	}
 
 	return uI, nil
