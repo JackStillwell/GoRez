@@ -16,6 +16,24 @@ type service struct {
 	lock              sync.Mutex
 }
 
+func (s *service) addReservedSession(sess *m.Session) {
+	log.Println("waiting for reserved session lock")
+	s.lock.Lock()
+	log.Println("reserved session lock acquired")
+	s.reservedSessions[sess] = struct{}{}
+	log.Println("releasing reserved session lock")
+	s.lock.Unlock()
+}
+
+func (s *service) removeReservedSession(sess *m.Session) {
+	log.Println("waiting for reserved session lock")
+	s.lock.Lock()
+	log.Println("reserved session lock acquired")
+	delete(s.reservedSessions, sess)
+	log.Println("releasing reserved session lock")
+	s.lock.Unlock()
+}
+
 func NewService(maxSessions int, existingSessions []*m.Session) i.Service {
 	if len(existingSessions) > maxSessions {
 		panic(fmt.Sprintf(
@@ -53,20 +71,16 @@ func (s *service) ReserveSession(numSessions int, retChan chan *m.Session) {
 	log.Printf("reserving %d of %d available sessions", numSessions, len(s.availableSessions))
 	for i := 0; i < numSessions; i++ {
 		toReturn := <-s.availableSessions
-		s.lock.Lock()
-		s.reservedSessions[toReturn] = struct{}{}
-		s.lock.Unlock()
+		s.addReservedSession(toReturn)
 		retChan <- toReturn
 		log.Printf("%d of %d sessions reserved", i+1, numSessions)
 	}
 }
 
 func (s *service) ReleaseSession(sessions []*m.Session) {
-	s.lock.Lock()
 	for _, session := range sessions {
-		delete(s.reservedSessions, session)
+		s.removeReservedSession(session)
 	}
-	s.lock.Unlock()
 
 	for i := range sessions {
 		s.availableSessions <- sessions[i]
@@ -74,9 +88,7 @@ func (s *service) ReleaseSession(sessions []*m.Session) {
 }
 
 func (s *service) BadSession(sessions []*m.Session) {
-	s.lock.Lock()
 	for _, session := range sessions {
-		delete(s.reservedSessions, session)
+		s.removeReservedSession(session)
 	}
-	s.lock.Unlock()
 }
