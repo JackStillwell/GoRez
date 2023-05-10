@@ -29,8 +29,6 @@ import (
 // manages limits and sessions
 // is the recommended way for people to interact with the package
 
-const NUM_SESSIONS = 40
-
 type svc struct {
 	AuthSvc    authI.Service
 	RequestSvc requestI.Service
@@ -136,8 +134,8 @@ func NewGorez(auth_path string, sessionCache i.SessionCache) (i.GoRez, error) {
 
 	s := &svc{
 		AuthSvc:    auth.NewService(authM.Auth{ID: lines[0], Key: lines[1]}),
-		RequestSvc: request.NewService(NUM_SESSIONS),
-		SessionSvc: session.NewService(NUM_SESSIONS, nil),
+		RequestSvc: request.NewService(50),
+		SessionSvc: session.NewService(50, nil),
 	}
 
 	util := NewGorezUtil(s.AuthSvc, s.RequestSvc, s.SessionSvc)
@@ -177,7 +175,7 @@ func (gr *g) createSessions(numSessions int) error {
 	return nil
 }
 
-func (gr *g) Init() error {
+func (gr *g) Init(numSessions int) error {
 
 	// get stored sessions
 	existingSessions, err := gr.sessionCache.ReadSessions()
@@ -199,7 +197,7 @@ func (gr *g) Init() error {
 				created, err := time.ParseInLocation("1/2/2006 3:04:05 PM",
 					*existingSessions[i].Timestamp, time.UTC)
 				if err != nil {
-					log.Println("unexpected error parsing session timestamp: %s", err.Error())
+					log.Printf("unexpected error parsing session timestamp: %s", err.Error())
 					continue
 				}
 				validSessions = append(validSessions, &sessionM.Session{
@@ -213,7 +211,7 @@ func (gr *g) Init() error {
 	}
 
 	gr.SessionSvc.ReleaseSession(validSessions)
-	if err := gr.createSessions(NUM_SESSIONS - len(validSessions)); err != nil {
+	if err := gr.createSessions(numSessions - len(validSessions)); err != nil {
 		return fmt.Errorf("creating sessions: %w", err)
 	}
 
