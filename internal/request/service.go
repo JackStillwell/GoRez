@@ -84,7 +84,11 @@ func (s *service) GetResponse(id *uuid.UUID) *m.RequestResponse {
 	defer log.Printf("response returned %s\n", id.String())
 	s.ensureResponseChan(*id)
 	log.Printf("returning response %s\n", id.String())
-	return <-s.responseChans[*id]
+
+	s.lock.Lock()
+	retVal := <-s.responseChans[*id]
+	s.lock.Unlock()
+	return retVal
 }
 
 func (s *service) ensureResponseChan(id uuid.UUID) {
