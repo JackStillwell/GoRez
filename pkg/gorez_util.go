@@ -41,7 +41,7 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	numRequests := len(requestBuilders)
 	uIDs := make(chan *uuid.UUID, numRequests)
 
-	sessionMapLock := sync.Mutex{}
+	sessionMapLock := sync.RWMutex{}
 	uIDSessionMap := make(map[*uuid.UUID]*sessionM.Session, numRequests)
 	getSession := func(uID *uuid.UUID) *sessionM.Session {
 		log.Println("waiting for session map lock")
@@ -54,11 +54,11 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	}
 	setSession := func(uID *uuid.UUID, sess *sessionM.Session) {
 		log.Println("waiting for session map lock")
-		sessionMapLock.Lock()
+		sessionMapLock.RLock()
 		log.Println("session map lock acquired")
 		uIDSessionMap[uID] = sess
 		log.Println("releasing session map lock")
-		sessionMapLock.Unlock()
+		sessionMapLock.RUnlock()
 	}
 
 	responseMapLock := sync.RWMutex{}
