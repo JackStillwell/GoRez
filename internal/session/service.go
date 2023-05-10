@@ -53,7 +53,9 @@ func (s *service) ReserveSession(numSessions int, retChan chan *m.Session) {
 	log.Printf("reserving %d of %d available sessions", numSessions, len(s.availableSessions))
 	for i := 0; i < numSessions; i++ {
 		toReturn := <-s.availableSessions
+		s.lock.Lock()
 		s.reservedSessions[toReturn] = struct{}{}
+		s.lock.Unlock()
 		retChan <- toReturn
 		log.Printf("%d of %d sessions reserved", i+1, numSessions)
 	}
