@@ -151,7 +151,7 @@ var _ = Describe("GodItemInfo", func() {
 				))
 
 				Expect(sesnSvc.GetAvailableSessions()).To(HaveLen(0))
-			}, SpecTimeout(5*time.Second))
+			}, NodeTimeout(5*time.Second))
 
 			It("should return a good session", func() {
 				testServer := httptest.NewServer(http.HandlerFunc(

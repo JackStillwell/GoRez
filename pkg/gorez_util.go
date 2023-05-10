@@ -111,6 +111,7 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 
 		idx := getResponseIdx(uID)
 
+		log.Printf("bulk async waiting for response %s", uID.String())
 		resp := g.rqstSvc.GetResponse(uID)
 		sess := getSession(resp.Id)
 		if resp.Err != nil {

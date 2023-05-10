@@ -16,36 +16,36 @@ import (
 
 type service struct {
 	responseChans map[uuid.UUID]chan *m.RequestResponse
-	lock          *sync.RWMutex
+	lock          *sync.Mutex
 }
 
-func (s *service) setResponseChan(id uuid.UUID, respChan chan *m.RequestResponse) {
+func (s *service) delResponseChan(id uuid.UUID) {
 	log.Println("waiting for response chan lock")
 	s.lock.Lock()
 	log.Println("response chan lock acquired")
-	if respChan == nil {
-		delete(s.responseChans, id)
-	} else {
-		s.responseChans[id] = respChan
-	}
+	delete(s.responseChans, id)
 	log.Println("releasing response chan lock")
 	s.lock.Unlock()
 }
 
-func (s *service) getResponseChan(id uuid.UUID) (chan *m.RequestResponse, bool) {
+func (s *service) getResponseChan(id uuid.UUID) chan *m.RequestResponse {
 	log.Println("waiting for response chan lock")
-	s.lock.RLock()
+	s.lock.Lock()
 	log.Println("response chan lock acquired")
 	retVal, ok := s.responseChans[id]
+	if !ok {
+		retVal = make(chan *m.RequestResponse, 1)
+		s.responseChans[id] = retVal
+	}
 	log.Println("releasing response chan lock")
-	s.lock.RUnlock()
-	return retVal, ok
+	s.lock.Unlock()
+	return retVal
 }
 
 func NewService(capacity int) i.Service {
 	return &service{
 		responseChans: make(map[uuid.UUID]chan *m.RequestResponse, capacity),
-		lock:          &sync.RWMutex{},
+		lock:          &sync.Mutex{},
 	}
 }
 
@@ -90,8 +90,7 @@ func (s *service) Request(rqst *m.Request) (rr *m.RequestResponse) {
 func (s *service) MakeRequest(req *m.Request) {
 	go func(s *service, req *m.Request) {
 		log.Printf("making request %s\n", req.Id.String())
-		s.ensureResponseChan(*req.Id)
-		respChan, _ := s.getResponseChan(*req.Id)
+		respChan := s.getResponseChan(*req.Id)
 		respChan <- s.Request(req)
 		log.Printf("response stored %s\n", req.Id.String())
 	}(s, req)
@@ -99,20 +98,10 @@ func (s *service) MakeRequest(req *m.Request) {
 
 func (s *service) GetResponse(id *uuid.UUID) *m.RequestResponse {
 	defer func() {
-		s.setResponseChan(*id, nil)
+		s.delResponseChan(*id)
 	}()
 	defer log.Printf("response returned %s\n", id.String())
-	s.ensureResponseChan(*id)
-	log.Printf("retrieving response %s\n", id.String())
 
-	respChan, _ := s.getResponseChan(*id)
-	log.Printf("waiting for response %s\n", id.String())
+	respChan := s.getResponseChan(*id)
 	return <-respChan
-}
-
-func (s *service) ensureResponseChan(id uuid.UUID) {
-	_, ok := s.getResponseChan(id)
-	if !ok {
-		s.setResponseChan(id, make(chan *m.RequestResponse, 1))
-	}
 }
