@@ -211,7 +211,11 @@ func (gr *g) Init(numSessions int) error {
 	}
 
 	gr.SessionSvc.ReleaseSession(validSessions)
-	if err := gr.createSessions(numSessions - len(validSessions)); err != nil {
+	numToCreate := numSessions - len(validSessions)
+	if numToCreate < 0 {
+		numToCreate = 0
+	}
+	if err := gr.createSessions(numToCreate); err != nil {
 		return fmt.Errorf("creating sessions: %w", err)
 	}
 
