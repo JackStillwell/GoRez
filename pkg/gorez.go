@@ -42,6 +42,7 @@ type g struct {
 	i.PlayerInfo
 	i.MatchInfo
 	sessionCache i.SessionCache
+	numSessions  int
 }
 
 func hirezToInternalSessions(internalSessions []*m.Session) []*sessionM.Session {
@@ -121,7 +122,7 @@ func (localSessionCache) SaveSessions(sessions []*m.Session) error {
 	return nil
 }
 
-func NewGorez(auth_path string, sessionCache i.SessionCache) (i.GoRez, error) {
+func NewGorez(auth_path string, sessionCache i.SessionCache, numSessions int) (i.GoRez, error) {
 	contents, err := os.ReadFile(auth_path)
 	if err != nil {
 		return nil, fmt.Errorf("reading file: %w", err)
@@ -134,8 +135,8 @@ func NewGorez(auth_path string, sessionCache i.SessionCache) (i.GoRez, error) {
 
 	s := &svc{
 		AuthSvc:    auth.NewService(authM.Auth{ID: lines[0], Key: lines[1]}),
-		RequestSvc: request.NewService(50),
-		SessionSvc: session.NewService(50, nil),
+		RequestSvc: request.NewService(numSessions),
+		SessionSvc: session.NewService(numSessions, nil),
 	}
 
 	util := NewGorezUtil(s.AuthSvc, s.RequestSvc, s.SessionSvc)
@@ -151,6 +152,7 @@ func NewGorez(auth_path string, sessionCache i.SessionCache) (i.GoRez, error) {
 		PlayerInfo:   NewPlayerInfo(s.RequestSvc, s.AuthSvc, s.SessionSvc),
 		MatchInfo:    NewMatchInfo(s.RequestSvc, s.AuthSvc, s.SessionSvc),
 		sessionCache: sessionCache,
+		numSessions:  numSessions,
 	}, nil
 }
 
@@ -178,7 +180,7 @@ func (gr *g) createSessions(numSessions int) error {
 	return nil
 }
 
-func (gr *g) Init(numSessions int) error {
+func (gr *g) Init() error {
 
 	// get stored sessions
 	existingSessions, err := gr.sessionCache.ReadSessions()
@@ -214,7 +216,7 @@ func (gr *g) Init(numSessions int) error {
 	}
 
 	gr.SessionSvc.ReleaseSession(validSessions)
-	numToCreate := numSessions - len(validSessions)
+	numToCreate := gr.numSessions - len(validSessions)
 	if numToCreate < 0 {
 		numToCreate = 0
 	}

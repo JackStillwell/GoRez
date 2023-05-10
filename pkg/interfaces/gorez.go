@@ -5,7 +5,7 @@ import m "github.com/JackStillwell/GoRez/pkg/models"
 //go:generate mockgen --source=gorez.go --destination=../mocks/mock_gorez.go --package=mock
 
 type GoRez interface {
-	Init(numSessions int) error
+	Init() error
 	Shutdown()
 	GodItemInfo
 	PlayerInfo

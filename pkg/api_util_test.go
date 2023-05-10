@@ -65,13 +65,16 @@ var _ = Describe("ApiUtil", func() {
 
 						Expect(r.URL.Path).To(Equal("/createsessionjson/id/signature/timestamp"))
 						w.WriteHeader(http.StatusOK)
-						w.Write([]byte("{}"))
+						w.Write([]byte("{\"ret_msg\": \"Approved\", \"session_id\": \"session_id\"}"))
 					},
 				)
 
+				retMsg := "Approved"
+				sessionId := "session_id"
+				sess := &m.Session{RetMsg: &retMsg, SessionID: &sessionId}
 				sessions, errs := target.CreateSession(3)
 				Expect(errs).To(ConsistOf(BeNil(), BeNil(), BeNil()))
-				Expect(sessions).To(ConsistOf(&m.Session{}, &m.Session{}, &m.Session{}))
+				Expect(sessions).To(ConsistOf(sess, sess, sess))
 			})
 		})
 	})

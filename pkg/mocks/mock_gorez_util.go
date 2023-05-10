@@ -5,37 +5,37 @@
 package mock
 
 import (
-	reflect "reflect"
-
 	models "github.com/JackStillwell/GoRez/internal/request/models"
 	models0 "github.com/JackStillwell/GoRez/internal/session/models"
+	models1 "github.com/JackStillwell/GoRez/pkg/models"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
-// MockGorezUtil is a mock of GorezUtil interface.
+// MockGorezUtil is a mock of GorezUtil interface
 type MockGorezUtil struct {
 	ctrl     *gomock.Controller
 	recorder *MockGorezUtilMockRecorder
 }
 
-// MockGorezUtilMockRecorder is the mock recorder for MockGorezUtil.
+// MockGorezUtilMockRecorder is the mock recorder for MockGorezUtil
 type MockGorezUtilMockRecorder struct {
 	mock *MockGorezUtil
 }
 
-// NewMockGorezUtil creates a new mock instance.
+// NewMockGorezUtil creates a new mock instance
 func NewMockGorezUtil(ctrl *gomock.Controller) *MockGorezUtil {
 	mock := &MockGorezUtil{ctrl: ctrl}
 	mock.recorder = &MockGorezUtilMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockGorezUtil) EXPECT() *MockGorezUtilMockRecorder {
 	return m.recorder
 }
 
-// BulkAsyncSessionRequest mocks base method.
+// BulkAsyncSessionRequest mocks base method
 func (m *MockGorezUtil) BulkAsyncSessionRequest(arg0 []func(*models0.Session) *models.Request) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkAsyncSessionRequest", arg0)
@@ -44,13 +44,13 @@ func (m *MockGorezUtil) BulkAsyncSessionRequest(arg0 []func(*models0.Session) *m
 	return ret0, ret1
 }
 
-// BulkAsyncSessionRequest indicates an expected call of BulkAsyncSessionRequest.
+// BulkAsyncSessionRequest indicates an expected call of BulkAsyncSessionRequest
 func (mr *MockGorezUtilMockRecorder) BulkAsyncSessionRequest(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkAsyncSessionRequest", reflect.TypeOf((*MockGorezUtil)(nil).BulkAsyncSessionRequest), arg0)
 }
 
-// MultiRequest mocks base method.
+// MultiRequest mocks base method
 func (m *MockGorezUtil) MultiRequest(requestArgs []string, endpoint, method string) ([][]byte, []error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MultiRequest", requestArgs, endpoint, method)
@@ -59,13 +59,13 @@ func (m *MockGorezUtil) MultiRequest(requestArgs []string, endpoint, method stri
 	return ret0, ret1
 }
 
-// MultiRequest indicates an expected call of MultiRequest.
+// MultiRequest indicates an expected call of MultiRequest
 func (mr *MockGorezUtilMockRecorder) MultiRequest(requestArgs, endpoint, method interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MultiRequest", reflect.TypeOf((*MockGorezUtil)(nil).MultiRequest), requestArgs, endpoint, method)
 }
 
-// SingleRequest mocks base method.
+// SingleRequest mocks base method
 func (m *MockGorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SingleRequest", url, endpoint, endpointArgs)
@@ -74,8 +74,60 @@ func (m *MockGorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byt
 	return ret0, ret1
 }
 
-// SingleRequest indicates an expected call of SingleRequest.
+// SingleRequest indicates an expected call of SingleRequest
 func (mr *MockGorezUtilMockRecorder) SingleRequest(url, endpoint, endpointArgs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SingleRequest", reflect.TypeOf((*MockGorezUtil)(nil).SingleRequest), url, endpoint, endpointArgs)
+}
+
+// MockSessionCache is a mock of SessionCache interface
+type MockSessionCache struct {
+	ctrl     *gomock.Controller
+	recorder *MockSessionCacheMockRecorder
+}
+
+// MockSessionCacheMockRecorder is the mock recorder for MockSessionCache
+type MockSessionCacheMockRecorder struct {
+	mock *MockSessionCache
+}
+
+// NewMockSessionCache creates a new mock instance
+func NewMockSessionCache(ctrl *gomock.Controller) *MockSessionCache {
+	mock := &MockSessionCache{ctrl: ctrl}
+	mock.recorder = &MockSessionCacheMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockSessionCache) EXPECT() *MockSessionCacheMockRecorder {
+	return m.recorder
+}
+
+// ReadSessions mocks base method
+func (m *MockSessionCache) ReadSessions() ([]*models1.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadSessions")
+	ret0, _ := ret[0].([]*models1.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadSessions indicates an expected call of ReadSessions
+func (mr *MockSessionCacheMockRecorder) ReadSessions() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadSessions", reflect.TypeOf((*MockSessionCache)(nil).ReadSessions))
+}
+
+// SaveSessions mocks base method
+func (m *MockSessionCache) SaveSessions(arg0 []*models1.Session) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveSessions", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveSessions indicates an expected call of SaveSessions
+func (mr *MockSessionCacheMockRecorder) SaveSessions(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveSessions", reflect.TypeOf((*MockSessionCache)(nil).SaveSessions), arg0)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
@@ -129,7 +130,7 @@ var _ = Describe("GodItemInfo", func() {
 		})
 
 		Context("multirequest via GetGodRecItems", func() {
-			It("should remove a bad session", func() {
+			FIt("should remove a bad session", func(ctx SpecContext) {
 				testServer := httptest.NewServer(http.HandlerFunc(
 					func(rw http.ResponseWriter, r *http.Request) {
 						rw.WriteHeader(http.StatusInternalServerError)
@@ -150,7 +151,7 @@ var _ = Describe("GodItemInfo", func() {
 				))
 
 				Expect(sesnSvc.GetAvailableSessions()).To(HaveLen(0))
-			})
+			}, SpecTimeout(5*time.Second))
 
 			It("should return a good session", func() {
 				testServer := httptest.NewServer(http.HandlerFunc(
