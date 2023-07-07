@@ -12,10 +12,12 @@ import (
 	c "github.com/JackStillwell/GoRez/pkg/constants"
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
+	"go.uber.org/zap"
 
 	auth "github.com/JackStillwell/GoRez/internal/auth"
 	authI "github.com/JackStillwell/GoRez/internal/auth/interfaces"
 	authM "github.com/JackStillwell/GoRez/internal/auth/models"
+	"github.com/JackStillwell/GoRez/internal/base"
 
 	request "github.com/JackStillwell/GoRez/internal/request"
 	requestI "github.com/JackStillwell/GoRez/internal/request/interfaces"
@@ -33,6 +35,7 @@ type svc struct {
 	AuthSvc    authI.Service
 	RequestSvc requestI.Service
 	SessionSvc sessionI.Service
+	b          base.Service
 }
 
 type g struct {
@@ -122,7 +125,7 @@ func (localSessionCache) SaveSessions(sessions []*m.Session) error {
 	return nil
 }
 
-func NewGorez(auth_path string, sessionCache i.SessionCache, numSessions int) (i.GoRez, error) {
+func NewGorez(auth_path string, sessionCache i.SessionCache, numSessions int, logger *zap.Logger) (i.GoRez, error) {
 	contents, err := os.ReadFile(auth_path)
 	if err != nil {
 		return nil, fmt.Errorf("reading file: %w", err)
@@ -133,10 +136,12 @@ func NewGorez(auth_path string, sessionCache i.SessionCache, numSessions int) (i
 			"the second being your dev key")
 	}
 
+	b := base.NewService(logger)
 	s := &svc{
-		AuthSvc:    auth.NewService(authM.Auth{ID: lines[0], Key: lines[1]}),
-		RequestSvc: request.NewService(numSessions),
-		SessionSvc: session.NewService(numSessions, nil),
+		AuthSvc:    auth.NewService(authM.Auth{ID: lines[0], Key: lines[1]}, b),
+		RequestSvc: request.NewService(numSessions, b),
+		SessionSvc: session.NewService(numSessions, nil, b),
+		b:          b,
 	}
 
 	util := NewGorezUtil(s.AuthSvc, s.RequestSvc, s.SessionSvc)
@@ -160,19 +165,20 @@ func (gr *g) createSessions(numSessions int) error {
 	if numSessions <= 0 {
 		return nil
 	}
-	log.Printf("creating %d sessions", numSessions)
+	log := gr.b.GetLogger()
+	log.Info("creating sessions", zap.Int("numSessions", numSessions))
 	sessions, errs := gr.APIUtil.CreateSession(numSessions)
 	errCount := 0
 	for i, e := range errs {
 		if e != nil {
-			log.Printf("error creating session %d: %s", i, e.Error())
+			log.Error("failed creating session", zap.Error(e), zap.Int("sessionNum", i))
 			errCount++
 		}
 	}
 	if errCount == numSessions {
 		return fmt.Errorf("all session creations errored")
 	}
-	log.Println("sessions created")
+	log.Info("sessions created")
 
 	sessionObjs := hirezToInternalSessions(sessions)
 
@@ -181,11 +187,12 @@ func (gr *g) createSessions(numSessions int) error {
 }
 
 func (gr *g) Init() error {
+	log := gr.b.GetLogger()
 
 	// get stored sessions
 	existingSessions, err := gr.sessionCache.ReadSessions()
 	if err != nil {
-		log.Printf("error reading sessions: %s", err.Error())
+		log.Error("failed reading sessions", zap.Error(err))
 	}
 
 	// test sessions
@@ -202,7 +209,8 @@ func (gr *g) Init() error {
 				created, err := time.ParseInLocation("1/2/2006 3:04:05 PM",
 					*existingSessions[i].Timestamp, time.UTC)
 				if err != nil {
-					log.Printf("unexpected error parsing session timestamp: %s", err.Error())
+					log.Error("failure parsing session timestamp", zap.Error(err),
+						zap.String("timestamp", *existingSessions[i].Timestamp))
 					continue
 				}
 				validSessions = append(validSessions, &sessionM.Session{
@@ -211,7 +219,8 @@ func (gr *g) Init() error {
 				})
 			}
 		} else {
-			log.Printf("error testing session %s: %s", *existingSessions[i].SessionID, errs[i].Error())
+			log.Error("failure testing session",
+				zap.String("sessionID", *existingSessions[i].SessionID), zap.Error(errs[i]))
 		}
 	}
 
@@ -229,10 +238,11 @@ func (gr *g) Init() error {
 
 func (gr *g) Shutdown() {
 	// store the sessions here so they're not lost on each run
+	log := gr.b.GetLogger()
 
 	if err := gr.sessionCache.SaveSessions(internalToHirezSessions(
 		gr.SessionSvc.GetAvailableSessions(),
 	)); err != nil {
-		log.Printf("saving sessions: %s", err.Error())
+		log.Error("failure saving sessions", zap.Error(err))
 	}
 }

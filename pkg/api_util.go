@@ -3,7 +3,6 @@ package gorez
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
 
@@ -60,8 +59,6 @@ func (a *apiUtil) CreateSession(numSessions int) ([]*m.Session, []error) {
 		a.rqstSvc.MakeRequest(&r)
 		uIDs = append(uIDs, uID)
 	}
-	log.Println("create session requests made")
-	log.Println("create session request uuids", uIDs)
 
 	sessions := make([]*m.Session, 0, numSessions)
 	errs := make([]error, 0, numSessions)

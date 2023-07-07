@@ -3,7 +3,6 @@ package gorez
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 
@@ -44,40 +43,28 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	sessionMapLock := sync.RWMutex{}
 	uIDSessionMap := make(map[*uuid.UUID]*sessionM.Session, numRequests)
 	getSession := func(uID *uuid.UUID) *sessionM.Session {
-		log.Println("waiting for session map lock")
 		sessionMapLock.Lock()
-		log.Println("session map lock acquired")
 		retVal := uIDSessionMap[uID]
-		log.Println("releasing session map lock")
 		sessionMapLock.Unlock()
 		return retVal
 	}
 	setSession := func(uID *uuid.UUID, sess *sessionM.Session) {
-		log.Println("waiting for session map lock")
 		sessionMapLock.RLock()
-		log.Println("session map lock acquired")
 		uIDSessionMap[uID] = sess
-		log.Println("releasing session map lock")
 		sessionMapLock.RUnlock()
 	}
 
 	responseMapLock := sync.RWMutex{}
 	uIDResponseIdxMap := make(map[*uuid.UUID]int, numRequests)
 	getResponseIdx := func(uID *uuid.UUID) int {
-		log.Println("waiting for responseIdx map lock")
 		responseMapLock.RLock()
-		log.Println("responseIdx map lock acquired")
 		retVal := uIDResponseIdxMap[uID]
-		log.Println("releasing responseIdx map lock")
 		responseMapLock.RUnlock()
 		return retVal
 	}
 	setResponseIdx := func(uID *uuid.UUID, idx int) {
-		log.Println("waiting for responseIdx map lock")
 		responseMapLock.Lock()
-		log.Println("responseIdx map lock acquired")
 		uIDResponseIdxMap[uID] = idx
-		log.Println("releasing responseIdx map lock")
 		responseMapLock.Unlock()
 	}
 
@@ -111,7 +98,6 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 
 		idx := getResponseIdx(uID)
 
-		log.Printf("bulk async waiting for response %s", uID.String())
 		resp := g.rqstSvc.GetResponse(uID)
 		sess := getSession(resp.Id)
 		if resp.Err != nil {
@@ -156,11 +142,9 @@ func (g *gorezUtil) MultiRequest(requestArgs []string, baseURL, method string,
 }
 
 func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, error) {
-	log.Println("reserving session for single request")
 	sesnChan := make(chan *sessionM.Session, 1)
 	g.sesnSvc.ReserveSession(1, sesnChan)
 	s := <-sesnChan
-	log.Println("session reserved for single request")
 
 	sessions := []*sessionM.Session{s}
 	defer g.sesnSvc.ReleaseSession(sessions)
@@ -172,9 +156,7 @@ func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, e
 		),
 	}
 
-	log.Println("making single request")
 	resp := g.rqstSvc.Request(&r)
-	log.Println("single response received")
 
 	if resp.Err != nil {
 		return nil, fmt.Errorf("requesting response: %w", resp.Err)
@@ -186,8 +168,6 @@ func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, e
 		if err != nil {
 			return nil, fmt.Errorf("unmarshaling response ret msg: %w", err)
 		}
-
-		log.Println("single response unmarshaled")
 
 		for i, retMsg := range retMsgs {
 			if retMsg.Msg != nil && *retMsg.Msg != "" {
@@ -201,8 +181,6 @@ func (g *gorezUtil) SingleRequest(url, endpoint, endpointArgs string) ([]byte, e
 		if err != nil {
 			return nil, fmt.Errorf("unmarshaling response ret msg: %w", err)
 		}
-
-		log.Println("single response unmarshaled")
 
 		if retMsg.Msg != nil && *retMsg.Msg != "" {
 			return nil, fmt.Errorf("ret_msg: %s", *retMsg.Msg)

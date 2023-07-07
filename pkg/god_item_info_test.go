@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	gorez "github.com/JackStillwell/GoRez/pkg"
 	c "github.com/JackStillwell/GoRez/pkg/constants"
@@ -19,6 +20,7 @@ import (
 	"github.com/JackStillwell/GoRez/internal/auth"
 	authI "github.com/JackStillwell/GoRez/internal/auth/interfaces"
 	authM "github.com/JackStillwell/GoRez/internal/auth/models"
+	"github.com/JackStillwell/GoRez/internal/base"
 
 	"github.com/JackStillwell/GoRez/internal/request"
 	requestI "github.com/JackStillwell/GoRez/internal/request/interfaces"
@@ -41,15 +43,17 @@ var _ = Describe("GodItemInfo", func() {
 			authSvc authI.Service
 			rqstSvc requestI.Service
 			sesnSvc sessionI.Service
+
+			b = base.NewService(zap.NewNop())
 		)
 
 		BeforeEach(func() {
 			authSvc = auth.NewService(authM.Auth{
 				ID:  "id",
 				Key: "key",
-			})
-			rqstSvc = request.NewService(1)
-			sesnSvc = session.NewService(1, []*sessionM.Session{{}})
+			}, b)
+			rqstSvc = request.NewService(1, b)
+			sesnSvc = session.NewService(1, []*sessionM.Session{{}}, b)
 
 			util = gorez.NewGorezUtil(authSvc, rqstSvc, sesnSvc)
 		})

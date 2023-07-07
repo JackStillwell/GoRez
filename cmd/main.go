@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"strings"
@@ -12,9 +11,15 @@ import (
 
 	gorez "github.com/JackStillwell/GoRez/pkg"
 	models "github.com/JackStillwell/GoRez/pkg/models"
+	"go.uber.org/zap"
 )
 
 func main() {
+	log, err := zap.NewProduction()
+	if err != nil {
+		fmt.Println("failed to init logger: ", err)
+	}
+
 	var authPath, dataDirPath, matchIds string
 	var numDays int
 	var getGods, getItems bool
@@ -30,87 +35,99 @@ func main() {
 	flag.Parse()
 
 	if authPath == "" {
-		log.Fatal("'auth' argument is required")
+		log.Error("'auth' argument is required")
 		flag.PrintDefaults()
+		return
 	}
 	if dataDirPath == "" {
-		log.Fatal("'datadir' argument is required")
+		log.Error("'datadir' argument is required")
 		flag.PrintDefaults()
+		return
 	}
 
-	log.Println("instantiating gorez")
+	log.Debug("instantiating gorez")
 	g, err := gorez.NewGorez(authPath, nil, 10)
 	if err != nil {
-		log.Fatal("failed to instantiate gorez: ", err)
+		log.Error("failed to instantiate gorez", zap.Error(err))
+		return
 	}
 	defer g.Shutdown()
-	log.Println("gorez instantiated")
+	log.Debug("gorez instantiated")
 
-	log.Println("initing gorez")
+	log.Debug("initing gorez")
 	err = g.Init()
 	if err != nil {
-		log.Fatal("failed to init gorez: ", err)
+		log.Error("failed to init gorez", zap.Error(err))
+		return
 	}
-	log.Println("gorez inited")
+	log.Debug("gorez inited")
 
 	if getGods {
 		gods, err := g.GetGods()
 		if err != nil {
-			log.Println("error fetching gods: ", err)
+			log.Error("error fetching gods", zap.Error(err))
 		} else {
 			jBytes, err := json.Marshal(gods)
 			if err != nil {
-				log.Println("error marshaling gods", err)
+				log.Error("error marshaling gods", zap.Error(err))
+			} else {
+				godsPath := path.Join(dataDirPath, "gods.json")
+				f, err := os.Create(godsPath)
+				if err != nil {
+					log.Error("error opening file to write gods", zap.Error(err))
+					return
+				} else {
+					f.Close()
+					f.Write(jBytes)
+				}
 			}
-			godsPath := path.Join(dataDirPath, "gods.json")
-			f, err := os.Create(godsPath)
-			if err != nil {
-				log.Println("error opening file to write gods", err)
-			}
-			f.Close()
-			f.Write(jBytes)
 		}
 	}
 
 	if getItems {
 		items, err := g.GetItems()
 		if err != nil {
-			log.Println("error fetching items", err)
+			log.Error("error fetching items", zap.Error(err))
 		} else {
 			jBytes, err := json.Marshal(items)
 			if err != nil {
-				log.Println("error marshaling items", err)
+				log.Error("error marshaling items", zap.Error(err))
+			} else {
+				itemsPath := path.Join(dataDirPath, "items.json")
+				f, err := os.Create(itemsPath)
+				if err != nil {
+					log.Error("error opening file to write items", zap.Error(err))
+				} else {
+					f.Close()
+					f.Write(jBytes)
+				}
 			}
-			itemsPath := path.Join(dataDirPath, "items.json")
-			f, err := os.Create(itemsPath)
-			if err != nil {
-				log.Println("error opening file to write items", err)
-			}
-			f.Close()
-			f.Write(jBytes)
 		}
 	}
 
 	if matchIds != "" {
 		idStrings := strings.Split(matchIds, ",")
 		matchDetails, errs := g.GetMatchDetailsBatch(idStrings...)
-		log.Println("errors fetching matchdetailsbatch", errs)
+		log.Error("failed fetching matchdetailsbatch", zap.Errors("errors", errs))
 		jBytes, err := json.Marshal(matchDetails)
 		if err != nil {
-			log.Println("error marshaling matchdetails", err)
+			log.Error("failed marshaling matchdetails", zap.Error(err))
+			return
 		}
 		matchDetailsPath := path.Join(dataDirPath, "matchdetails.json")
 		f, err := os.Create(matchDetailsPath)
 		if err != nil {
-			log.Println("error opening file to write matchdetails", err)
+			log.Error("failed opening file to write matchdetails", zap.Error(err))
+			return
 		}
 		defer f.Close()
 		nBytes, err := f.Write(jBytes)
 		if err != nil {
-			log.Println("error writing matchdetails file:", err.Error())
+			log.Error("failed writing matchdetails file:", zap.Error(err))
+			return
 		}
 		if nBytes == 0 {
-			log.Println("no bytes written to matchdetails file")
+			log.Error("no bytes written to matchdetails file")
 		}
 	}
 
@@ -130,23 +147,27 @@ func main() {
 		matchIdsPath := path.Join(dataDirPath, "matchids.json")
 		f, err := os.Create(matchIdsPath)
 		if err != nil {
-			log.Println("error opening file to write matchids", err)
+			log.Error("error opening file to write matchids", zap.Error(err))
+			return
 		}
 		defer f.Close()
 
 		matchIds, errs := g.GetMatchIDsByQueue(dateStrings, queueIDs)
-		log.Println("errors fetching matchidsbyqueue", errs)
+		log.Error("failed fetching matchidsbyqueue", zap.Errors("errors", errs))
 		jBytes, err := json.Marshal(matchIds)
 		if err != nil {
-			log.Println("error marshaling matchids", err)
+			log.Error("failed marshaling matchids", zap.Error(err))
+			return
 		}
 
 		nBytes, err := f.Write(jBytes)
 		if err != nil {
-			log.Println("error writing matchids file:", err.Error())
+			log.Error("failed writing matchids file", zap.Error(err))
+			return
 		}
 		if nBytes == 0 {
-			log.Println("no bytes written to matchids file")
+			log.Error("no bytes written to matchids file")
+			return
 		}
 
 		toRetrieve := []string{}
@@ -161,24 +182,29 @@ func main() {
 			}
 		}
 
-		log.Println("toRetrieve: ", strings.Join(toRetrieve, ","))
+		log.Info("retrieving matchids", zap.Strings("matchids", toRetrieve))
 		bytesList, errs := g.GetMatchDetailsBatch(toRetrieve...)
-		log.Println("errors fetching matchdetailsbatch:", errs)
+		log.Error("failures fetching matchdetailsbatch", zap.Errors("errors", errs))
 
 		dateString := time.Now().UTC().Format("2006-Jan-02")
 		for i, bytes := range bytesList {
-			matchIdsPath := path.Join(dataDirPath, fmt.Sprintf("matchdetails-%s_%d.json", dateString, i))
+			matchIdsPath := path.Join(dataDirPath, fmt.Sprintf("matchdetails-%s_%d.json",
+				dateString, i))
 			f, err := os.Create(matchIdsPath)
 			if err != nil {
-				log.Printf("error opening file to write matchdetails-%d: %s\n", i, err.Error())
+				log.Error("failed opening file to write matchdetails", zap.Int("fileNumber", i),
+					zap.Error(err))
+				return
 			}
 			defer f.Close()
 			nBytes, err := f.Write(bytes)
 			if err != nil {
-				log.Printf("error writing matchdetails-%d file: %s\n", i, err.Error())
+				log.Error("failed writing matchdetails", zap.Int("fileNumber", i),
+					zap.Error(err))
+				return
 			}
 			if nBytes == 0 {
-				log.Printf("no bytes written to matchdetails-%d file\n", i)
+				log.Error("no bytes written to matchdetails", zap.Int("fileNumber", i))
 			}
 		}
 	}

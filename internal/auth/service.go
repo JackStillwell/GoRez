@@ -5,17 +5,21 @@ import (
 	"encoding/hex"
 	"time"
 
+	"github.com/JackStillwell/GoRez/internal/base"
+
 	i "github.com/JackStillwell/GoRez/internal/auth/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/auth/models"
 )
 
 type service struct {
 	Auth m.Auth
+	Base base.Service
 }
 
-func NewService(a m.Auth) i.Service {
+func NewService(a m.Auth, b base.Service) i.Service {
 	return &service{
 		Auth: a,
+		Base: b,
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"go.uber.org/zap"
 
 	gorez "github.com/JackStillwell/GoRez/pkg"
 	c "github.com/JackStillwell/GoRez/pkg/constants"
@@ -15,6 +16,7 @@ import (
 	m "github.com/JackStillwell/GoRez/pkg/models"
 
 	authMock "github.com/JackStillwell/GoRez/internal/auth/mocks"
+	"github.com/JackStillwell/GoRez/internal/base"
 
 	"github.com/JackStillwell/GoRez/internal/request"
 	"github.com/JackStillwell/GoRez/internal/session"
@@ -29,6 +31,7 @@ var _ = Describe("ApiUtil", func() {
 			authSvc *authMock.MockService
 
 			target i.APIUtil
+			b      = base.NewService(zap.NewNop())
 		)
 
 		BeforeEach(func() {
@@ -36,8 +39,8 @@ var _ = Describe("ApiUtil", func() {
 			testServer = httptest.NewServer(nil)
 
 			authSvc = authMock.NewMockService(ctrl)
-			rqstSvc := request.NewService(3)
-			sesnSvc := session.NewService(3, nil)
+			rqstSvc := request.NewService(3, b)
+			sesnSvc := session.NewService(3, nil, b)
 
 			hiRezC := c.NewHiRezConstants()
 			hiRezC.SmiteURLBase = testServer.URL

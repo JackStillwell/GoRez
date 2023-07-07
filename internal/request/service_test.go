@@ -9,7 +9,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
+	"github.com/JackStillwell/GoRez/internal/base"
 	"github.com/JackStillwell/GoRez/internal/request"
 	i "github.com/JackStillwell/GoRez/internal/request/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/request/models"
@@ -20,12 +22,13 @@ var _ = Describe("Service", func() {
 		uniqueId uuid.UUID
 
 		target i.Service
+		b      = base.NewService(zap.NewNop())
 	)
 
 	BeforeEach(func() {
 		uniqueId = uuid.New()
 
-		target = request.NewService(1)
+		target = request.NewService(1, b)
 	})
 
 	Describe("Request", func() {
@@ -234,7 +237,7 @@ var _ = Describe("Service", func() {
 			}
 
 			BeforeEach(func() {
-				target = request.NewService(numRequests)
+				target = request.NewService(numRequests, b)
 			})
 
 			It("should return the response", func() {

@@ -3,17 +3,22 @@ package session_test
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"go.uber.org/zap"
 
+	"github.com/JackStillwell/GoRez/internal/base"
 	"github.com/JackStillwell/GoRez/internal/session"
 	i "github.com/JackStillwell/GoRez/internal/session/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/session/models"
 )
 
 var _ = Describe("Service", func() {
+	var (
+		b = base.NewService(zap.NewNop())
+	)
 	Context("NewSessionService", func() {
 		It("should fail to create a session with more existing sessions than max sessions", func() {
 			Expect(func() {
-				session.NewService(0, []*m.Session{{}})
+				session.NewService(0, []*m.Session{{}}, b)
 			}).To(PanicWith(
 				"cannot create a session service with capacity 0 and 1 existing sessions",
 			))
@@ -25,7 +30,7 @@ var _ = Describe("Service", func() {
 			}
 			var svc i.Service
 			Expect(func() {
-				svc = session.NewService(10, []*m.Session{existingSession})
+				svc = session.NewService(10, []*m.Session{existingSession}, b)
 			}).ToNot(Panic())
 
 			sessChan := make(chan *m.Session, 10)
@@ -43,7 +48,7 @@ var _ = Describe("Service", func() {
 				{Key: "123"},
 				{Key: "123"},
 				{Key: "123"},
-			})
+			}, b)
 
 			Expect(svc.GetAvailableSessions()).To(HaveLen(numSessions))
 		})
@@ -57,7 +62,7 @@ var _ = Describe("Service", func() {
 				{Key: "123"},
 				{Key: "123"},
 				{Key: "123"},
-			})
+			}, b)
 
 			sessChan := make(chan *m.Session, 5)
 			svc.ReserveSession(5, sessChan)
@@ -70,7 +75,7 @@ var _ = Describe("Service", func() {
 
 	Context("ReleaseSession", func() {
 		It("should make released sessions available", func() {
-			svc := session.NewService(1, []*m.Session{})
+			svc := session.NewService(1, []*m.Session{}, b)
 
 			sessChan := make(chan *m.Session, 1)
 			go svc.ReserveSession(1, sessChan)
@@ -85,7 +90,7 @@ var _ = Describe("Service", func() {
 	Context("BadSession", func() {
 		It("should remove one bad session from available sessions", func() {
 			badSess := &m.Session{Key: "bad"}
-			svc := session.NewService(1, []*m.Session{badSess})
+			svc := session.NewService(1, []*m.Session{badSess}, b)
 
 			sessChan := make(chan *m.Session, 1)
 			go svc.ReserveSession(1, sessChan)
@@ -104,7 +109,7 @@ var _ = Describe("Service", func() {
 				goodSess1,
 				badSess,
 				goodSess2,
-			})
+			}, b)
 
 			sessChan := make(chan *m.Session, 1)
 			go svc.ReserveSession(3, sessChan)

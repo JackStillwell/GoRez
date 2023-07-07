@@ -2,8 +2,10 @@ package session
 
 import (
 	"fmt"
-	"log"
 	"sync"
+
+	"github.com/JackStillwell/GoRez/internal/base"
+	"go.uber.org/zap"
 
 	i "github.com/JackStillwell/GoRez/internal/session/interfaces"
 	m "github.com/JackStillwell/GoRez/internal/session/models"
@@ -14,27 +16,36 @@ type service struct {
 	availableSessions chan *m.Session
 	reservedSessions  map[*m.Session]struct{}
 	lock              sync.Mutex
+	base              base.Service
 }
 
 func (s *service) addReservedSession(sess *m.Session) {
-	log.Println("waiting for reserved session lock")
+	log := s.base.GetLogger()
+	log.Debug("waiting for reserved session lock", zap.String("operation", "addReservedSession"),
+		zap.String("session", sess.Key))
 	s.lock.Lock()
-	log.Println("reserved session lock acquired")
+	log.Debug("reserved session lock acquired", zap.String("operation", "addReservedSession"),
+		zap.String("session", sess.Key))
 	s.reservedSessions[sess] = struct{}{}
-	log.Println("releasing reserved session lock")
+	log.Debug("releasing reserved session lock", zap.String("operation", "addReservedSession"),
+		zap.String("session", sess.Key))
 	s.lock.Unlock()
 }
 
 func (s *service) removeReservedSession(sess *m.Session) {
-	log.Println("waiting for reserved session lock")
+	log := s.base.GetLogger()
+	log.Debug("waiting for reserved session lock", zap.String("operation", "removeReservedSession"),
+		zap.String("session", sess.Key))
 	s.lock.Lock()
-	log.Println("reserved session lock acquired")
+	log.Debug("reserved session lock acquired", zap.String("operation", "removeReservedSession"),
+		zap.String("session", sess.Key))
 	delete(s.reservedSessions, sess)
-	log.Println("releasing reserved session lock")
+	log.Debug("releasing reserved session lock", zap.String("operation", "removeReservedSession"),
+		zap.String("session", sess.Key))
 	s.lock.Unlock()
 }
 
-func NewService(maxSessions int, existingSessions []*m.Session) i.Service {
+func NewService(maxSessions int, existingSessions []*m.Session, b base.Service) i.Service {
 	if len(existingSessions) > maxSessions {
 		panic(fmt.Sprintf(
 			"cannot create a session service with capacity %d and %d existing sessions",
@@ -55,6 +66,7 @@ func NewService(maxSessions int, existingSessions []*m.Session) i.Service {
 		availableSessions: aS,
 		reservedSessions:  rS,
 		lock:              sync.Mutex{},
+		base:              b,
 	}
 }
 
@@ -68,12 +80,15 @@ func (s *service) GetAvailableSessions() []*m.Session {
 }
 
 func (s *service) ReserveSession(numSessions int, retChan chan *m.Session) {
-	log.Printf("reserving %d of %d available sessions", numSessions, len(s.availableSessions))
+	log := s.base.GetLogger()
+	log.Debug("reserving available session(s)", zap.Int("numReserving", numSessions),
+		zap.Int("numAvailable", len(s.availableSessions)))
 	for i := 0; i < numSessions; i++ {
 		toReturn := <-s.availableSessions
 		s.addReservedSession(toReturn)
 		retChan <- toReturn
-		log.Printf("%d of %d sessions reserved", i+1, numSessions)
+		log.Debug("reserved available session", zap.String("session", toReturn.Key),
+			zap.Int("numReserved", numSessions), zap.Int("numAvailable", len(s.availableSessions)))
 	}
 }
 
