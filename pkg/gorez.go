@@ -245,4 +245,6 @@ func (gr *g) Shutdown() {
 	)); err != nil {
 		log.Error("failure saving sessions", zap.Error(err))
 	}
+
+	gr.b.ShutdownLogger()
 }
