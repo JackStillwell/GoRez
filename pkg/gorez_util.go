@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/onsi/ginkgo/v2"
 
 	i "github.com/JackStillwell/GoRez/pkg/interfaces"
 	m "github.com/JackStillwell/GoRez/pkg/models"
@@ -71,6 +72,7 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	// NOTE: this is async so the reservation and release of sessions is possible, but the func
 	// return depends upon responses being completed.
 	go func() {
+		defer ginkgo.GinkgoRecover()
 		for i, rB := range requestBuilders {
 			sessChan := make(chan *sessionM.Session, 1)
 			g.sesnSvc.ReserveSession(1, sessChan)
