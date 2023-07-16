@@ -69,7 +69,7 @@ func (s *service) Request(rqst *m.Request) (rr *m.RequestResponse) {
 		return
 	}
 
-	log.Info("making request", zap.String("id", rqst.Id.String()), zap.String("url", requestURL))
+	log.Debug("making request", zap.String("id", rqst.Id.String()), zap.String("url", requestURL))
 	resp, err := http.Get(requestURL)
 	if err != nil {
 		rr.Err = errors.Wrap(err, "getting response")
