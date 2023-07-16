@@ -34,7 +34,7 @@ var _ = Describe("MatchInfo", func() {
 		matchInfo i.MatchInfo
 	)
 
-	BeforeEach(func() {
+	BeforeEach(func(ctx SpecContext) {
 		ctrl = gomock.NewController(GinkgoT())
 
 		sesnSvc = sesnMocks.NewMockService(ctrl)
@@ -45,36 +45,30 @@ var _ = Describe("MatchInfo", func() {
 		rqstSvc = rqstMocks.NewMockService(ctrl)
 
 		matchInfo = gorez.NewMatchInfo(rqstSvc, authSvc, sesnSvc)
-	})
+	}, NodeTimeout(time.Second))
 
 	Context("GetMatchIdsByQueue", func() {
 		FIt("should request each provided dateString queue combination", func(ctx SpecContext) {
 			sesnSvc.EXPECT().ReserveSession(1, gomock.Any()).Do(
 				func(_ int, c chan *sesnM.Session) {
 					c <- &sesnM.Session{Key: "123"}
-				}).AnyTimes()
+				}).Times(2)
 
-			rqstSvc.EXPECT().MakeRequest(gomock.Any()).Do(func(r *rqstM.Request) {
-				url, err := r.JITFunc()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(url).To(ContainSubstring("20230716/0"))
-			}).Times(1)
-			rqstSvc.EXPECT().MakeRequest(gomock.Any()).Do(func(r *rqstM.Request) {
-				url, err := r.JITFunc()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(url).To(ContainSubstring("20230716/1"))
-			}).Times(1)
-			rqstSvc.EXPECT().GetResponse(gomock.Any()).DoAndReturn(func(uID *uuid.UUID) *rqstM.RequestResponse {
-				return &rqstM.RequestResponse{
-					Id:   uID,
-					Err:  nil,
-					Resp: []byte(`[{"Match": "123"}]`),
-				}
-			}).AnyTimes()
-			sesnSvc.EXPECT().ReleaseSession(gomock.Any()).AnyTimes()
+			rqstSvc.EXPECT().MakeRequest(NewRequstURLContainsMatcher("20230716/0")).Times(1)
+			rqstSvc.EXPECT().MakeRequest(NewRequstURLContainsMatcher("20230716/1")).Times(1)
+			rqstSvc.EXPECT().GetResponse(gomock.Any()).DoAndReturn(
+				func(uID *uuid.UUID) *rqstM.RequestResponse {
+					return &rqstM.RequestResponse{
+						Id:   uID,
+						Err:  nil,
+						Resp: []byte(`[{"Match": "123"}]`),
+					}
+				},
+			).Times(2)
+			sesnSvc.EXPECT().ReleaseSession(gomock.Any()).Times(2)
 
 			_, errs := matchInfo.GetMatchIDsByQueue([]string{"20230716/0", "20230716/1"}, []m.QueueID{m.RankedConquest})
-			Expect(errs).To(ConsistOf(BeNil()))
-		}, SpecTimeout(time.Second*2))
+			Expect(errs).To(ConsistOf(BeNil(), BeNil()))
+		}, SpecTimeout(time.Second*1))
 	})
 })

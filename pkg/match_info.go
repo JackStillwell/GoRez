@@ -79,11 +79,13 @@ func (r *matchInfo) GetMatchIDsByQueue(dateStrings []string, queueIDs []m.QueueI
 ) {
 	retObjs := []*[]m.MatchIDWithQueue{}
 	errs := []error{}
-	for _, queueID := range queueIDs {
+	for i := 0; i < len(queueIDs); i++ {
+		queueID := queueIDs[i]
 		requests := make([]func(*sessionM.Session) *requestM.Request, 0,
 			len(queueIDs)*len(dateStrings),
 		)
-		for _, dateString := range dateStrings {
+		for j := 0; j < len(dateStrings); j++ {
+			dateString := dateStrings[j]
 			requestFunc := func(session *sessionM.Session) *requestM.Request {
 				f := HiRezJIT(
 					r.hrC.SmiteURLBase+"/"+r.hrC.GetMatchIDsByQueue+"json",
