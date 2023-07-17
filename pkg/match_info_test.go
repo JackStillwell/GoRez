@@ -67,8 +67,15 @@ var _ = Describe("MatchInfo", func() {
 			).Times(2)
 			sesnSvc.EXPECT().ReleaseSession(gomock.Any()).Times(2)
 
-			_, errs := matchInfo.GetMatchIDsByQueue([]string{"20230716/0", "20230716/1"}, []m.QueueID{m.RankedConquest})
+			results, errs := matchInfo.GetMatchIDsByQueue([]string{"20230716/0", "20230716/1"}, []m.QueueID{m.RankedConquest})
 			Expect(errs).To(ConsistOf(BeNil(), BeNil()))
+
+			expectedMatchID := "123"
+			Expect(results).To(ConsistOf(&[]m.MatchIDWithQueue{
+				{MatchID: m.MatchID{Match: &expectedMatchID}, QueueID: 451},
+			}, &[]m.MatchIDWithQueue{
+				{MatchID: m.MatchID{Match: &expectedMatchID}, QueueID: 451},
+			}))
 		}, SpecTimeout(time.Second*1))
 	})
 })
