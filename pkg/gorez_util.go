@@ -73,7 +73,8 @@ func (g *gorezUtil) BulkAsyncSessionRequest(requestBuilders []func(*sessionM.Ses
 	// return depends upon responses being completed.
 	go func() {
 		defer ginkgo.GinkgoRecover()
-		for i, rB := range requestBuilders {
+		for i := range requestBuilders {
+			rB := requestBuilders[i]
 			sessChan := make(chan *sessionM.Session, 1)
 			g.sesnSvc.ReserveSession(1, sessChan)
 
@@ -124,7 +125,8 @@ func (g *gorezUtil) MultiRequest(requestArgs []string, baseURL, method string,
 ) ([][]byte, []error) {
 	requestBuilders := make([]func(*sessionM.Session) *requestM.Request, len(requestArgs))
 
-	for i, arg := range requestArgs {
+	for i := range requestArgs {
+		arg := requestArgs[i]
 		requestBuilders[i] = func(s *sessionM.Session) *requestM.Request {
 			return &requestM.Request{
 				JITFunc: HiRezJIT(
