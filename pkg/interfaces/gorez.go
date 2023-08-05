@@ -25,10 +25,10 @@ type GodItemInfo interface {
 }
 
 type PlayerInfo interface {
-	GetPlayerIDByName(playerName []string) ([]*m.PlayerIDWithName, error)
+	GetPlayerIDByName(playerName ...string) ([]*m.PlayerIDWithName, []error)
 	GetPlayer(playerID int) ([]byte, error)
 	GetPlayerBatch(playerIDs []int) ([][]byte, []error)
-	GetMatchHistory(playerID []int) ([][]byte, []error)
+	GetMatchHistory(playerID ...int) ([][]byte, []error)
 	GetQueueStats(playerID []int) ([]*m.QueueStat, []error)
 }
 

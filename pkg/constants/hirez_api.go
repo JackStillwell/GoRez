@@ -8,17 +8,19 @@ const (
 	GetDataUsed            = "getdataused"
 	CreateSession          = "createsession"
 	TestSession            = "testsession"
+	GetMatchHistory        = "getmatchhistory"
 	GetMatchDetails        = "getmatchdetails"
 	GetMatchDetailsBatch   = "getmatchdetailsbatch"
 	GetMatchIDsByQueue     = "getmatchidsbyqueue"
 	GetGods                = "getgods"
 	GetItems               = "getitems"
 	GetGodRecommendedItems = "getgodrecommendeditems"
+	GetPlayerIDByName      = "getplayeridbyname"
 )
 
 type HiRezConstants struct {
-	SmiteURLBase, GetDataUsed, CreateSession, TestSession, GetMatchDetails, GetMatchDetailsBatch,
-	GetMatchIDsByQueue, GetGods, GetItems, GetGodRecommendedItems string
+	SmiteURLBase, GetDataUsed, CreateSession, TestSession, GetMatchHistory, GetMatchDetails, GetMatchDetailsBatch,
+	GetMatchIDsByQueue, GetGods, GetItems, GetGodRecommendedItems, GetPlayerIDByName string
 }
 
 func NewHiRezConstants() HiRezConstants {
@@ -27,11 +29,13 @@ func NewHiRezConstants() HiRezConstants {
 		GetDataUsed,
 		CreateSession,
 		TestSession,
+		GetMatchHistory,
 		GetMatchDetails,
 		GetMatchDetailsBatch,
 		GetMatchIDsByQueue,
 		GetGods,
 		GetItems,
 		GetGodRecommendedItems,
+		GetPlayerIDByName,
 	}
 }
